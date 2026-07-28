@@ -21,11 +21,9 @@ import { useSettingsStore } from '@/stores/settings-store'
  */
 export function ThemeToggle({
   resolved,
-  className = 'theme-toggle',
   testId = 'theme-toggle',
 }: {
   resolved: ResolvedTheme
-  className?: string
   testId?: string
 }) {
   const t = useTranslations('theme')
@@ -36,7 +34,7 @@ export function ThemeToggle({
   return (
     <button
       type="button"
-      className={className}
+      className="theme-toggle"
       data-testid={testId}
       aria-label={t('toggle')}
       onClick={() => {

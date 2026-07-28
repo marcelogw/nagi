@@ -46,11 +46,7 @@ export function ShellRoute() {
             {labels.profile}
           </Link>
 
-          <ThemeToggle
-            resolved={resolvedTheme}
-            className="theme-toggle app-header__theme"
-            testId="theme-toggle-compact"
-          />
+          <ThemeToggle resolved={resolvedTheme} testId="theme-toggle-compact" />
         </header>
 
         <main key={pathname} className="app-shell__main">

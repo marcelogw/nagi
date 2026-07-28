@@ -72,3 +72,28 @@ test('the rail gives way to the tab bar below 960px', async ({ page }) => {
   await tabBar.getByTestId('nav-link-cards').click()
   await expectRoute(page, 'cards')
 })
+
+test('the theme stays reachable when the rail goes', async ({ page }) => {
+  await page.goto('/')
+
+  await expect(page.getByTestId('theme-toggle')).toBeVisible()
+  await expect(page.getByTestId('theme-toggle-compact')).toBeHidden()
+
+  await page.setViewportSize({ width: 390, height: 844 })
+
+  // The check the previous test was missing. Asserting the rail is hidden says
+  // nothing about what was inside it, and the theme control was inside it: for
+  // one commit it existed, passed every test, and could not be reached on a
+  // phone at all.
+  await expect(page.getByTestId('theme-toggle')).toBeHidden()
+  const toggle = page.getByTestId('theme-toggle-compact')
+  await expect(toggle).toBeVisible()
+
+  // A thumb, not a pointer. The design's floor for anything tappable.
+  const box = await toggle.boundingBox()
+  expect(box?.width).toBeGreaterThanOrEqual(44)
+  expect(box?.height).toBeGreaterThanOrEqual(44)
+
+  await toggle.click()
+  await expect(page.locator('html')).toHaveClass(/dark/)
+})

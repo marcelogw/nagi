@@ -227,9 +227,18 @@
    gone. Both are always in the DOM; the breakpoint at the bottom of this file
    decides which is shown. */
 .app-header__brand,
-.app-header__profile,
-.app-header__theme {
+.app-header__profile {
   display: none;
+}
+
+/* Scoped to the header rather than given its own class: `.theme-toggle` sets
+   `display: flex` further down this file, and two single-class selectors of
+   equal specificity are decided by source order — so a `.app-header__theme
+   { display: none }` up here would simply lose. */
+.app-header .theme-toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
 }
 
 .app-header__profile {
@@ -247,11 +256,6 @@
   /* The design's phone floor for anything tappable. The rail's 28px controls
      are a pointer target; these are a thumb target. */
   min-height: 44px;
-}
-
-.app-header__theme {
-  width: 44px;
-  height: 44px;
 }
 
 .app-header__profile:focus-visible {
@@ -320,7 +324,7 @@
   }
 
   .app-header__profile,
-  .app-header__theme {
+  .app-header .theme-toggle {
     display: inline-flex;
   }
 
