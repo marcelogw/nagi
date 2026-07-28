@@ -54,6 +54,55 @@ silent tick and not a deleted line.
 Partial work does not merge as "done". Missing tests, a missing translation and
 a TODO-flagged edge case are each enough to hold a PR open.
 
+## Tests
+
+Four layers, and something belongs to exactly one of them.
+
+| Layer | Covers | Rule |
+| --- | --- | --- |
+| **Domain** (`src/domain/`) | Money, months, recurrence, goals, totals | Pure functions. No React, no storage, no i18n, no mocks. |
+| **Store** (`src/stores/`) | Actions, invariants, state transitions | Drive the real store; assert the resulting state, never the calls made. |
+| **Component** | Rendering, interaction, accessibility | Testing Library through `src/test/render.tsx`. Query by role and label, never by class. |
+| **End-to-end** | One primary flow per route | `data-testid` selectors only, never user-visible text. |
+
+There is a worked example of each in the repo — `src/domain/month.test.ts`,
+`src/stores/settings-store.test.ts`, `src/routes/home.test.tsx`. Copy the nearest
+one rather than inventing a new shape.
+
+**The suite runs under `TZ=America/Sao_Paulo`**, set in `vite.config.ts` and on
+the CI job. This is not a preference. Parsing a date-only string with
+`new Date('2026-07-01')` yields UTC midnight, which is the *previous day* in any
+timezone west of Greenwich — the defect family that did the most damage in the
+app Nagi replaces. Under UTC it is invisible, so the suite refuses to run there:
+flip the timezone and `src/domain/month.test.ts` goes red on purpose.
+
+**Anything that reads the clock is pinned with `vi.setSystemTime()`.** Current
+month defaults, goal status, `createdAt`. A test that passes only in July is not
+a test:
+
+```ts
+beforeEach(() => {
+  vi.useFakeTimers()
+  vi.setSystemTime(new Date(2026, 6, 15)) // local time, never a date string
+})
+afterEach(() => {
+  vi.useRealTimers()
+})
+```
+
+**Every Radix-based component gets a render test that opens it.** Radix enforces
+invariants TypeScript cannot see — a `SelectItem` may not have `value=""`, a
+`Dialog` needs a title. Only rendering surfaces them.
+
+**A number shown to the user is covered by a unit test.** If a value reaches the
+screen, something asserts it.
+
+`npm run test:coverage` reports coverage. Only generated code and
+`src/components/ui/` are excluded, and that list does not grow: a module that is
+hard to test is a design problem to fix, not a line to add to an exclude list.
+Read the percentage as a smoke alarm, not a target — it only sees files some
+test already imports, so a brand-new untested module is invisible to it.
+
 ## Validation before delivery
 
 Nothing ships on the strength of "it compiles".
