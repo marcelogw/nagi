@@ -64,6 +64,13 @@ body {
   line-height: var(--leading-normal);
   color: var(--foreground);
   background: var(--background);
+  /* The theme switch eases rather than cuts. Only the surface moves — type,
+     icon sizes and spacing are identical in both themes, so there is nothing
+     else to animate. The first paint is already correct (the blocking script in
+     index.html), so this never animates the page into its own theme. */
+  transition:
+    background-color var(--duration-slow) var(--ease-standard),
+    color var(--duration-slow) var(--ease-standard);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -72,4 +79,10 @@ body {
 
 #root {
   min-height: 100svh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    transition: none;
+  }
 }
