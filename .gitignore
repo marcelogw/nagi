@@ -1,1 +1,14 @@
 .wolf/
+
+# Node / Vite (ready for when the app is scaffolded)
+node_modules/
+dist/
+dist-ssr/
+*.local
+.env
+.env.*
+!.env.example
+
+# Editors / OS
+.DS_Store
+*.log
