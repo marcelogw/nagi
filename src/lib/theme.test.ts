@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { applyTheme, resolveTheme, systemPrefersDark, watchSystemTheme } from './theme'
+import { applyResolvedTheme, resolveTheme, systemPrefersDark, watchSystemTheme } from './theme'
 
 const DARK_QUERY = '(prefers-color-scheme: dark)'
 
@@ -63,30 +63,19 @@ describe('systemPrefersDark', () => {
   })
 })
 
-describe('applyTheme', () => {
-  it('puts the dark class on the document for an explicit dark theme', () => {
-    stubMatchMedia(false)
-
-    applyTheme('dark')
+describe('applyResolvedTheme', () => {
+  it('puts the dark class on the document', () => {
+    applyResolvedTheme('dark')
 
     expect(document.documentElement).toHaveClass('dark')
   })
 
-  it('removes the dark class for an explicit light theme, whatever the OS prefers', () => {
-    stubMatchMedia(true)
+  it('takes it back off', () => {
     document.documentElement.classList.add('dark')
 
-    applyTheme('light')
+    applyResolvedTheme('light')
 
     expect(document.documentElement).not.toHaveClass('dark')
-  })
-
-  it('follows the OS preference for the system theme', () => {
-    stubMatchMedia(true)
-
-    applyTheme('system')
-
-    expect(document.documentElement).toHaveClass('dark')
   })
 })
 

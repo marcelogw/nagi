@@ -33,8 +33,7 @@ export function systemPrefersDark(): boolean {
   return window.matchMedia(DARK_QUERY).matches
 }
 
-export function applyTheme(theme: Theme): void {
-  const resolved = resolveTheme(theme, systemPrefersDark())
+export function applyResolvedTheme(resolved: ResolvedTheme): void {
   document.documentElement.classList.toggle(DARK_CLASS, resolved === 'dark')
 }
 

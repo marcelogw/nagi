@@ -1,26 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router'
-import { render, waitFor } from '@/test/render'
+import { renderRoute } from '@/test/render'
 import { currentMonth } from '@/domain/month'
-import { routeTree, validateDashboardSearch } from './router'
+import { validateDashboardSearch } from './router'
 
 // Routing is navigation state, so these assert the URL the app settles on
-// rather than what got rendered. A memory history gives each test its own
-// browser-shaped history without a browser.
+// rather than what got rendered.
 
-async function land(at: string) {
-  const router = createRouter({
-    routeTree,
-    history: createMemoryHistory({ initialEntries: [at] }),
-  })
-
-  render(<RouterProvider router={router} />)
-  await waitFor(() => {
-    expect(router.state.status).toBe('idle')
-  })
-
-  return router
-}
+const land = async (at: string) => (await renderRoute(at)).router
 
 describe('the route tree', () => {
   it('sends the index to the dashboard instead of rendering a second copy of it', async () => {

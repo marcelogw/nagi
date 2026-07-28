@@ -1,6 +1,18 @@
 {
   "app": {
-    "title": "Nagi",
     "tagline": "The calm after the wind stops."
+  },
+  "nav": {
+    "label": "Navigation",
+    "dashboard": "Dashboard",
+    "months": "Monthly view",
+    "monthsShort": "Month",
+    "goals": "Goals",
+    "categories": "Categories",
+    "cards": "Cards",
+    "profile": "Profile"
+  },
+  "theme": {
+    "toggle": "Switch theme"
   }
 }

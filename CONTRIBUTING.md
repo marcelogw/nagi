@@ -48,8 +48,9 @@ A box that genuinely does not apply stays **unchecked**, with `— N/A: <reason>
 appended. A docs-only change has no screenshot; that is worth one clause, not a
 silent tick and not a deleted line.
 
-> `npm run test:e2e` does not exist yet — Playwright is not installed. Until it
-> is, that box is `N/A: no e2e harness yet`. Every other box applies today.
+> `npm run test:e2e` runs Playwright against Chromium and starts the dev server
+> itself — no separate terminal, no manual step. First run on a clean clone
+> needs the browser once: `npx playwright install chromium`.
 
 Partial work does not merge as "done". Missing tests, a missing translation and
 a TODO-flagged edge case are each enough to hold a PR open.
@@ -140,8 +141,12 @@ Four layers, and something belongs to exactly one of them.
 | **End-to-end** | One primary flow per route | `data-testid` selectors only, never user-visible text. |
 
 There is a worked example of each in the repo — `src/domain/month.test.ts`,
-`src/stores/settings-store.test.ts`, `src/routes/home.test.tsx`. Copy the nearest
-one rather than inventing a new shape.
+`src/stores/settings-store.test.ts`, `src/routes/shell.test.tsx`,
+`e2e/smoke.spec.ts`. Copy the nearest one rather than inventing a new shape.
+
+A component test that needs a route renders through `renderRoute()` from
+`src/test/render.tsx`, which mounts the app's real route tree over a memory
+history. A test-only tree would pass while the real one redirected elsewhere.
 
 **The suite runs under `TZ=America/Sao_Paulo`**, set in `vite.config.ts` and on
 the CI job. This is not a preference. Parsing a date-only string with
