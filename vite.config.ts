@@ -39,6 +39,17 @@ export default defineConfig({
       {
         extends: true,
         test: {
+          name: 'scripts',
+          include: ['scripts/**/*.test.ts'],
+          // Repo tooling: shells out to oxlint and touches the filesystem, so
+          // it wants node and the longer timeout a real process needs.
+          environment: 'node',
+          testTimeout: 20_000,
+        },
+      },
+      {
+        extends: true,
+        test: {
           name: 'app',
           include: ['src/**/*.test.{ts,tsx}'],
           // Spread, never replace: a bare array drops Vitest's own defaults
