@@ -220,7 +220,15 @@ describe('skipped and focused tests do not reach the branch (P-23)', () => {
   it('reads specs only, not product code', () => {
     const rule = RULES.find((r) => r.id === 'no-skipped-tests')!
 
-    expect(rule.scope).toContain('.test.')
+    expect(rule.scope).toContain('test,spec')
+  })
+
+  // The pitfall this rule exists for is an end-to-end suite that sat skipped
+  // while looking like coverage. A glob that misses `e2e/*.spec.ts` misses it.
+  it('reads the end-to-end specs, which are the ones P-23 is about', () => {
+    const rule = RULES.find((r) => r.id === 'no-skipped-tests')!
+
+    expect(rule.scope).toContain('e2e')
   })
 })
 

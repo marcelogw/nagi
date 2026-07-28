@@ -23,8 +23,14 @@ import { relative } from 'node:path'
  */
 const PRODUCT = 'src/**/*.{ts,tsx,css}'
 
-/** Specs, wherever they live. Only the skipped-test rule reads these. */
-const SPECS = '{src,scripts}/**/*.test.{ts,tsx}'
+/**
+ * Specs, wherever they live. Only the skipped-test rule reads these.
+ *
+ * `e2e/` and `.spec.` are in here deliberately: P-23 is *about* an end-to-end
+ * suite, and a glob covering only `src/**\/*.test.ts` would have left the one
+ * kind of file the rule exists for unread.
+ */
+const SPECS = '{src,scripts,e2e}/**/*.{test,spec}.{ts,tsx}'
 
 /** @typedef {{ id: string, pattern: RegExp, message: string, scope?: string, exempt?: (file: string) => boolean }} Rule */
 
