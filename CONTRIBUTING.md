@@ -102,6 +102,27 @@ Every rule has a test that watches it reject a deliberate violation
 (`scripts/enforcement.test.ts`). Adding a rule without one fails that suite —
 configuration nobody has seen reject anything is not enforcement.
 
+### If you work through an agent
+
+`.claude/settings.json` is committed and installs a `PreToolUse` hook that runs
+`scripts/hooks/guard-write.mjs` before every Write and Edit. It refuses:
+
+- a write that introduces one of the patterns above
+- a hand-written file in `src/components/ui/` — those come from the shadcn CLI,
+  and a hand-edited one is either overwritten by the next `shadcn add` or, worse,
+  quietly diverges from it
+- `src/domain/x.ts` when `src/domain/x.test.ts` does not exist. The domain layer
+  is written test-first: pure functions whose spec already exists have no excuse
+  for test-after
+
+It adds no rule that `npm run quality` does not already enforce, and it imports
+the rule list from the same file rather than restating it — a second copy drifts,
+and the copy that drifts is always the one that lets the bad write through. What
+it changes is *when* you find out: at the keystroke instead of on the pull
+request. A skill advises; a hook decides.
+
+Personal overrides go in `.claude/settings.local.json`, which is git-ignored.
+
 Each rule's known blind spots are written next to it in
 `scripts/check-patterns.mjs`. The largest: a date built from a string
 *variable*, and `push`/`pop`/`fill` on a value read from a store. Both need
