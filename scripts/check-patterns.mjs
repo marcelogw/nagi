@@ -16,9 +16,17 @@
 import { globSync, readFileSync } from 'node:fs'
 import { relative } from 'node:path'
 
-const SCANNED = 'src/**/*.{ts,tsx,css}'
+/**
+ * Product code. The design and date rules only mean anything here — this file
+ * and its test exist to *contain* the banned patterns, and scanning them would
+ * flag the enforcement for enforcing.
+ */
+const PRODUCT = 'src/**/*.{ts,tsx,css}'
 
-/** @typedef {{ id: string, pattern: RegExp, message: string, exempt?: (file: string) => boolean }} Rule */
+/** Specs, wherever they live. Only the skipped-test rule reads these. */
+const SPECS = '{src,scripts}/**/*.test.{ts,tsx}'
+
+/** @typedef {{ id: string, pattern: RegExp, message: string, scope?: string, exempt?: (file: string) => boolean }} Rule */
 
 /** @type {Rule[]} */
 export const RULES = [
@@ -98,6 +106,18 @@ export const RULES = [
       'In-place array mutation. A value read from a store selector *is* the store’s state, ' +
       'so sorting it sorts the store. Use toSorted(), toReversed() or toSpliced() — each returns a copy.',
   },
+  {
+    id: 'no-skipped-tests',
+    scope: SPECS,
+    // P-23. The predecessor's entire replication E2E suite sat skipped while
+    // looking, from the outside, exactly like coverage. A `.skip` is either
+    // deleted or fixed; it does not get committed and revisited later.
+    // `.only` is worse: it silently stops running every other test in the file.
+    pattern: /\b(?:describe|it|test)\.(?:skip|only)\b|\b(?:xdescribe|xit)\(/g,
+    message:
+      'Skipped or focused test. A `.skip` looks like coverage and is not; a `.only` quietly ' +
+      'stops running everything else in the file. Delete it or fix it before committing.',
+  },
 ]
 
 /**
@@ -129,16 +149,17 @@ function blankBlockComments(source) {
 
 /**
  * @param {string[]} files
+ * @param {Rule[]} rules
  * @returns {{ file: string, line: number, column: number, rule: string, match: string, message: string }[]}
  */
-export function check(files) {
+export function check(files, rules = RULES) {
   const findings = []
 
   for (const file of files) {
     const source = readFileSync(file, 'utf8')
     const lines = blankBlockComments(source).split('\n')
 
-    for (const rule of RULES) {
+    for (const rule of rules) {
       if (rule.exempt?.(file)) continue
 
       lines.forEach((text, index) => {
@@ -162,8 +183,15 @@ export function check(files) {
 }
 
 function main() {
-  const files = globSync(SCANNED).map((file) => relative(process.cwd(), file))
-  const findings = check(files)
+  const findings = []
+  const scanned = new Set()
+
+  // Per rule, not per file: each rule declares the tree it means something in.
+  for (const rule of RULES) {
+    const files = globSync(rule.scope ?? PRODUCT).map((file) => relative(process.cwd(), file))
+    files.forEach((file) => scanned.add(file))
+    findings.push(...check(files, [rule]))
+  }
 
   for (const finding of findings) {
     console.error(`${finding.file}:${finding.line}:${finding.column}`)
@@ -172,11 +200,11 @@ function main() {
   }
 
   if (findings.length > 0) {
-    console.error(`${findings.length} forbidden pattern(s) in ${files.length} files.`)
+    console.error(`${findings.length} forbidden pattern(s) in ${scanned.size} files.`)
     process.exit(1)
   }
 
-  console.log(`check-patterns: clean (${files.length} files, ${RULES.length} rules)`)
+  console.log(`check-patterns: clean (${scanned.size} files, ${RULES.length} rules)`)
 }
 
 if (import.meta.filename === process.argv[1]) main()
