@@ -55,9 +55,11 @@ export function NagiMark() {
  */
 export function NagiWordmark() {
   return (
-    <span className="wordmark">
+    <span className="wordmark" data-testid="wordmark">
       {WORDMARK}
-      <span className="wordmark__dot">{WORDMARK_DOT}</span>
+      <span className="wordmark__dot" data-testid="wordmark-dot">
+        {WORDMARK_DOT}
+      </span>
     </span>
   )
 }

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderRoute, screen, within } from '@/test/render'
 import { currentMonth } from '@/domain/month'
 import { useSettingsStore } from '@/stores/settings-store'
@@ -8,11 +8,14 @@ import { useSettingsStore } from '@/stores/settings-store'
 // hardcoded string. Never query by class name.
 
 describe('the shell', () => {
-  it('is present on every route', async () => {
-    await renderRoute('/dashboard')
+  it.each(['/dashboard', '/goals', '/categories', '/cards', '/settings', '/months/2026-07'])(
+    'is present on %s',
+    async (path) => {
+      await renderRoute(path)
 
-    expect(screen.getByTestId('app-shell')).toBeInTheDocument()
-  })
+      expect(screen.getByTestId('app-shell')).toBeInTheDocument()
+    },
+  )
 
   // Both are in the DOM at every width; the stylesheet decides which is seen.
   // jsdom applies no media queries, so this asserts the contract the CSS
@@ -26,11 +29,26 @@ describe('the shell', () => {
     }
   })
 
-  it('names the brand once, with the coral dot as its own element', async () => {
+  it('shows the mark exactly once, so the brand never competes with itself', async () => {
     await renderRoute('/dashboard')
 
-    // `role="img"` with the brand's label — the mark itself, not the wordmark.
-    expect(screen.getByRole('img', { name: 'Nagi' })).toBeInTheDocument()
+    // `role="img"` with the brand's label — the symbol, not the wordmark.
+    expect(screen.getAllByRole('img', { name: 'Nagi' })).toHaveLength(1)
+  })
+
+  // The coral dot is the brand's one signature accent, and its allowed uses are
+  // a closed list. Asserted as its own element because that is what carries the
+  // colour — losing the span loses the accent while the word still reads right.
+  it('carries the wordmark with the coral dot as its own element', async () => {
+    await renderRoute('/dashboard')
+    const wordmarks = screen.getAllByTestId('wordmark')
+
+    // One per breakpoint: the rail's and the header's. The stylesheet shows one.
+    expect(wordmarks).toHaveLength(2)
+    for (const wordmark of wordmarks) {
+      expect(wordmark).toHaveTextContent('nagi.')
+      expect(within(wordmark).getByTestId('wordmark-dot')).toHaveTextContent('.')
+    }
   })
 })
 
@@ -77,6 +95,11 @@ describe('the screen title', () => {
 })
 
 describe('the theme toggle', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    document.documentElement.classList.remove('dark')
+  })
+
   it('offers the theme that is not on screen, and switches to it', async () => {
     useSettingsStore.setState({ theme: 'light' })
     const { user } = await renderRoute('/dashboard')
@@ -88,21 +111,38 @@ describe('the theme toggle', () => {
   })
 
   // The case the design leaves open: a two-state button over a three-state
-  // preference. From `system` it commits to the opposite of what is showing,
-  // which is what the icon promises.
-  it('commits to an explicit theme when the preference was following the OS', async () => {
+  // preference. From `system` it commits to the opposite of what is showing —
+  // so on an OS already in dark it must go to light, not to dark. The stub in
+  // vitest.setup.ts reports light, which would make this indistinguishable from
+  // the case above; this one says otherwise.
+  it('commits to the opposite of what the OS was giving, not to a fixed theme', async () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query === '(prefers-color-scheme: dark)',
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }))
     useSettingsStore.setState({ theme: 'system' })
     const { user } = await renderRoute('/dashboard')
 
     await user.click(screen.getByTestId('theme-toggle'))
 
-    expect(useSettingsStore.getState().theme).toBe('dark')
+    expect(useSettingsStore.getState().theme).toBe('light')
   })
 
-  it('carries a label, because it has no text of its own', async () => {
+  // The rail is gone below 960px and the Profile screen that would carry the
+  // setting does not exist yet, so without this the theme is unreachable on a
+  // phone. Both are in the DOM; the stylesheet shows one.
+  it('is reachable at both breakpoints', async () => {
+    await renderRoute('/dashboard')
+
+    expect(screen.getByTestId('theme-toggle')).toBeInTheDocument()
+    expect(screen.getByTestId('theme-toggle-compact')).toBeInTheDocument()
+  })
+
+  it('carries a label at both breakpoints, because it has no text of its own', async () => {
     useSettingsStore.setState({ theme: 'light' })
     await renderRoute('/dashboard')
 
-    expect(screen.getByRole('button', { name: 'Switch theme' })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Switch theme' })).toHaveLength(2)
   })
 })
