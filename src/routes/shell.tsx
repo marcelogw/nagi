@@ -8,6 +8,7 @@ import {
 import { NagiWordmark } from '@/components/shell/NagiMark'
 import { NavRail } from '@/components/shell/NavRail'
 import { TabBar } from '@/components/shell/TabBar'
+import { ThemeToggle } from '@/components/shell/ThemeToggle'
 import { useAppliedTheme } from '@/lib/use-theme'
 
 /**
@@ -44,6 +45,12 @@ export function ShellRoute() {
           >
             {labels.profile}
           </Link>
+
+          <ThemeToggle
+            resolved={resolvedTheme}
+            className="theme-toggle app-header__theme"
+            testId="theme-toggle-compact"
+          />
         </header>
 
         <main key={pathname} className="app-shell__main">

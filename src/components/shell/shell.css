@@ -227,7 +227,8 @@
    gone. Both are always in the DOM; the breakpoint at the bottom of this file
    decides which is shown. */
 .app-header__brand,
-.app-header__profile {
+.app-header__profile,
+.app-header__theme {
   display: none;
 }
 
@@ -236,12 +237,21 @@
      one more node in the DOM saying what one property already says. */
   margin-left: auto;
   align-items: center;
+  justify-content: center;
   text-decoration: none;
   color: var(--primary);
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
-  padding: var(--space-1) var(--space-2);
+  padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-sm);
+  /* The design's phone floor for anything tappable. The rail's 28px controls
+     are a pointer target; these are a thumb target. */
+  min-height: 44px;
+}
+
+.app-header__theme {
+  width: 44px;
+  height: 44px;
 }
 
 .app-header__profile:focus-visible {
@@ -309,7 +319,8 @@
     display: inline-flex;
   }
 
-  .app-header__profile {
+  .app-header__profile,
+  .app-header__theme {
     display: inline-flex;
   }
 

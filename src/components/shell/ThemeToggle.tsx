@@ -14,8 +14,20 @@ import { useSettingsStore } from '@/stores/settings-store'
  *
  * Choosing `system` again lives on the Profile screen, where the design puts a
  * three-option control (Light · Dark · System).
+ *
+ * Rendered twice, because the rail it normally lives in is gone below 960px and
+ * the Profile screen that would otherwise carry the setting does not exist yet.
+ * A theme the user cannot change on a phone is a theme they do not have.
  */
-export function ThemeToggle({ resolved }: { resolved: ResolvedTheme }) {
+export function ThemeToggle({
+  resolved,
+  className = 'theme-toggle',
+  testId = 'theme-toggle',
+}: {
+  resolved: ResolvedTheme
+  className?: string
+  testId?: string
+}) {
   const t = useTranslations('theme')
   const setTheme = useSettingsStore((state) => state.setTheme)
   const next = resolved === 'dark' ? 'light' : 'dark'
@@ -24,8 +36,8 @@ export function ThemeToggle({ resolved }: { resolved: ResolvedTheme }) {
   return (
     <button
       type="button"
-      className="theme-toggle"
-      data-testid="theme-toggle"
+      className={className}
+      data-testid={testId}
       aria-label={t('toggle')}
       onClick={() => {
         setTheme(next)
