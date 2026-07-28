@@ -12,6 +12,10 @@ which states (empty, dense, error).
 
 ## Checks
 
+Leave a box **unchecked** and append `— N/A: <reason>` when it genuinely does not
+apply (a docs-only change has no screenshot). Never tick a box you did not do,
+and never delete a line to make it go away.
+
 - [ ] `npm run quality`
 - [ ] `npm run test`
 - [ ] `npm run test:e2e`
@@ -21,10 +25,9 @@ which states (empty, dense, error).
 - [ ] No hardcoded user-visible strings; keys added to every message file
 - [ ] Reviewed by a second instance
 
-<!--
-A check that genuinely does not apply — a docs-only change has no screenshot —
-is marked `N/A` with the reason on the line. Never tick a box you did not do.
--->
+These are the evidence a reviewer reads. They are not the whole bar — the full
+definition of done is in [`CONTRIBUTING.md`](../CONTRIBUTING.md#definition-of-done),
+and it also covers where logic lives and which tests have to exist.
 
 ## Notes for reviewers
 

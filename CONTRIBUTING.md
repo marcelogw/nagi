@@ -31,7 +31,7 @@ No generic messages ("update file", "fix bug").
 "Done" is not an opinion. A change is done when **every** applicable box is
 ticked — not most of them.
 
-- [ ] Behaviour matches the feature's spec, including the edge cases it lists
+- [ ] Behaviour matches what the issue asks for, including the edge cases it lists
 - [ ] Zero hardcoded user-visible strings; the keys exist in every message file
 - [ ] Pure logic lives in `src/domain/` and is unit tested, branches included
 - [ ] Every Radix-based component has a render test that opens it
@@ -44,8 +44,12 @@ ticked — not most of them.
 - [ ] Both themes, and both breakpoints (the 960px nav-rail ↔ tab-bar switch)
 - [ ] A second instance reviewed the diff before merge
 
-A box that genuinely does not apply is marked `N/A` **with the reason**. A
-docs-only change has no screenshot; that is worth one word, not a silent tick.
+A box that genuinely does not apply stays **unchecked**, with `— N/A: <reason>`
+appended. A docs-only change has no screenshot; that is worth one clause, not a
+silent tick and not a deleted line.
+
+> `npm run test:e2e` does not exist yet — Playwright is not installed. Until it
+> is, that box is `N/A: no e2e harness yet`. Every other box applies today.
 
 Partial work does not merge as "done". Missing tests, a missing translation and
 a TODO-flagged edge case are each enough to hold a PR open.
@@ -111,9 +115,10 @@ or for agent-driven work a second model (`/code-review`, or the
 `agy-code-review` skill for an independent one). The author is never the sole
 reviewer of their own change.
 
-The reviewer checks the diff against the feature's spec and against the failure
-modes this project already knows about — from their **own** read of it, not from
-what the PR description restates. A PR body is a claim; the review is the check.
+The reviewer checks the diff against the issue it closes, and against the failure
+modes this project already knows about — from their **own** read of both, not
+from what the PR description restates. A PR body is a claim; the review is the
+check.
 
 Findings are **fixed, or explicitly waived in the PR thread with a reason**.
 They are never silently dropped, and "will fix in a follow-up" is a waiver that

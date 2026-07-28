@@ -30,11 +30,13 @@ decisions and conventions.
 ```bash
 npm install
 npm run dev        # start the dev server
+npm run quality    # lint + typecheck + format:check, the one you run before a PR
+npm run test       # vitest
+npm run build      # production build
+
 npm run typecheck  # tsc --build
 npm run lint       # oxlint
 npm run format     # prettier --write
-npm run test       # vitest
-npm run build      # production build
 ```
 
 ## Contributing
