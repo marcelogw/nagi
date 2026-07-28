@@ -25,6 +25,18 @@ Vite · React 19 · TypeScript · TanStack Router · Tailwind · shadcn/ui ·
 Zustand. See [`AGENTS.md`](./AGENTS.md) for the full set of technical
 decisions and conventions.
 
+## Getting started
+
+```bash
+npm install
+npm run dev        # start the dev server
+npm run typecheck  # tsc --build
+npm run lint       # oxlint
+npm run format     # prettier --write
+npm run test       # vitest
+npm run build      # production build
+```
+
 ## Contributing
 
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md) and our

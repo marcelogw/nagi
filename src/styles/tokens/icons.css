@@ -1,0 +1,23 @@
+/* ============================================================================
+   ICONOGRAPHY TOKENS
+   Icon set: Lucide (https://lucide.dev) — line icons on a 24px grid, 2px
+   stroke, round caps/joins. Icons inherit color via `currentColor` and size
+   via width/height. Never mix filled/duotone sets; never hand-draw one-offs.
+   ============================================================================ */
+
+:root {
+  /* Sizes — pair with the type scale so icons align to their label */
+  --icon-xs: 14px; /* inline with --text-sm/xs, dense chips */
+  --icon-sm: 16px; /* inline with body, buttons */
+  --icon-md: 18px; /* list rows, default UI */
+  --icon-lg: 20px; /* section headers */
+  --icon-xl: 24px; /* feature / empty states */
+
+  /* Stroke */
+  --icon-stroke: 2; /* default */
+  --icon-stroke-bold: 2.4; /* on filled/brand backgrounds for legibility */
+
+  /* Category tile (the rounded colored square behind a row icon) */
+  --icon-tile: 36px;
+  --icon-tile-radius: var(--radius-sm);
+}

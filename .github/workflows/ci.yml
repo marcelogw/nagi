@@ -22,6 +22,23 @@ jobs:
             fi
           done
 
-      # Extended once the app is scaffolded: typecheck, lint, format, unit
-      # tests, e2e. See CONTRIBUTING.md / AGENTS.md for the stack decisions
-      # this job will grow to enforce.
+  app:
+    name: App checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run test
+      - run: npm run build
+
+      # Extended once e2e is scaffolded. See CONTRIBUTING.md / AGENTS.md for
+      # the stack decisions this job enforces.

@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-ssr
+coverage
+kanban
+package-lock.json
+
+# Pre-existing docs — out of scope for the app's Prettier config, keep their own style
+*.md
+!src/**/*.md
