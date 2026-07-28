@@ -6,10 +6,6 @@ Nagi is an open-source personal and household finance app. Track income,
 expenses, savings, and goals with a calm, uncluttered month-by-month view —
 no daily transaction logging, no anxiety-inducing spreadsheets.
 
-**Status: pre-alpha.** This repository currently holds project foundation
-only (license, contribution guidelines, CI). No application code has landed
-yet — check open issues and pull requests for progress.
-
 ## Model
 
 `Income − Expenses − Savings = Left over`. Saving/investing isn't spending

@@ -5,7 +5,7 @@
 ## Checklist
 
 - [ ] Commit messages follow Conventional Commits (English, with a body)
-- [ ] No user-visible string is hardcoded — added to both `en` and `pt-BR` message files (once i18n exists)
+- [ ] No user-visible string is hardcoded — goes through i18n, with keys filled in every available language (once i18n exists)
 - [ ] Tests added/updated for the logic this touches (once the test suite exists)
 - [ ] CI is green
 
