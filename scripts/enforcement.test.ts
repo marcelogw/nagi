@@ -269,6 +269,39 @@ describe('message catalogues (P-08)', () => {
     expect(problems.join('\n')).toContain('"app.extra" is not in en.json')
   })
 
+  it.each(['t.rich', 't.raw', 't.markup'])('counts %s as a reference', (method) => {
+    const problems = catalogue(
+      `method-${method.length}-${method.slice(-3)}`,
+      { en: { app: { title: 'Nagi' } }, 'pt-BR': { app: { title: 'Nagi' } } },
+      `const t = useTranslations('app')\nexport const x = ${method}('title')\n`,
+    )
+
+    expect(problems).toEqual([])
+  })
+
+  // A key assembled at runtime cannot be resolved, so every key it might name
+  // would look dead. Reported instead of guessed at, in either direction.
+  it('rejects a key built at runtime rather than calling other keys unused', () => {
+    const problems = catalogue(
+      'dynamic',
+      { en: { app: { title: 'Nagi' } }, 'pt-BR': { app: { title: 'Nagi' } } },
+      "const t = useTranslations('app')\nexport const x = t(`title.${kind}`)\n",
+    )
+
+    expect(problems.join('\n')).toContain('key built at runtime')
+    expect(problems.join('\n')).not.toContain('never referenced')
+  })
+
+  it('treats an empty group as a key, so it cannot vanish from the comparison', () => {
+    const problems = catalogue(
+      'empty',
+      { en: { app: { title: 'Nagi' }, meta: {} }, 'pt-BR': { app: { title: 'Nagi' } } },
+      used,
+    )
+
+    expect(problems.join('\n')).toContain('missing "meta"')
+  })
+
   it('rejects a key nothing references — the dead dashboard set', () => {
     const problems = catalogue(
       'dead',

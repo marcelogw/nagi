@@ -27,9 +27,13 @@ const SOURCES = 'src/**/*.{ts,tsx}'
 function leafKeys(value, prefix = '') {
   if (typeof value !== 'object' || value === null) return [prefix]
 
-  return Object.entries(value).flatMap(([key, nested]) =>
-    leafKeys(nested, prefix ? `${prefix}.${key}` : key),
-  )
+  const entries = Object.entries(value)
+  // An empty group is a leaf, not nothing. Recursing into it would return no
+  // keys at all, so `{ "app": {} }` in one locale and a populated `app` in
+  // another would silently agree.
+  if (entries.length === 0) return [prefix]
+
+  return entries.flatMap(([key, nested]) => leafKeys(nested, prefix ? `${prefix}.${key}` : key))
 }
 
 function loadCatalogues(pattern) {
@@ -53,6 +57,7 @@ function loadCatalogues(pattern) {
 function referencedKeys(pattern) {
   const namespaces = new Set()
   const keys = new Set()
+  const dynamic = []
 
   for (const path of globSync(pattern)) {
     const source = readFileSync(path, 'utf8')
@@ -60,8 +65,16 @@ function referencedKeys(pattern) {
     for (const [, namespace] of source.matchAll(/useTranslations\(\s*['"]([^'"]+)['"]/g)) {
       namespaces.add(namespace)
     }
-    for (const [, key] of source.matchAll(/\bt(?:\.rich)?\(\s*['"]([^'"]+)['"]/g)) {
+    for (const [, key] of source.matchAll(/\bt(?:\.(?:rich|raw|markup))?\(\s*['"]([^'"]+)['"]/g)) {
       keys.add(key)
+    }
+    // A key built at runtime — t(`total.${kind}`) or t(someVariable) — cannot
+    // be resolved here, and every key it might name would then look unused.
+    // Reported rather than guessed at: silently skipping would make the check
+    // unsound without saying so, and silently failing would reject a key that
+    // is fine.
+    for (const [match] of source.matchAll(/\bt(?:\.(?:rich|raw|markup))?\(\s*[`a-zA-Z_$]/g)) {
+      dynamic.push(`${path}: ${match.trim()}… — key built at runtime`)
     }
   }
 
@@ -69,7 +82,7 @@ function referencedKeys(pattern) {
   for (const namespace of namespaces) {
     for (const key of keys) referenced.add(`${namespace}.${key}`)
   }
-  return referenced
+  return { referenced, dynamic }
 }
 
 /** Globs are parameters so the tests can point the same code at a fixture tree. */
@@ -102,12 +115,25 @@ export function check({ messages = MESSAGES, sources = SOURCES } = {}) {
     }
   }
 
-  const referenced = referencedKeys(sources)
-  for (const key of source.keys) {
-    if (!referenced.has(key)) {
-      problems.push(
-        `${source.path}: "${key}" is defined but never referenced. Delete it, or use it.`,
-      )
+  const { referenced, dynamic } = referencedKeys(sources)
+
+  for (const call of dynamic) {
+    problems.push(
+      `${call}. Use a literal key: a key assembled at runtime cannot be checked, ` +
+        `and every key it might name then looks unused.`,
+    )
+  }
+
+  // Skipped when a dynamic call exists, because the answer would be wrong: the
+  // keys that call reaches are indistinguishable from dead ones. The dynamic
+  // call is already reported above, so nothing passes quietly.
+  if (dynamic.length === 0) {
+    for (const key of source.keys) {
+      if (!referenced.has(key)) {
+        problems.push(
+          `${source.path}: "${key}" is defined but never referenced. Delete it, or use it.`,
+        )
+      }
     }
   }
 
