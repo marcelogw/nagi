@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { createMemoryHistory, createRouter, RouterProvider } from '@tanstack/react-router'
 import { IntlProvider } from 'use-intl'
 import { APP_TIME_ZONE, messagesFor, type Locale } from '@/i18n/locales'
-import { routeTree } from '@/router'
+import { routerOptions } from '@/router'
 
 type Options = Omit<RenderOptions, 'wrapper'> & {
   /** Defaults to the source locale. Pass another to check a translated path. */
@@ -58,7 +58,7 @@ export function render(ui: ReactElement, { locale = 'en', ...options }: Options 
  */
 export async function renderRoute(path: string, options: Options = {}) {
   const router = createRouter({
-    routeTree,
+    ...routerOptions,
     history: createMemoryHistory({ initialEntries: [path] }),
   })
 

@@ -1,4 +1,10 @@
-import { createRootRoute, createRoute, createRouter, redirect } from '@tanstack/react-router'
+import {
+  createRootRoute,
+  createRoute,
+  createRouter,
+  Navigate,
+  redirect,
+} from '@tanstack/react-router'
 import { currentMonth, isMonth } from './domain/month'
 import { RoutePlaceholder } from './routes/placeholder'
 import { ShellRoute } from './routes/shell'
@@ -103,7 +109,25 @@ export const routeTree = rootRoute.addChildren([
   settingsRoute,
 ])
 
-export const router = createRouter({ routeTree })
+/**
+ * Everything the router is configured with except its history.
+ *
+ * Exported so the test helper builds the same router the app runs, differing
+ * only in where the URL comes from. A test-only configuration would pass while
+ * the real one behaved differently.
+ */
+export const routerOptions = {
+  routeTree,
+  // Without this an unknown path renders TanStack's built-in "Not Found" — a
+  // string from the library, in English regardless of locale, inside the full
+  // shell, under an empty `<h1>` because no destination matches. The design
+  // defines no 404 screen, so rather than invent one, an unknown path goes
+  // where `/` goes. Worth revisiting if the app ever links somewhere it can be
+  // wrong about; today nothing links outside this tree.
+  defaultNotFoundComponent: () => <Navigate to="/dashboard" replace />,
+}
+
+export const router = createRouter(routerOptions)
 
 declare module '@tanstack/react-router' {
   interface Register {

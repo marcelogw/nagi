@@ -44,6 +44,17 @@ describe('a month in the URL', () => {
   )
 })
 
+describe('a path that matches nothing', () => {
+  // Without a not-found component this renders TanStack's built-in one: an
+  // English string from the library inside the full shell, under an empty h1.
+  // The design defines no 404 screen, so an unknown path goes where `/` goes.
+  it.each(['/nowhere', '/goalsomething', '/months'])('sends %s to the dashboard', async (path) => {
+    const router = await land(path)
+
+    expect(router.state.location.pathname).toBe('/dashboard')
+  })
+})
+
 describe('the dashboard year search param', () => {
   it('keeps a plausible year', () => {
     expect(validateDashboardSearch({ year: 2026 })).toEqual({ year: 2026 })
