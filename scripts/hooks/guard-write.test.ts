@@ -94,6 +94,38 @@ describe('the guard stays out of the way otherwise', () => {
     expect(output.trim()).toBe('')
   })
 
+  it('normalises the path, so a dot-slash prefix cannot walk past the checks', () => {
+    const decision = guard(write('./src/components/ui/button.tsx', 'export const B = () => null'))
+
+    expect(decision?.permissionDecision).toBe('deny')
+  })
+
+  it('lets a directive silence the next line only, not the rest of the write', () => {
+    // A `break` here would mean one directive disables the rule for everything
+    // after it — the permissive failure, which is the one that matters.
+    const decision = guard(
+      write(
+        'src/routes/x.tsx',
+        `// check-patterns-ignore-next-line: this one is allowed\n` +
+          `const a = '#ef4444'\n` +
+          `const b = '#00ff00'\n`,
+      ),
+    )
+
+    expect(decision?.permissionDecision).toBe('deny')
+    expect(decision?.permissionDecisionReason).toContain('#00ff00')
+  })
+
+  it('does not reject a banned pattern described in a doc comment', () => {
+    // The checker blanks block comments; the guard has to agree, or it rejects
+    // what CI accepts and people route around it.
+    const decision = guard(
+      write('src/routes/x.tsx', `/** Never write '#ef4444' here. */\nexport const c = 1\n`),
+    )
+
+    expect(decision).toBeNull()
+  })
+
   it('honours the same ignore directive the checker honours', () => {
     const decision = guard(
       write(

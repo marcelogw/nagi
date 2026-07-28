@@ -143,7 +143,7 @@ const IGNORE_DIRECTIVE = 'check-patterns-ignore-next-line'
  * stripping those means guessing whether `//` opens a comment or sits inside a
  * URL, and guessing wrong hides real code the same way.
  */
-function blankBlockComments(source) {
+export function blankBlockComments(source) {
   return source.replace(/^[ \t]*\/\*[\s\S]*?\*\//gm, (comment) => comment.replace(/[^\n]/g, ' '))
 }
 

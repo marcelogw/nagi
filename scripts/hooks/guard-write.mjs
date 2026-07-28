@@ -16,8 +16,10 @@
  * stdout. Silent on allow.
  */
 import { existsSync } from 'node:fs'
-import { relative, isAbsolute } from 'node:path'
-import { RULES } from '../check-patterns.mjs'
+import { relative, isAbsolute, normalize } from 'node:path'
+import { RULES, blankBlockComments } from '../check-patterns.mjs'
+
+const IGNORE_DIRECTIVE = 'check-patterns-ignore-next-line'
 
 const read = (stream) =>
   new Promise((resolve) => {
@@ -48,9 +50,14 @@ function incomingText(tool, input) {
     .join('\n')
 }
 
+/**
+ * Normalised, so `./src/x.ts` and `src/sub/../x.ts` are both `src/x.ts`. Every
+ * check below is a path prefix test, and an un-normalised path walks straight
+ * past all of them while still landing in the guarded directory.
+ */
 function repoRelative(filePath) {
   if (!filePath) return ''
-  return isAbsolute(filePath) ? relative(process.cwd(), filePath) : filePath
+  return normalize(isAbsolute(filePath) ? relative(process.cwd(), filePath) : filePath)
 }
 
 const isSpec = (file) => /\.test\.[cm]?[jt]sx?$/.test(file)
@@ -100,13 +107,21 @@ async function main() {
     rule.id === 'no-skipped-tests' ? isSpec(file) : isProduct(file) && !rule.exempt?.(file),
   )
 
+  // Same blanking the checker does, for the same reason and so the two agree:
+  // a doc comment is where these patterns get explained, and a guard that
+  // rejects the explanation while CI accepts it is a guard people route around.
+  const lines = blankBlockComments(text).split('\n')
+
   for (const rule of applicable) {
-    for (const line of text.split('\n')) {
-      if (line.includes('check-patterns-ignore-next-line')) break
+    lines.forEach((line, index) => {
+      // Skips the next line only. A `break` here would let one directive
+      // silence the rule for the whole rest of the write.
+      if (index > 0 && lines[index - 1].includes(IGNORE_DIRECTIVE)) return
+
       const match = rule.pattern.exec(line)
       rule.pattern.lastIndex = 0
       if (match) deny(`${rule.id}: ${match[0]}\n\n${rule.message}`)
-    }
+    })
   }
 
   process.exit(0)
