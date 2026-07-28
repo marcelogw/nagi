@@ -1,9 +1,16 @@
 name: CI
 
+# No secrets are used anywhere in this workflow, and none may be added to it.
+# A fork's pull request runs with an empty secret context, so a job that needs
+# one is a job outside contributors cannot pass — and a contribution that cannot
+# pass CI is a contribution that does not arrive.
 on:
   pull_request:
   push:
     branches: [master]
+
+permissions:
+  contents: read
 
 jobs:
   foundation:
@@ -39,12 +46,16 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npm run typecheck
-      - run: npm run lint
-      - run: npm run lint:patterns
-      - run: npm run format:check
+
+      # One step, and the same one a contributor runs locally. Splitting it
+      # into four is how the two drift until CI checks something nobody can
+      # reproduce: lint, forbidden patterns, message catalogues, agent-file
+      # parity, types, formatting.
+      - run: npm run quality
+
       - run: npm run test
+
       - run: npm run build
 
-      # Extended once e2e is scaffolded. See CONTRIBUTING.md / AGENTS.md for
-      # the stack decisions this job enforces.
+      # After the build, because it measures what the build produced.
+      - run: npm run check:bundle
