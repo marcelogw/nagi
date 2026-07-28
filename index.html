@@ -5,6 +5,29 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nagi</title>
+    <!--
+      Blocking on purpose. It runs before the first paint and puts the document
+      in the right theme, so a reload in dark mode never shows a light frame.
+      Anything deferred here is a flash the user sees.
+
+      The key and the class are duplicated from `src/stores/settings-store.ts`
+      and `src/lib/theme.ts` — an inline script cannot import a module without
+      giving up the blocking behaviour that is the entire point. A test asserts
+      the two copies still agree.
+    -->
+    <script>
+      try {
+        var stored = JSON.parse(localStorage.getItem('nagi-settings') || '{}')
+        var theme = (stored.state && stored.state.theme) || 'system'
+        var dark =
+          theme === 'dark' ||
+          (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.classList.toggle('dark', dark)
+      } catch (error) {
+        // Private mode, a disabled storage quota, or a hand-mangled value. The
+        // light theme is the default and already applied — nothing to recover.
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
