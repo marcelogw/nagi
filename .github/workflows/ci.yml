@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  foundation:
+    name: Foundation check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Required repo files present
+        run: |
+          set -e
+          for f in README.md LICENSE CONTRIBUTING.md CODE_OF_CONDUCT.md; do
+            if [ ! -f "$f" ]; then
+              echo "Missing required file: $f"
+              exit 1
+            fi
+          done
+
+      # Extended once the app is scaffolded: typecheck, lint, format, unit
+      # tests, e2e. See CONTRIBUTING.md / AGENTS.md for the stack decisions
+      # this job will grow to enforce.
