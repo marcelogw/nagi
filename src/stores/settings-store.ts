@@ -1,9 +1,8 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
+import { detectLocale, type Locale } from '@/i18n/locales'
 import type { Theme } from '@/lib/theme'
-
-export type Locale = 'en' | 'pt-BR'
 
 /**
  * The key the persisted settings live under.
@@ -17,19 +16,34 @@ export const SETTINGS_STORAGE_KEY = 'nagi-settings'
 
 interface SettingsState {
   locale: Locale
+  /**
+   * An ISO 4217 code, and a setting of its own — never derived from the locale.
+   * Someone reading the app in English still gets paid in reais.
+   */
+  currency: string
   theme: Theme
   setLocale: (locale: Locale) => void
+  setCurrency: (currency: string) => void
   setTheme: (theme: Theme) => void
 }
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
     immer<SettingsState>((set) => ({
-      locale: 'en',
+      // Detection is the initial value rather than a step of its own: persist
+      // only overwrites what it finds in storage, so a returning user keeps the
+      // language they chose and a first-time visitor gets the one their browser
+      // asked for. No rehydration callback needed for either.
+      locale: detectLocale(navigator.languages),
+      currency: 'BRL',
       theme: 'system',
       setLocale: (locale) =>
         set((state) => {
           state.locale = locale
+        }),
+      setCurrency: (currency) =>
+        set((state) => {
+          state.currency = currency
         }),
       setTheme: (theme) =>
         set((state) => {

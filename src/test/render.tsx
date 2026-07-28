@@ -3,8 +3,7 @@ import { vi } from 'vitest'
 import { render as rtlRender, type RenderOptions } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { IntlProvider } from 'use-intl'
-import { APP_TIME_ZONE, messages } from '@/i18n/messages'
-import type { Locale } from '@/stores/settings-store'
+import { APP_TIME_ZONE, messagesFor, type Locale } from '@/i18n/locales'
 
 type Options = Omit<RenderOptions, 'wrapper'> & {
   /** Defaults to the source locale. Pass another to check a translated path. */
@@ -27,7 +26,7 @@ type Options = Omit<RenderOptions, 'wrapper'> & {
 export function render(ui: ReactElement, { locale = 'en', ...options }: Options = {}) {
   function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <IntlProvider locale={locale} messages={messages[locale]} timeZone={APP_TIME_ZONE}>
+      <IntlProvider locale={locale} messages={messagesFor(locale)} timeZone={APP_TIME_ZONE}>
         {children}
       </IntlProvider>
     )
