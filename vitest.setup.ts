@@ -18,6 +18,20 @@ if (actual !== EXPECTED_TIME_ZONE) {
   )
 }
 
+// jsdom implements no `matchMedia`, and anything that renders the shell reads
+// the OS colour-scheme preference through it. Default to "prefers light" so a
+// component test does not have to care; a test that is *about* the preference
+// stubs its own (see `src/lib/theme.test.ts`).
+window.matchMedia ??= (query: string) =>
+  ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  }) as unknown as MediaQueryList
+
 afterEach(() => {
   cleanup()
 })
