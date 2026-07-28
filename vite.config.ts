@@ -1,6 +1,5 @@
-/// <reference types="vitest/config" />
 import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vite'
+import { configDefaults, coverageConfigDefaults, defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
@@ -42,7 +41,10 @@ export default defineConfig({
         test: {
           name: 'app',
           include: ['src/**/*.test.{ts,tsx}'],
-          exclude: ['src/domain/**'],
+          // Spread, never replace: a bare array drops Vitest's own defaults
+          // (node_modules, dist, build caches) and the scanner starts walking
+          // directories it has no business in.
+          exclude: [...configDefaults.exclude, 'src/domain/**'],
           environment: 'jsdom',
           setupFiles: ['./vitest.setup.ts'],
         },
@@ -52,10 +54,14 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html'],
       include: ['src/**'],
-      // The only two exclusions. A module that is hard to test is a design
+      // Two project exclusions on top of the defaults. Spreading matters here
+      // too: replacing the defaults outright would count the test files
+      // themselves as covered source and quietly inflate the number.
+      //
+      // The list does not grow. A module that is hard to test is a design
       // problem to fix, not a line to add here — in the predecessor the
       // riskiest code (the migrations) was excluded and shipped unmeasured.
-      exclude: ['src/components/ui/**', 'src/**/*.d.ts'],
+      exclude: [...coverageConfigDefaults.exclude, 'src/components/ui/**', 'src/test/**'],
     },
   },
 })

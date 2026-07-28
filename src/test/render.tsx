@@ -1,8 +1,9 @@
 import type { ReactElement, ReactNode } from 'react'
+import { vi } from 'vitest'
 import { render as rtlRender, type RenderOptions } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { IntlProvider } from 'use-intl'
-import { messages } from '@/i18n/provider'
+import { APP_TIME_ZONE, messages } from '@/i18n/messages'
 import type { Locale } from '@/stores/settings-store'
 
 type Options = Omit<RenderOptions, 'wrapper'> & {
@@ -26,14 +27,18 @@ type Options = Omit<RenderOptions, 'wrapper'> & {
 export function render(ui: ReactElement, { locale = 'en', ...options }: Options = {}) {
   function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <IntlProvider locale={locale} messages={messages[locale]} timeZone="UTC">
+      <IntlProvider locale={locale} messages={messages[locale]} timeZone={APP_TIME_ZONE}>
         {children}
       </IntlProvider>
     )
   }
 
   return {
-    user: userEvent.setup(),
+    // `advanceTimers` is not optional. user-event waits on real timers by
+    // default, so under `vi.useFakeTimers()` — which anything reading the clock
+    // is required to use — every interaction would hang until the test timed
+    // out. Harmless when the timers are real.
+    user: userEvent.setup({ advanceTimers: vi.advanceTimersByTime }),
     ...rtlRender(ui, { wrapper: Wrapper, ...options }),
   }
 }

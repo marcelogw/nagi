@@ -25,6 +25,14 @@ describe('the timezone the suite runs under', () => {
   })
 })
 
+describe('monthToDate', () => {
+  it('keeps a two-digit year as itself, not as 19xx', () => {
+    // `new Date(50, 0, 1)` is 1950. Not reachable from a realistic month, and a
+    // silently wrong date the one time it is.
+    expect(monthToDate('0050-01').getFullYear()).toBe(50)
+  })
+})
+
 describe('previousMonth', () => {
   it('steps back within a year', () => {
     expect(previousMonth('2026-07')).toBe('2026-06')
@@ -48,5 +56,18 @@ describe('nextMonth', () => {
 describe('malformed input', () => {
   it.each(['2026-13', '2026-00', '2026-7', '2026', 'july', ''])('rejects %o', (value) => {
     expect(() => previousMonth(value)).toThrow(InvalidMonthError)
+  })
+
+  // Persisted records come back from IndexedDB unbound by the type signature.
+  it.each([null, undefined, 42, {}, Symbol('2026-07')])(
+    'rejects the non-string %o with a domain error, not a TypeError',
+    (value) => {
+      expect(() => previousMonth(value as unknown as string)).toThrow(InvalidMonthError)
+    },
+  )
+
+  it('round-trips a padded year rather than dropping a digit', () => {
+    expect(previousMonth('1000-01')).toBe('0999-12')
+    expect(() => previousMonth(previousMonth('1000-01'))).not.toThrow()
   })
 })

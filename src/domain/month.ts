@@ -22,19 +22,32 @@ export class InvalidMonthError extends Error {
 }
 
 function parse(month: Month): [year: number, month: number] {
+  // Persisted data crosses back into the domain from IndexedDB, where an older
+  // schema or a hand-edited record is not bound by the type above. Check the
+  // type rather than let `exec` coerce it — a Symbol would throw a TypeError
+  // and break the promise that this module only ever throws InvalidMonthError.
+  if (typeof month !== 'string') throw new InvalidMonthError(String(month))
+
   const match = MONTH_PATTERN.exec(month)
   if (!match) throw new InvalidMonthError(month)
   return [Number(match[1]), Number(match[2])]
 }
 
 function format(year: number, month: number): Month {
-  return `${year}-${String(month).padStart(2, '0')}`
+  // Both parts are padded. The year matters at the boundary: without it
+  // `previousMonth('1000-01')` returns '999-12', which this module's own
+  // pattern then rejects.
+  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}`
 }
 
 /** The first instant of the month, in the running timezone. */
 export function monthToDate(month: Month): Date {
   const [year, m] = parse(month)
-  return new Date(year, m - 1, 1)
+  const date = new Date(year, m - 1, 1)
+  // The two-digit-year rule: `new Date(50, 0, 1)` is 1950, not the year 50.
+  // Unreachable for a realistic year, and a silently wrong date if it ever is.
+  date.setFullYear(year)
+  return date
 }
 
 export function previousMonth(month: Month): Month {
