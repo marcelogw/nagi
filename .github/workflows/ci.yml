@@ -25,6 +25,11 @@ jobs:
   app:
     name: App checks
     runs-on: ubuntu-latest
+    # Belt and braces: the Vite config sets this too, but a runner defaulting to
+    # UTC is exactly the environment in which the date-parsing defects go quiet.
+    # Stated here so the job is honest about what it runs under.
+    env:
+      TZ: America/Sao_Paulo
     steps:
       - uses: actions/checkout@v7
 
