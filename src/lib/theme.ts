@@ -12,9 +12,7 @@
  * `index.html`, which reads the same storage key this module writes.
  */
 
-export const THEMES = ['light', 'dark', 'system'] as const
-
-export type Theme = (typeof THEMES)[number]
+export type Theme = 'light' | 'dark' | 'system'
 
 /** What the document ends up wearing. `system` is resolved away before this. */
 export type ResolvedTheme = 'light' | 'dark'

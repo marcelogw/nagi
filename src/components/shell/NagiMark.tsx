@@ -19,13 +19,13 @@ const WORDMARK_DOT = '.'
  * No coral in here. Coral appears exactly once on the screen, on the wordmark
  * dot next to this.
  */
-export function NagiMark({ size = 34 }: { size?: number }) {
+export function NagiMark() {
   // Two marks on one page would otherwise share a clip-path id, and the second
   // would silently clip against the first.
   const clipId = useId()
 
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" role="img" aria-label="Nagi">
+    <svg width="34" height="34" viewBox="0 0 48 48" fill="none" role="img" aria-label="Nagi">
       <defs>
         <clipPath id={clipId}>
           <circle cx="24" cy="24" r="21" />

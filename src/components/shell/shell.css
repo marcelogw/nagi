@@ -223,10 +223,6 @@
   letter-spacing: var(--tracking-tight);
 }
 
-.app-header__spacer {
-  flex: 1;
-}
-
 /* Below 960px the brand moves here, because the rail it normally sits in is
    gone. Both are always in the DOM; the breakpoint at the bottom of this file
    decides which is shown. */
@@ -236,6 +232,9 @@
 }
 
 .app-header__profile {
+  /* Pushed to the trailing edge by its own margin — a spacer element would be
+     one more node in the DOM saying what one property already says. */
+  margin-left: auto;
   align-items: center;
   text-decoration: none;
   color: var(--primary);

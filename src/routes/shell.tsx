@@ -37,8 +37,6 @@ export function ShellRoute() {
             {activeId ? labels[activeId] : null}
           </h1>
 
-          <div className="app-header__spacer" />
-
           <Link
             to={PROFILE_DESTINATION.to}
             className="app-header__profile"

@@ -5,15 +5,18 @@ import ptBR from './messages/pt-BR.json'
 // module mixing the two breaks React Fast Refresh.
 
 /**
- * The registered locales, in the order a language picker offers them.
+ * The registered locales.
  *
  * A list, not a pair: adding a language is one message file and one entry here,
  * and nothing else in the app names a locale code. `en` comes first because it
  * is the source locale and the fallback.
+ *
+ * No display label yet — there is no language picker to show one in, and a
+ * string nothing renders is a string nobody notices going stale.
  */
 export const LOCALES = [
-  { code: 'en', label: 'English', messages: en },
-  { code: 'pt-BR', label: 'Português (Brasil)', messages: ptBR },
+  { code: 'en', messages: en },
+  { code: 'pt-BR', messages: ptBR },
 ] as const
 
 export type Locale = (typeof LOCALES)[number]['code']
