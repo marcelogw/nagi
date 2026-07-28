@@ -74,22 +74,50 @@ describe('check-patterns rejects what oxlint cannot express', () => {
     return check([fixture(name, source)])
   }
 
-  it('rejects a hardcoded hex colour', () => {
-    const found = findings('colour.ts', `export const danger = '#ef4444'\n`)
+  // Every notation a colour arrives in when it is pasted from a design tool.
+  it.each(["'#ef4444'", "'#fff'", "'rgb(239, 68, 68)'", "'rgba(0,0,0,.5)'", "'hsl(0 84% 60%)'"])(
+    'rejects the hardcoded colour %s',
+    (value) => {
+      const found = findings(`colour-${value.length}.ts`, `export const danger = ${value}\n`)
 
-    expect(found.map((f) => f.rule)).toContain('no-hex-colour')
-  })
+      expect(found.map((f) => f.rule)).toContain('no-hardcoded-colour')
+    },
+  )
 
-  it('rejects an arbitrary Tailwind value', () => {
-    const found = findings('tw.tsx', `export const c = 'rounded bg-[#ef4444] p-4'\n`)
+  it.each(['rounded bg-[#ef4444] p-4', 'bg-primary/[.15]', 'w-[13px]'])(
+    'rejects the arbitrary Tailwind value in %s',
+    (className) => {
+      const found = findings(`tw-${className.length}.tsx`, `export const c = '${className}'\n`)
 
-    expect(found.map((f) => f.rule)).toContain('no-arbitrary-tailwind')
-  })
+      expect(found.map((f) => f.rule)).toContain('no-arbitrary-tailwind')
+    },
+  )
 
-  it('rejects a date parsed from a string (P-13)', () => {
-    const found = findings('date.ts', `export const d = new Date('2026-07-01')\n`)
+  // Date.parse is the obvious way around a rule that only names the
+  // constructor, and it has exactly the same UTC problem.
+  it.each([`new Date('2026-07-01')`, `Date.parse('2026-07-01')`])(
+    'rejects %s (P-13)',
+    (expression) => {
+      const found = findings(`date-${expression.length}.ts`, `export const d = ${expression}\n`)
 
-    expect(found.map((f) => f.rule)).toContain('no-date-from-string')
+      expect(found.map((f) => f.rule)).toContain('no-date-from-string')
+    },
+  )
+
+  it('leaves ordinary TypeScript alone', () => {
+    const found = findings(
+      'ordinary.ts',
+      [
+        `type A = Record<string, string[]>`,
+        `const m = new Map<string, number[]>()`,
+        `export const x = obj['some-key']`,
+        `export const y = arr[index - 1]`,
+        `export const t = 'grid-cols-3 gap-4'`,
+        `export const u = \`\${a}-\${b}\``,
+      ].join('\n'),
+    )
+
+    expect(found).toEqual([])
   })
 
   // The receiver here comes back from a hook, which is the shape that caused
@@ -129,6 +157,19 @@ describe('the escape hatches let the legitimate cases through', () => {
     expect(found).toHaveLength(0)
   })
 
+  it('does not let a string containing a comment opener hide real code', () => {
+    // Only a block comment that opens its own line is blanked. Matching `/*`
+    // anywhere would let this string open a comment running to the one below,
+    // swallowing the violation between them — a silent false negative, in the
+    // one direction an enforcement tool must never fail.
+    const found = findings(
+      'fake-comment.ts',
+      `const open = '/*'\nexport const danger = '#ef4444'\nconst close = '*/'\n`,
+    )
+
+    expect(found.map((f) => f.rule)).toContain('no-hardcoded-colour')
+  })
+
   it('honours the ignore directive on the line above', () => {
     const found = findings(
       'ignored.ts',
@@ -141,7 +182,7 @@ describe('the escape hatches let the legitimate cases through', () => {
   it('exempts the token files from the colour rule, and nothing else', () => {
     // Asserted on the predicate rather than through `check()`, because the
     // exemption is keyed on the repo-relative path and a temp fixture has none.
-    const colour = RULES.find((rule) => rule.id === 'no-hex-colour')!
+    const colour = RULES.find((rule) => rule.id === 'no-hardcoded-colour')!
 
     expect(colour.exempt?.('src/styles/tokens/palette.css')).toBe(true)
     expect(colour.exempt?.('src/routes/home.tsx')).toBe(false)
@@ -157,7 +198,7 @@ describe('the enforcement covers what it claims to', () => {
       'no-arbitrary-tailwind',
       'no-array-mutation',
       'no-date-from-string',
-      'no-hex-colour',
+      'no-hardcoded-colour',
     ])
   })
 })

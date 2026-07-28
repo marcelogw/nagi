@@ -23,10 +23,17 @@ const SCANNED = 'src/**/*.{ts,tsx,css}'
 /** @type {Rule[]} */
 export const RULES = [
   {
-    id: 'no-hex-colour',
-    // Only the four lengths CSS actually accepts, so `#section` in a URL and
-    // `#1` in a comment stay quiet.
-    pattern: /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b/g,
+    id: 'no-hardcoded-colour',
+    // Hex in the four lengths CSS accepts, plus the functional notations. A
+    // colour pasted from a design tool arrives in one of these; leaving rgb()
+    // out would just move the drift rather than stop it.
+    //
+    // Known limit: an anchor or issue reference whose id happens to be all hex
+    // digits — `href="#feed"`, `// fixes #404` — matches. Rare, and the ignore
+    // directive costs one line. Narrowing the rule to avoid it would cost the
+    // three-digit shorthand, which is a real colour people really write.
+    pattern:
+      /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b|\b(?:rgba?|hsla?)\(/g,
     message:
       'Hardcoded colour. Product code consumes semantic tokens (--primary, --danger, …); ' +
       'raw values live only in src/styles/tokens/, and even there the palette is oklch.',
@@ -34,8 +41,13 @@ export const RULES = [
   },
   {
     id: 'no-arbitrary-tailwind',
-    // The `utility-[value]` shape: bg-[#ef4444], w-[13px], text-[10px].
-    pattern: /\b[a-z][a-z0-9]*(?:-[a-z0-9]+)*-\[[^\]\s]+\]/g,
+    // Two shapes: `utility-[value]` (bg-[#ef4444], w-[13px]) and the arbitrary
+    // modifier `utility/[value]` (bg-primary/[.15]).
+    //
+    // Known limit: a regex or string of the same shape — `/month-[0-9]+/` — is
+    // a false positive. `[prop:value]` is deliberately not matched, because it
+    // collides with TypeScript index signatures.
+    pattern: /\b[a-z][a-z0-9]*(?:-[a-z0-9]+)*[-/]\[[^\]\s]+\]/g,
     message:
       'Arbitrary Tailwind value. This is how a design system drifts one component at a time — ' +
       'use a scale utility, or add the value to the tokens if it is genuinely missing.',
@@ -43,8 +55,14 @@ export const RULES = [
   {
     id: 'no-date-from-string',
     // `new Date('2026-07-01')` parses as UTC midnight, which is the previous
-    // day west of Greenwich. Build dates from their parts instead.
-    pattern: /new Date\(\s*['"`]/g,
+    // day west of Greenwich. `Date.parse` has exactly the same problem and is
+    // the obvious way around a rule that only names the constructor.
+    //
+    // Known limit: `new Date(someString)` passes, because knowing the variable
+    // holds a string needs type information. An explicit-offset string such as
+    // '1970-01-01T00:00:00.000Z' is unambiguous and safe, but still flagged —
+    // use the directive.
+    pattern: /new Date\(\s*['"`]|Date\.parse\(/g,
     message:
       'Date parsed from a string. `new Date("2026-07-01")` is UTC midnight, which reads as ' +
       'the previous day in São Paulo. Build it from parts, or use the helpers in src/domain/month.ts.',
@@ -66,7 +84,15 @@ export const RULES = [
     // There is no legitimate exception. `toSorted`, `toReversed` and
     // `toSpliced` are all ES2023, which this project targets, and each returns
     // a copy. Sorting a genuinely local array in place saves one allocation and
-    // costs the guarantee.
+    // costs the guarantee. That includes inside an Immer producer, where
+    // mutating the draft is idiomatic: `state.items = state.items.toSorted(…)`
+    // works there too and reads the same everywhere else.
+    //
+    // Known limit: `push`, `pop`, `shift`, `unshift` and `fill` mutate a
+    // selector result just as badly and are NOT matched. None of them has a
+    // drop-in copying twin, so banning them outright would reject the many
+    // legitimate uses on genuinely local arrays. Catching only the store case
+    // needs type information — the one rule here that a regex cannot reach.
     pattern: /\.(?:sort|reverse|splice)\(/g,
     message:
       'In-place array mutation. A value read from a store selector *is* the store’s state, ' +
@@ -88,11 +114,17 @@ const IGNORE_DIRECTIVE = 'check-patterns-ignore-next-line'
  * Documentation is where the banned patterns get *explained* — `month.ts`
  * opens by saying never to write `new Date('2026-07-01')` — and a rule that
  * cannot be described in a doc comment teaches people to stop describing it.
- * Line comments are still scanned: stripping those means guessing whether `//`
- * opens a comment or sits inside a URL, and guessing wrong hides real code.
+ *
+ * Only a block that *opens its own line* counts, which is every doc comment and
+ * no string literal. Matching `/*` anywhere would let a string containing one
+ * open a comment that swallows real code up to the next string containing `*​/`,
+ * hiding whatever lay between — a silent false negative, in the one direction
+ * an enforcement tool must never fail. Line comments are left alone entirely:
+ * stripping those means guessing whether `//` opens a comment or sits inside a
+ * URL, and guessing wrong hides real code the same way.
  */
 function blankBlockComments(source) {
-  return source.replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, ' '))
+  return source.replace(/^[ \t]*\/\*[\s\S]*?\*\//gm, (comment) => comment.replace(/[^\n]/g, ' '))
 }
 
 /**
