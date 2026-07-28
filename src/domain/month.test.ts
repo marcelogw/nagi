@@ -15,6 +15,7 @@ describe('the timezone the suite runs under', () => {
     // parses as UTC midnight, which is 21:00 the previous day in São Paulo — so
     // the first of July reads as June. Under TZ=UTC this assertion fails, which
     // is exactly what makes the harness worth having.
+    // check-patterns-ignore-next-line: writing the banned pattern is the point here
     const parsedAsUtc = new Date('2026-07-01')
     expect(parsedAsUtc.getMonth()).toBe(5) // June
     expect(parsedAsUtc.getDate()).toBe(30)

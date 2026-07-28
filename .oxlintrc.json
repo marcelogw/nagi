@@ -1,8 +1,26 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
+  "plugins": ["react", "typescript", "oxc", "unicorn"],
   "rules": {
     "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
+    "react/only-export-components": ["warn", { "allowConstantExport": true }],
+
+    // P-08. The predecessor shipped a fully translated set of dashboard keys
+    // sitting unused above 700 lines of hardcoded Portuguese. A literal in JSX
+    // is the moment that starts, so this is an error rather than a convention.
+    // The allowlist holds glyphs that are not language — separators and
+    // symbols. It is curated: a word never belongs in it.
+    "react/jsx-no-literals": [
+      "error",
+      { "allowedStrings": ["·", "—", "–", "/", "|", "+", "-", "×", "%", "…", "→"] }
+    ]
+
+    // P-09 (in-place sort/reverse/splice) is deliberately NOT here.
+    // unicorn/no-array-sort and unicorn/no-array-reverse exist, but they only
+    // fire where oxlint can statically see the receiver is an array. The shape
+    // that caused P-09 reads the array back from a store selector, and there
+    // they stay silent — so enabling them would look like coverage while
+    // missing the only case they were wanted for. Enforced in
+    // scripts/check-patterns.mjs instead, which matches every receiver.
   }
 }

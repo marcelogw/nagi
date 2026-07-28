@@ -9,10 +9,11 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "lint": "oxlint",
+    "lint:patterns": "node scripts/check-patterns.mjs",
     "typecheck": "tsc -b --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "quality": "npm run lint && npm run typecheck && npm run format:check",
+    "quality": "npm run lint && npm run lint:patterns && npm run typecheck && npm run format:check",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },

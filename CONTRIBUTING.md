@@ -54,6 +54,41 @@ silent tick and not a deleted line.
 Partial work does not merge as "done". Missing tests, a missing translation and
 a TODO-flagged edge case are each enough to hold a PR open.
 
+## What the linters refuse
+
+Four patterns are rejected outright, because each one is a defect the app Nagi
+replaces actually shipped. They are errors, not conventions, because a
+convention is a thing people mean to follow.
+
+| Rejected | Why | Instead |
+| --- | --- | --- |
+| A user-visible literal in JSX | A fully translated set of keys once sat unused above 700 lines of hardcoded text | A translation key |
+| A hardcoded colour — `#ef4444`, `rgb(…)`, `hsl(…)` — or an arbitrary Tailwind value like `bg-[#ef4444]` | This is how a design system drifts, one component at a time | A semantic token, or a scale utility |
+| `new Date('2026-07-01')` or `Date.parse('…')` | Parses as UTC midnight, which is the *previous day* here | Build from parts, or `src/domain/month.ts` |
+| `.sort()`, `.reverse()`, `.splice()` | A value read from a store selector **is** the store's state, so sorting it sorts the store | `toSorted()`, `toReversed()`, `toSpliced()` |
+
+`npm run lint` runs oxlint; `npm run lint:patterns` runs the four rules oxlint
+cannot express. Both are inside `npm run quality`, and both run in CI.
+
+The escape hatch is one line, and it needs a reason:
+
+```ts
+// check-patterns-ignore-next-line: writing the banned pattern is the point here
+const parsedAsUtc = new Date('2026-07-01')
+```
+
+`rg check-patterns-ignore src` is the complete list of places this project
+knowingly writes one of these. It should stay short enough to read in one go.
+
+Every rule has a test that watches it reject a deliberate violation
+(`scripts/enforcement.test.ts`). Adding a rule without one fails that suite —
+configuration nobody has seen reject anything is not enforcement.
+
+Each rule's known blind spots are written next to it in
+`scripts/check-patterns.mjs`. The largest: a date built from a string
+*variable*, and `push`/`pop`/`fill` on a value read from a store. Both need
+type information to catch, so neither is claimed to be covered.
+
 ## Tests
 
 Four layers, and something belongs to exactly one of them.
