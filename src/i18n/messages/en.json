@@ -1,7 +1,4 @@
 {
-  "app": {
-    "tagline": "The calm after the wind stops."
-  },
   "nav": {
     "label": "Navigation",
     "dashboard": "Dashboard",

@@ -5,10 +5,11 @@ import { render, screen } from '@/test/render'
 import { useSettingsStore } from '@/stores/settings-store'
 import { AppIntlProvider } from './provider'
 
-function Tagline() {
-  const t = useTranslations('app')
+/** A key the product actually renders — a fixture-only key would be a dead string. */
+function NavLabel() {
+  const t = useTranslations('nav')
 
-  return <p>{t('tagline')}</p>
+  return <p>{t('dashboard')}</p>
 }
 
 describe('AppIntlProvider', () => {
@@ -19,10 +20,10 @@ describe('AppIntlProvider', () => {
   it('follows the store, and swaps the copy without remounting', () => {
     render(
       <AppIntlProvider>
-        <Tagline />
+        <NavLabel />
       </AppIntlProvider>,
     )
-    const paragraph = screen.getByText('The calm after the wind stops.')
+    const paragraph = screen.getByText('Dashboard')
 
     act(() => {
       useSettingsStore.getState().setLocale('pt-BR')
@@ -31,6 +32,6 @@ describe('AppIntlProvider', () => {
     // The same DOM node, retranslated. A held reference is what distinguishes a
     // re-render from a remount — and a remount is what a page reload would look
     // like from here, which is precisely what a language switch must not do.
-    expect(paragraph).toHaveTextContent('A calmaria depois que o vento para.')
+    expect(paragraph).toHaveTextContent('Painel')
   })
 })

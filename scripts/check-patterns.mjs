@@ -3,10 +3,10 @@
  * The rules oxlint cannot express.
  *
  * oxlint covers most of what this project needs to forbid, but it has no
- * `no-restricted-syntax` and no notion of design tokens, so four patterns had
+ * `no-restricted-syntax` and no notion of design tokens, so these patterns had
  * no enforcement at all. Rather than stand up a second linter and its plugin
- * tree to write four rules, they live here: plain regexes over `src/`, no
- * dependencies, and fast enough to sit inside `npm run quality`.
+ * tree to write a handful of rules, they live here: plain regexes over `src/`,
+ * no dependencies, and fast enough to sit inside `npm run quality`.
  *
  * The trade-off is real and worth stating: no editor squiggle, and one blunt
  * escape hatch instead of a rule-aware one. Each of these marks a defect the
@@ -111,6 +111,29 @@ export const RULES = [
     message:
       'In-place array mutation. A value read from a store selector *is* the store’s state, ' +
       'so sorting it sorts the store. Use toSorted(), toReversed() or toSpliced() — each returns a copy.',
+  },
+  {
+    id: 'no-locale-blind-format',
+    // P-19. One component rendered dates three ways and got three different
+    // wrong answers: a raw ISO string, a date formatted in the *browser's*
+    // locale rather than the app's, and a raw month key. The middle one is the
+    // dangerous one, because it says "locale" in the name and reads as correct
+    // in review — it just means the wrong locale, and looks right on whichever
+    // machine wrote it. The app's locale is bound in one place, and everything
+    // asks that place: `useFormatters()`.
+    //
+    // Known limit: only the call is matched, so the other two thirds of P-19 —
+    // an ISO string or a month key rendered straight into JSX — stay invisible
+    // here and need type information to catch. `Intl.DateTimeFormat` and
+    // `Intl.NumberFormat` are just as locale-blind when the locale argument is
+    // omitted and are not matched either: they are how the formatters
+    // themselves are built, and no call site outside them exists yet to justify
+    // a rule that would have to exempt the one legitimate user.
+    pattern: /\.toLocale(?:Date|Time)?String\(/g,
+    message:
+      'Locale-blind formatting. `toLocaleDateString()` renders in the browser’s locale, not the ' +
+      'app’s, so it looks correct on the machine that wrote it. Use useFormatters() from src/i18n.',
+    exempt: (file) => file.startsWith('src/i18n/'),
   },
   {
     id: 'no-skipped-tests',
