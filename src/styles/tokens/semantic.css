@@ -1,0 +1,104 @@
+/* ============================================================================
+   SEMANTIC COLOR TOKENS — the product-facing contract.
+   Use THESE in product code (never the raw palette). Light values on :root,
+   dark values on the .dark scope. Names describe ROLE, not appearance, so a
+   future rebrand only changes which primitive each role points to.
+   ============================================================================ */
+
+:root {
+  /* Surfaces */
+  --background: var(--slate-050);
+  --surface: var(--slate-000); /* cards, popovers */
+  --surface-muted: var(--slate-100); /* secondary fills, chart tracks */
+  --surface-subtle: var(--slate-150);
+
+  /* Text */
+  --foreground: var(--slate-900);
+  --foreground-muted: var(--slate-600); /* secondary text, meta labels */
+  --foreground-subtle: var(--slate-400); /* placeholders, disabled */
+
+  /* Lines */
+  --border: var(--slate-200);
+  --border-strong: var(--slate-300);
+  --input: var(--slate-200);
+  --ring: var(--blue-600);
+
+  /* Primary (brand blue) */
+  --primary: var(--blue-600);
+  --primary-hover: var(--blue-700);
+  --primary-foreground: oklch(0.99 0 0);
+  --primary-tint: var(--blue-050); /* icon chips, subtle bg */
+
+  /* Success (teal) */
+  --success: var(--teal-500); /* FILLS / large-bold / data-viz / ícones */
+  --success-text: var(--teal-700); /* teal como TEXTO pequeno em fundo claro (AA) */
+  --success-foreground: oklch(0.99 0 0);
+  --success-tint: var(--teal-050);
+
+  /* Warning (amber) */
+  --warning: var(--amber-500);
+  --warning-foreground: var(--slate-900);
+
+  /* Danger (red) */
+  --danger: var(--red-500);
+  --danger-foreground: oklch(0.99 0 0);
+
+  /* Accent (coral — sparingly) */
+  --accent-coral: var(--coral-500);
+  --accent-coral-foreground: oklch(0.99 0 0);
+  --accent-coral-tint: var(--coral-050);
+
+  /* Data-viz: income vs expense semantics */
+  --income: var(--teal-500);
+  --expense: var(--slate-300);
+  --expense-strong: var(--slate-400);
+}
+
+.dark {
+  /* Surfaces */
+  --background: var(--slate-950);
+  --surface: var(--slate-900);
+  --surface-muted: var(--slate-850);
+  --surface-subtle: var(--slate-800);
+
+  /* Text */
+  --foreground: oklch(0.96 0.004 215);
+  --foreground-muted: oklch(0.7 0.012 215);
+  --foreground-subtle: oklch(0.55 0.015 215);
+
+  /* Lines */
+  --border: var(--slate-800);
+  --border-strong: var(--slate-700);
+  --input: var(--slate-800);
+  --ring: var(--blue-500);
+
+  /* Primary — lighter for contrast on dark surfaces */
+  --primary: var(--blue-500);
+  --primary-hover: var(--blue-400);
+  --primary-foreground: oklch(0.14 0.02 230);
+  --primary-tint: oklch(0.66 0.11 212 / 0.16);
+
+  /* Success */
+  --success: var(--teal-600);
+  --success-text: var(--teal-400); /* teal como texto em fundo escuro */
+  --success-foreground: oklch(0.14 0.02 168);
+  --success-tint: oklch(0.65 0.15 168 / 0.16);
+
+  /* Warning */
+  --warning: var(--amber-500);
+  --warning-foreground: var(--slate-950);
+
+  /* Danger */
+  --danger: var(--red-400);
+  --danger-foreground: oklch(0.99 0 0);
+
+  /* Accent */
+  --accent-coral: var(--coral-500);
+  --accent-coral-foreground: oklch(0.99 0 0);
+  --accent-coral-tint: oklch(0.68 0.18 42 / 0.16);
+
+  /* Data-viz */
+  --income: var(--teal-600);
+  --expense: var(--slate-700);
+  --expense-strong: var(--slate-600);
+}

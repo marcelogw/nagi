@@ -1,0 +1,5 @@
+/* Webfonts. Tempest pairs a humanist sans (body/UI) with a rounded grotesque
+   (headings) and a mono for numerics. Loaded from Google Fonts CSS2, which
+   ships the @font-face rules to consumers. */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');

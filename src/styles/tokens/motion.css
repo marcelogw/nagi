@@ -1,0 +1,15 @@
+/* ============================================================================
+   MOTION TOKENS — durations & easing. Nagi motion is calm: short, eased,
+   no bounce. Used for hovers, theme switches, progress fills.
+   ============================================================================ */
+
+:root {
+  --duration-fast: 120ms; /* hovers, presses */
+  --duration-base: 200ms; /* most transitions */
+  --duration-slow: 320ms; /* panel / sheet entrances */
+  --duration-slower: 600ms; /* progress bars, chart draw */
+
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1); /* enter/move */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* decelerate */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* symmetric */
+}

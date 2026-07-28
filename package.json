@@ -1,0 +1,43 @@
+{
+  "name": "nagi",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "oxlint",
+    "typecheck": "tsc -b --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tanstack/react-router": "^1.170.18",
+    "clsx": "^2.1.1",
+    "idb-keyval": "^6.3.0",
+    "immer": "^11.1.15",
+    "lucide-react": "^1.27.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.8",
+    "tailwind-merge": "^3.6.0",
+    "use-intl": "^4.13.4",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "fake-indexeddb": "^6.2.5",
+    "oxlint": "^1.71.0",
+    "prettier": "^3.9.6",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1",
+    "vitest": "^4.1.10"
+  }
+}

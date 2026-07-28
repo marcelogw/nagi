@@ -38,7 +38,7 @@ month-by-month view. Open-core model — the app is fully functional self-hosted
 (free); Nagi Cloud is a paid hosted convenience layer on top of the same code.
 Only billing is closed-source. License: AGPL-3.0.
 
-## Stack (decided, not yet scaffolded)
+## Stack
 
 - Vite + React 19 + TypeScript (`strict`)
 - TanStack Router — routes carry navigation state (month/year as URL params, not store state)

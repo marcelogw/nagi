@@ -1,10 +1,12 @@
 .wolf/
 
-# Node / Vite (ready for when the app is scaffolded)
+# Node / Vite
 node_modules/
 dist/
 dist-ssr/
 *.local
+*.tsbuildinfo
+coverage/
 .env
 .env.*
 !.env.example
@@ -12,3 +14,8 @@ dist-ssr/
 # Editors / OS
 .DS_Store
 *.log
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+kanban/

@@ -1,0 +1,64 @@
+/* ============================================================================
+   TYPOGRAPHY TOKENS
+   Families, size scale, weights, line-heights, tracking.
+   (Full type specimens & pairing guidelines come in the Typography phase.)
+   ============================================================================ */
+
+:root {
+  /* Families */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; /* body & UI */
+  --font-heading: 'Nunito', var(--font-sans); /* headings, balances */
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace; /* numerics, codes, labels */
+
+  /* Size scale. UI baseline is --text-base (14px). */
+  --text-xs: 0.75rem; /* 12 — micro labels, chart ticks */
+  --text-sm: 0.8125rem; /* 13 — meta, captions */
+  --text-base: 0.875rem; /* 14 — body / UI default */
+  --text-md: 0.9375rem; /* 15 — emphasized body */
+  --text-lg: 1.0625rem; /* 17 — card titles, section heads */
+  --text-xl: 1.25rem; /* 20 — subheadings */
+  --text-2xl: 1.5rem; /* 24 — page titles */
+  --text-3xl: 1.875rem; /* 30 — hero numbers (mobile) */
+  --text-4xl: 2.375rem; /* 38 — hero balance */
+
+  /* Weights */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800; /* Nunito display only */
+
+  /* Line-heights */
+  --leading-tight: 1.1; /* display numbers */
+  --leading-snug: 1.3; /* headings */
+  --leading-normal: 1.5; /* body */
+  --leading-relaxed: 1.6; /* long-form */
+
+  /* Tracking */
+  --tracking-tight: -0.02em; /* large display */
+  --tracking-normal: 0;
+  --tracking-wide: 0.02em;
+  --tracking-caps: 0.14em; /* mono eyebrow labels, uppercase */
+
+  /* Numeric rendering — CRITICAL for finance. Apply wherever amounts appear so
+     digits share one advance width and align in columns:
+       font-feature-settings: var(--numeric-features);
+     IBM Plex Mono is monospaced by nature; this makes Inter/Nunito numerals
+     tabular + lining too. */
+  --numeric-features: 'tnum' 1, 'lnum' 1;
+}
+
+/* ----------------------------------------------------------------------------
+   TYPE ROLES — the semantic type styles. Compose from the tokens above.
+   Documented as a mapping (the system is inline-style based; copy these recipes).
+
+   Display   hero balances      → Nunito 800 · --text-4xl · lh tight · track tight
+   Title     page titles        → Nunito 700 · --text-2xl · lh snug
+   Heading   section/card head  → Nunito 700 · --text-lg  · lh snug
+   Subhead   in-card emphasis   → Inter 600  · --text-md  · lh snug
+   Body      default UI/text    → Inter 400  · --text-base · lh normal
+   Body-strong                  → Inter 600  · --text-base
+   Caption   meta, dates        → Inter 400/500 · --text-sm · muted
+   Label     eyebrows/overline  → IBM Plex Mono 500 · --text-xs · UPPER · track caps
+   Numeric   any amount         → IBM Plex Mono · size per context · numeric-features
+   ---------------------------------------------------------------------------- */

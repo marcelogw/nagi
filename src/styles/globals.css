@@ -1,0 +1,75 @@
+@import './tokens/fonts.css';
+@import 'tailwindcss';
+
+@import './tokens/palette.css';
+@import './tokens/semantic.css';
+@import './tokens/typography.css';
+@import './tokens/spacing.css';
+@import './tokens/icons.css';
+@import './tokens/elevation.css';
+@import './tokens/motion.css';
+
+/* ponytail: only color tokens are wired into Tailwind's theme layer below.
+   Tailwind v4 reserves the same custom-property names we already use for
+   font-size (--text-*), radius (--radius-*) and shadow (--shadow-*), so
+   `@theme inline { --text-sm: var(--text-sm) }` is a self-reference and
+   silently breaks. Consume those directly (`var(--radius-lg)`, arbitrary
+   Tailwind values) until the token files are renamed to a collision-free
+   prefix — do that alongside the first component that actually needs the
+   utility-class sugar. */
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-subtle: var(--surface-subtle);
+
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-subtle: var(--foreground-subtle);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-tint: var(--primary-tint);
+
+  --color-success: var(--success);
+  --color-success-text: var(--success-text);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-tint: var(--success-tint);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+
+  --color-accent-coral: var(--accent-coral);
+  --color-accent-coral-foreground: var(--accent-coral-foreground);
+  --color-accent-coral-tint: var(--accent-coral-tint);
+
+  --color-income: var(--income);
+  --color-expense: var(--expense);
+  --color-expense-strong: var(--expense-strong);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--foreground);
+  background: var(--background);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100svh;
+}

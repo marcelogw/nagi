@@ -1,0 +1,60 @@
+/* ============================================================================
+   PALETTE — primitive tokens (raw values, theme-agnostic)
+   These are the only place literal color values are defined. Semantic tokens
+   (semantic.css) reference these; product code should use semantic tokens,
+   never primitives directly.
+   All values in oklch. Brand hues: blue 212 (calm sea), teal 168, coral 42.
+   ============================================================================ */
+
+:root {
+  /* --- Brand: Blue (primary — calm sea) --- */
+  --blue-300: oklch(0.8 0.075 212);
+  --blue-400: oklch(0.72 0.1 212);
+  --blue-500: oklch(0.66 0.11 212); /* primary @ dark */
+  --blue-600: oklch(
+    0.54 0.12 212
+  ); /* primary @ light — WCAG AA: 4.7:1 sobre branco (texto + botão) */
+  --blue-700: oklch(0.47 0.115 214); /* hover @ light */
+  --blue-050: oklch(0.96 0.02 212); /* tint / icon chip bg @ light */
+
+  /* --- Brand: Teal (success, growth) --- */
+  --teal-300: oklch(0.82 0.11 168);
+  --teal-400: oklch(0.78 0.14 168);
+  --teal-500: oklch(0.72 0.16 168); /* success @ light */
+  --teal-600: oklch(0.65 0.15 168); /* success @ dark */
+  --teal-700: oklch(0.52 0.13 168); /* success-text @ light — WCAG AA: 5:1 sobre branco */
+  --teal-050: oklch(0.95 0.04 168);
+
+  /* --- Brand: Coral (energy, friendliness — accent only) --- */
+  --coral-400: oklch(0.74 0.15 42);
+  --coral-500: oklch(0.68 0.18 42);
+  --coral-600: oklch(0.62 0.19 40);
+  --coral-050: oklch(0.95 0.03 42);
+
+  /* --- Status: Red (destructive) --- */
+  --red-400: oklch(0.62 0.2 28);
+  --red-500: oklch(0.55 0.22 28);
+  --red-600: oklch(0.49 0.21 28);
+
+  /* --- Status: Amber (warning) --- */
+  --amber-400: oklch(0.8 0.14 75);
+  --amber-500: oklch(0.75 0.16 75);
+  --amber-600: oklch(0.68 0.15 75);
+
+  /* --- Neutrals: sea-tempered slate ramp (hue ~215, very low chroma) --- */
+  --slate-000: oklch(1 0 0);
+  --slate-050: oklch(0.98 0.006 215);
+  --slate-100: oklch(0.96 0.008 215);
+  --slate-150: oklch(0.95 0.008 215);
+  --slate-200: oklch(0.91 0.008 215);
+  --slate-300: oklch(0.86 0.01 215);
+  --slate-400: oklch(0.7 0.012 215);
+  --slate-500: oklch(0.55 0.015 215);
+  --slate-600: oklch(0.48 0.015 216);
+  --slate-700: oklch(0.34 0.02 216);
+  --slate-800: oklch(0.24 0.02 215);
+  --slate-850: oklch(0.2 0.02 215);
+  --slate-900: oklch(0.18 0.02 216);
+  --slate-925: oklch(0.16 0.018 215);
+  --slate-950: oklch(0.14 0.018 215);
+}
