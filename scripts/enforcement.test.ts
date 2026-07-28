@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { RULES, check } from './check-patterns.mjs'
+import { check as checkMessages } from './check-messages.mjs'
 
 /**
  * Proof that the enforcement fires.
@@ -190,6 +191,98 @@ describe('the escape hatches let the legitimate cases through', () => {
   })
 })
 
+describe('skipped and focused tests do not reach the branch (P-23)', () => {
+  // The predecessor's entire replication E2E suite sat skipped, looking from
+  // the outside exactly like coverage.
+  //
+  // This file is itself a spec, so the rule reads it — and this line has to
+  // spell out every form it rejects. The one directive that earns its keep.
+  // check-patterns-ignore-next-line: naming the forbidden forms is the test
+  it.each(['it.skip(', 'describe.skip(', 'it.only(', 'describe.only(', 'test.only(', 'xit('])(
+    'rejects %s',
+    (form) => {
+      const found = check([
+        fixture(`spec-${form.length}-${form[0]}.test.ts`, `${form}'x', () => {})\n`),
+      ])
+
+      expect(found.map((f) => f.rule)).toContain('no-skipped-tests')
+    },
+  )
+
+  it('leaves it.each and ordinary calls alone', () => {
+    const found = check([
+      fixture('fine.test.ts', `it.each([1])('x', () => {})\nit('y', () => {})\n`),
+    ])
+
+    expect(found).toEqual([])
+  })
+
+  it('reads specs only, not product code', () => {
+    const rule = RULES.find((r) => r.id === 'no-skipped-tests')!
+
+    expect(rule.scope).toContain('.test.')
+  })
+})
+
+describe('message catalogues (P-08)', () => {
+  function catalogue(name: string, messages: Record<string, unknown>, source = '') {
+    const root = join(workspace, name)
+    for (const [locale, content] of Object.entries(messages)) {
+      fixture(`${name}/messages/${locale}.json`, JSON.stringify(content))
+    }
+    fixture(`${name}/app.tsx`, source)
+    return checkMessages({
+      messages: `${root}/messages/*.json`,
+      sources: `${root}/*.tsx`,
+    })
+  }
+
+  const used = `const t = useTranslations('app')\nexport const x = t('title')\n`
+
+  it('accepts catalogues that agree and keys that are used', () => {
+    const problems = catalogue(
+      'good',
+      { en: { app: { title: 'Nagi' } }, 'pt-BR': { app: { title: 'Nagi' } } },
+      used,
+    )
+
+    expect(problems).toEqual([])
+  })
+
+  it('rejects a key added to one locale only', () => {
+    const problems = catalogue(
+      'missing',
+      { en: { app: { title: 'Nagi', tagline: 'calm' } }, 'pt-BR': { app: { title: 'Nagi' } } },
+      `${used}export const y = t('tagline')\n`,
+    )
+
+    expect(problems.join('\n')).toContain('missing "app.tagline"')
+  })
+
+  it('rejects a key that exists only outside the source locale', () => {
+    const problems = catalogue(
+      'extra',
+      { en: { app: { title: 'Nagi' } }, 'pt-BR': { app: { title: 'Nagi', extra: 'x' } } },
+      used,
+    )
+
+    expect(problems.join('\n')).toContain('"app.extra" is not in en.json')
+  })
+
+  it('rejects a key nothing references — the dead dashboard set', () => {
+    const problems = catalogue(
+      'dead',
+      {
+        en: { app: { title: 'Nagi' }, dashboard: { heading: 'Dashboard' } },
+        'pt-BR': { app: { title: 'Nagi' }, dashboard: { heading: 'Painel' } },
+      },
+      used,
+    )
+
+    expect(problems.join('\n')).toContain('"dashboard.heading" is defined but never referenced')
+  })
+})
+
 describe('the enforcement covers what it claims to', () => {
   it('runs every rule the checker defines', () => {
     // A rule added without a proof above should fail here rather than ship as
@@ -199,6 +292,7 @@ describe('the enforcement covers what it claims to', () => {
       'no-array-mutation',
       'no-date-from-string',
       'no-hardcoded-colour',
+      'no-skipped-tests',
     ])
   })
 })
