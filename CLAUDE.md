@@ -95,6 +95,38 @@ Nothing ships on the strength of "it compiles". Before a change is called done:
 5. The pitfalls linked from the feature's spec are verified as *not reproduced*.
 6. A second instance reviews the diff before merge.
 
+## Delegation model (agy) — optional, personal tooling
+
+If you have the `agy` CLI and its Claude Code skills configured, this project is
+trialing a delegation split: agy writes small, well-scoped implementation units;
+the orchestrating agent (Claude, or whichever LLM is reading this file) stays the
+architect and reviewer. If you don't have agy set up, ignore this section — it
+changes nothing about how a plain implementation works here.
+
+- **Default to delegating** once a task is scoped to something small, testable,
+  and unambiguous (a component, a hook, an isolated function, a test file). Don't
+  force a big or ambiguous task into that shape just to delegate it — if writing
+  a clean handoff spec costs more than doing it directly, do it directly.
+- **Delegating does not lower the bar.** The orchestrator stays fully accountable
+  for the merged result. A green success status only covers what the delegate's
+  own report proves — that this project's real `npm run quality`/`test`/`test:e2e`
+  commands ran and passed (vague or substituted commands don't count, re-run them
+  yourself). It never covers architecture, SOLID, or edge-case judgment against
+  every rule above (design fidelity, i18n) — that review is always the
+  orchestrator's, on every delegated change, no exceptions for a green status.
+- **The orchestrator's review is not the PR's second-instance review.** It's due
+  diligence on your own delegate, same as testing your own code before opening a
+  PR. It does not replace the independent second-instance review this file already
+  requires before merge (see Validation before delivery, Workflow) — that still
+  happens, regardless of who wrote the diff.
+- **OpenWolf bookkeeping applies to the delegate too, at the same bar** — it reads
+  this same file, and `.wolf/OPENWOLF.md`'s bar is mandatory, not optional. Verify
+  every round, not occasionally: `.wolf/anatomy.md` / `.wolf/memory.md` got updated
+  for what agy touched. If not, do it yourself before calling the round done —
+  delegated work doesn't get a lighter bookkeeping bar than your own.
+- **This is a trial**, not a mandate to defend. If the overhead of spec-writing and
+  review costs more than direct implementation, say so — shipping speed comes first.
+
 ## Workflow
 
 - A feature/task is done when it's complete — partial work (missing tests,
