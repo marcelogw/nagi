@@ -1,9 +1,11 @@
 <!-- openwolf:begin -->
-# OpenWolf
+# OpenWolf — optional, personal tooling
 
-@.wolf/OPENWOLF.md
-
-This project uses OpenWolf for context management. Read and follow .wolf/OPENWOLF.md every session. Check .wolf/cerebrum.md before generating code. Check .wolf/anatomy.md before reading files.
+`.wolf/` is git-ignored (personal, not part of the shared repo). If it exists in your
+checkout, read and follow `.wolf/OPENWOLF.md` every session, check `.wolf/cerebrum.md`
+before generating code, and check `.wolf/anatomy.md` before reading files. If you don't
+have OpenWolf set up, ignore this section — it changes nothing about how a plain session
+works here.
 <!-- openwolf:end -->
 
 # Git Commit Standard
