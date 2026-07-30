@@ -73,10 +73,9 @@ _2026-07-28_
 Data lives in the browser, through IndexedDB. There is no repository interface,
 no storage adapter, and no client for a backend.
 
-**Why:** there is no sync layer designed yet, so an abstraction built for one
-would be a guess at an API nobody has specified — the kind that ends up as a
-dozen methods returning resolved promises. The abstraction gets designed
-against a real backend, or not at all.
+**Why:** there is no sync layer designed yet, so an abstraction over storage
+would be a guess at an API nobody has specified. It gets designed against a real
+backend, or not at all.
 
 The authentication and backend technology for hosted sync is **not chosen**.
 That decision needs its own entry here, written when the work starts.
