@@ -18,8 +18,10 @@ blob-report/
 .idea
 .wolf/
 .kanban
+kanban/
 docs/migration/
 
-# Personal agent overrides. .claude/settings.json IS committed — it carries the
-# hooks every contributor should get.
-.claude/settings.local.json
+# .claude/ is personal AI tooling (OpenWolf skills, rules, commands) except
+# settings.json, which carries the hooks every contributor should get.
+.claude/*
+!.claude/settings.json
