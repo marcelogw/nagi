@@ -22,6 +22,11 @@ kanban/
 docs/migration/
 
 # .claude/ is personal AI tooling (OpenWolf skills, rules, commands) except
-# settings.json, which carries the hooks every contributor should get.
+# settings.json, which carries the hooks every contributor should get, and the
+# skills this repo owns. A negation cannot reach inside an ignored directory, so
+# each level has to be un-ignored before the level below it can be.
 .claude/*
 !.claude/settings.json
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/nagi-design/
