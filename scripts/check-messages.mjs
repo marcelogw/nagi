@@ -45,7 +45,7 @@ function loadCatalogues(pattern) {
 }
 
 /**
- * Which keys the source actually asks for.
+ * Which keys the *product* actually asks for.
  *
  * `useTranslations('app')` binds a namespace and `t('title')` names a key
  * inside it, so neither half is a full path on its own. Both halves are
@@ -53,13 +53,18 @@ function loadCatalogues(pattern) {
  * namespaces sharing a key name will mark both as referenced — because a false
  * "used" leaves a dead key in the catalogue, while a false "unused" would fail
  * the build over a key that is fine.
+ *
+ * Specs are excluded, and that is the whole point of the check rather than a
+ * detail of it: a key nothing renders but a test fixture reaches is a dead
+ * product string, and counting the fixture as a use would report it as live —
+ * exactly the blind spot this exists to close. `app.tagline` was one.
  */
 function referencedKeys(pattern) {
   const namespaces = new Set()
   const keys = new Set()
   const dynamic = []
 
-  for (const path of globSync(pattern)) {
+  for (const path of globSync(pattern).filter((file) => !/\.(?:test|spec)\.tsx?$/.test(file))) {
     const source = readFileSync(path, 'utf8')
 
     for (const [, namespace] of source.matchAll(/useTranslations\(\s*['"]([^'"]+)['"]/g)) {

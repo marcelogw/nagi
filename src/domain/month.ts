@@ -40,6 +40,33 @@ function format(year: number, month: number): Month {
   return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}`
 }
 
+/**
+ * Whether a value is a well-formed month.
+ *
+ * The boundary check. A month arrives from two places the type system does not
+ * reach — the URL and persisted data — and both are user-editable. Callers that
+ * need a value use `parse`; callers that need a decision use this.
+ */
+export function isMonth(value: unknown): value is Month {
+  return typeof value === 'string' && MONTH_PATTERN.test(value)
+}
+
+/**
+ * The month `now` falls in, read in the running timezone.
+ *
+ * `now` is a parameter so tests can pin it. Nothing else in the app reads the
+ * clock: a component that wants "this month" asks for it here, once, rather
+ * than constructing its own `Date` and drifting from this module's rules.
+ */
+export function currentMonth(now: Date = new Date()): Month {
+  return format(now.getFullYear(), now.getMonth() + 1)
+}
+
+/** The calendar year `now` falls in, read in the running timezone. */
+export function currentYear(now: Date = new Date()): number {
+  return now.getFullYear()
+}
+
 /** The first instant of the month, in the running timezone. */
 export function monthToDate(month: Month): Date {
   const [year, m] = parse(month)

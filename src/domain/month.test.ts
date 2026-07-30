@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { InvalidMonthError, monthToDate, nextMonth, previousMonth } from './month'
+import {
+  currentMonth,
+  InvalidMonthError,
+  isMonth,
+  monthToDate,
+  nextMonth,
+  previousMonth,
+} from './month'
 
 // The reference example for a domain test: pure input, pure output, no mocks,
 // no DOM, branches included.
@@ -70,5 +77,42 @@ describe('malformed input', () => {
   it('round-trips a padded year rather than dropping a digit', () => {
     expect(previousMonth('1000-01')).toBe('0999-12')
     expect(() => previousMonth(previousMonth('1000-01'))).not.toThrow()
+  })
+})
+
+describe('isMonth', () => {
+  it.each(['2026-07', '2026-01', '2026-12', '0999-12'])('accepts %o', (value) => {
+    expect(isMonth(value)).toBe(true)
+  })
+
+  // The URL is the reason this exists: `/months/banana` has to be a decision at
+  // the route boundary, not an exception thrown inside a selector.
+  it.each(['2026-13', '2026-00', '2026-7', '2026', 'banana', '', '2026-07-01'])(
+    'rejects %o',
+    (value) => {
+      expect(isMonth(value)).toBe(false)
+    },
+  )
+
+  it.each([null, undefined, 42, {}, ['2026-07']])('rejects the non-string %o', (value) => {
+    expect(isMonth(value)).toBe(false)
+  })
+})
+
+describe('currentMonth', () => {
+  it('reads the month in local time, not UTC', () => {
+    // 23:30 on the last day of July in Sao Paulo is already August in UTC. A
+    // naive implementation reading UTC parts returns 2026-08 here — the same
+    // off-by-one month that put the wrong label on every chart in the
+    // predecessor.
+    expect(currentMonth(new Date(2026, 6, 31, 23, 30))).toBe('2026-07')
+  })
+
+  it('pads a single-digit month', () => {
+    expect(currentMonth(new Date(2026, 0, 15))).toBe('2026-01')
+  })
+
+  it('produces a month this module accepts back', () => {
+    expect(isMonth(currentMonth())).toBe(true)
   })
 })

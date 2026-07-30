@@ -59,3 +59,35 @@ jobs:
 
       # After the build, because it measures what the build produced.
       - run: npm run check:bundle
+
+  e2e:
+    name: End-to-end
+    runs-on: ubuntu-latest
+    # Same timezone as the unit tests: the app the smoke test drives resolves a
+    # current month, and UTC is the one zone where that never goes wrong.
+    env:
+      TZ: America/Sao_Paulo
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Keyed on the lockfile, which is where the Playwright version lives. A
+      # miss costs a download, not a failure, so there is nothing cleverer to do.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      # Chromium alone. Proving the app boots does not need three engines, and a
+      # fork's pull request should not pay for two of them.
+      - run: npx playwright install --with-deps chromium
+
+      # Playwright starts the dev server itself, so there is no serve step here
+      # and no step a contributor has to remember locally either.
+      - run: npm run test:e2e

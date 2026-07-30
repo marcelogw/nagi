@@ -48,15 +48,16 @@ A box that genuinely does not apply stays **unchecked**, with `— N/A: <reason>
 appended. A docs-only change has no screenshot; that is worth one clause, not a
 silent tick and not a deleted line.
 
-> `npm run test:e2e` does not exist yet — Playwright is not installed. Until it
-> is, that box is `N/A: no e2e harness yet`. Every other box applies today.
+> `npm run test:e2e` runs Playwright against Chromium and starts the dev server
+> itself — no separate terminal, no manual step. First run on a clean clone
+> needs the browser once: `npx playwright install chromium`.
 
 Partial work does not merge as "done". Missing tests, a missing translation and
 a TODO-flagged edge case are each enough to hold a PR open.
 
 ## What the linters refuse
 
-Four patterns are rejected outright, because each one is a defect the app Nagi
+Six patterns are rejected outright, because each one is a defect the app Nagi
 replaces actually shipped. They are errors, not conventions, because a
 convention is a thing people mean to follow.
 
@@ -65,6 +66,7 @@ convention is a thing people mean to follow.
 | A user-visible literal in JSX | A fully translated set of keys once sat unused above 700 lines of hardcoded text | A translation key |
 | A hardcoded colour — `#ef4444`, `rgb(…)`, `hsl(…)` — or an arbitrary Tailwind value like `bg-[#ef4444]` | This is how a design system drifts, one component at a time | A semantic token, or a scale utility |
 | `new Date('2026-07-01')` or `Date.parse('…')` | Parses as UTC midnight, which is the *previous day* here | Build from parts, or `src/domain/month.ts` |
+| `toLocaleDateString()`, `toLocaleTimeString()`, `toLocaleString()` | They render in the *browser's* locale, not the app's, so they look correct on the machine that wrote them | `useFormatters()` from `src/i18n` |
 | `.sort()`, `.reverse()`, `.splice()` | A value read from a store selector **is** the store's state, so sorting it sorts the store | `toSorted()`, `toReversed()`, `toSpliced()` |
 | `.skip` or `.only` in a committed spec | A skipped suite looks exactly like coverage from the outside; `.only` quietly stops running everything else in the file | Delete it, or fix it |
 
@@ -74,7 +76,9 @@ Three more checks run alongside them, all inside `npm run quality`:
   defines — a key added to one file only fails the build. `en` is the source
   locale and the naming authority.
 - **No key is defined but never referenced.** A translated set of keys nothing
-  uses is not translation, it is a maintenance cost with a good disguise.
+  uses is not translation, it is a maintenance cost with a good disguise. Specs
+  do not count as references: a key only a test fixture reaches renders nowhere,
+  and counting the fixture would report a dead string as live.
 - **`AGENTS.md`, `CLAUDE.md` and `GEMINI.md` are byte-identical.** They are the
   same rules addressed to three agents, and they had already drifted into
   contradicting each other. `AGENTS.md` is the source:
@@ -125,8 +129,9 @@ Personal overrides go in `.claude/settings.local.json`, which is git-ignored.
 
 Each rule's known blind spots are written next to it in
 `scripts/check-patterns.mjs`. The largest: a date built from a string
-*variable*, and `push`/`pop`/`fill` on a value read from a store. Both need
-type information to catch, so neither is claimed to be covered.
+*variable*, `push`/`pop`/`fill` on a value read from a store, and a raw ISO
+string or month key rendered straight into JSX. All three need type information
+to catch, so none is claimed to be covered.
 
 ## Tests
 
@@ -140,8 +145,12 @@ Four layers, and something belongs to exactly one of them.
 | **End-to-end** | One primary flow per route | `data-testid` selectors only, never user-visible text. |
 
 There is a worked example of each in the repo — `src/domain/month.test.ts`,
-`src/stores/settings-store.test.ts`, `src/routes/home.test.tsx`. Copy the nearest
-one rather than inventing a new shape.
+`src/stores/settings-store.test.ts`, `src/routes/shell.test.tsx`,
+`e2e/smoke.spec.ts`. Copy the nearest one rather than inventing a new shape.
+
+A component test that needs a route renders through `renderRoute()` from
+`src/test/render.tsx`, which mounts the app's real route tree over a memory
+history. A test-only tree would pass while the real one redirected elsewhere.
 
 **The suite runs under `TZ=America/Sao_Paulo`**, set in `vite.config.ts` and on
 the CI job. This is not a preference. Parsing a date-only string with

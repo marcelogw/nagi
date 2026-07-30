@@ -1,6 +1,15 @@
 {
-  "app": {
-    "title": "Nagi",
-    "tagline": "A calmaria depois que o vento para."
+  "nav": {
+    "label": "Navegação",
+    "dashboard": "Painel",
+    "months": "Visão Mensal",
+    "monthsShort": "Mês",
+    "goals": "Metas",
+    "categories": "Categorias",
+    "cards": "Cartões",
+    "profile": "Perfil"
+  },
+  "theme": {
+    "toggle": "Alternar tema"
   }
 }

@@ -105,6 +105,22 @@ describe('check-patterns rejects what oxlint cannot express', () => {
     },
   )
 
+  // The browser's locale is not the app's, and the call site says "locale"
+  // loudly enough to read as correct in review.
+  it.each([
+    'toLocaleDateString()',
+    "toLocaleDateString('pt-BR')",
+    'toLocaleTimeString()',
+    'toLocaleString()',
+  ])('rejects date.%s (P-19)', (call) => {
+    const found = findings(
+      `locale-${call.replace(/\W/g, '')}.ts`,
+      `export const label = date.${call}\n`,
+    )
+
+    expect(found.map((f) => f.rule)).toContain('no-locale-blind-format')
+  })
+
   it('leaves ordinary TypeScript alone', () => {
     const found = findings(
       'ordinary.ts',
@@ -189,6 +205,16 @@ describe('the escape hatches let the legitimate cases through', () => {
     expect(colour.exempt?.('src/routes/home.tsx')).toBe(false)
     expect(colour.exempt?.('src/styles/globals.css')).toBe(false)
   })
+
+  it('exempts the formatters from the locale rule, and nothing else', () => {
+    // The one place allowed to format: it is where the app's locale is bound,
+    // so a rule that flagged it would ban the fix along with the defect.
+    const locale = RULES.find((rule) => rule.id === 'no-locale-blind-format')!
+
+    expect(locale.exempt?.('src/i18n/formatters.ts')).toBe(true)
+    expect(locale.exempt?.('src/routes/home.tsx')).toBe(false)
+    expect(locale.exempt?.('src/domain/month.ts')).toBe(false)
+  })
 })
 
 describe('skipped and focused tests do not reach the branch (P-23)', () => {
@@ -220,17 +246,26 @@ describe('skipped and focused tests do not reach the branch (P-23)', () => {
   it('reads specs only, not product code', () => {
     const rule = RULES.find((r) => r.id === 'no-skipped-tests')!
 
-    expect(rule.scope).toContain('.test.')
+    expect(rule.scope).toContain('test,spec')
+  })
+
+  // The pitfall this rule exists for is an end-to-end suite that sat skipped
+  // while looking like coverage. A glob that misses `e2e/*.spec.ts` misses it.
+  it('reads the end-to-end specs, which are the ones P-23 is about', () => {
+    const rule = RULES.find((r) => r.id === 'no-skipped-tests')!
+
+    expect(rule.scope).toContain('e2e')
   })
 })
 
 describe('message catalogues (P-08)', () => {
-  function catalogue(name: string, messages: Record<string, unknown>, source = '') {
+  function catalogue(name: string, messages: Record<string, unknown>, source = '', spec = '') {
     const root = join(workspace, name)
     for (const [locale, content] of Object.entries(messages)) {
       fixture(`${name}/messages/${locale}.json`, JSON.stringify(content))
     }
     fixture(`${name}/app.tsx`, source)
+    fixture(`${name}/app.test.tsx`, spec)
     return checkMessages({
       messages: `${root}/messages/*.json`,
       sources: `${root}/*.tsx`,
@@ -314,6 +349,22 @@ describe('message catalogues (P-08)', () => {
 
     expect(problems.join('\n')).toContain('"dashboard.heading" is defined but never referenced')
   })
+
+  // A key only a test fixture reaches renders nowhere. `app.tagline` lived in
+  // both catalogues on exactly this footing, and the check called it live.
+  it('does not count a reference from a spec as a use', () => {
+    const problems = catalogue(
+      'test-only',
+      {
+        en: { app: { title: 'Nagi', tagline: 'calm' } },
+        'pt-BR': { app: { title: 'Nagi', tagline: 'calmaria' } },
+      },
+      used,
+      `${used}export const y = t('tagline')\n`,
+    )
+
+    expect(problems.join('\n')).toContain('"app.tagline" is defined but never referenced')
+  })
 })
 
 describe('the enforcement covers what it claims to', () => {
@@ -325,6 +376,7 @@ describe('the enforcement covers what it claims to', () => {
       'no-array-mutation',
       'no-date-from-string',
       'no-hardcoded-colour',
+      'no-locale-blind-format',
       'no-skipped-tests',
     ])
   })

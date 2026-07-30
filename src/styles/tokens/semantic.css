@@ -6,6 +6,12 @@
    ============================================================================ */
 
 :root {
+  /* Tells the UA which theme it is painting, so the parts no stylesheet reaches
+     follow: scrollbar tracks, form-control chrome, autofill fills, and the
+     canvas before the stylesheet lands. Without it a dark page wears a white
+     scrollbar. */
+  color-scheme: light;
+
   /* Surfaces */
   --background: var(--slate-050);
   --surface: var(--slate-000); /* cards, popovers */
@@ -55,6 +61,8 @@
 }
 
 .dark {
+  color-scheme: dark;
+
   /* Surfaces */
   --background: var(--slate-950);
   --surface: var(--slate-900);
