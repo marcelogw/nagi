@@ -8,7 +8,7 @@ no daily transaction logging, no anxiety-inducing spreadsheets.
 
 ## Model
 
-`Income − Expenses − Savings = Left over`. Saving/investing isn't spending
+`Income − Expenses − Savings = Net balance`. Saving/investing isn't spending
 and isn't leftover cash — it's its own bucket, tracked against goals.
 
 ## Open-core
@@ -22,8 +22,9 @@ and isn't leftover cash — it's its own bucket, tracked against goals.
 ## Stack
 
 Vite · React 19 · TypeScript · TanStack Router · Tailwind · shadcn/ui ·
-Zustand. See [`AGENTS.md`](./AGENTS.md) for the full set of technical
-decisions and conventions.
+Zustand. See [`AGENTS.md`](./AGENTS.md) for the conventions,
+[`docs/glossary.md`](./docs/glossary.md) for what the product's words mean, and
+[`docs/decisions.md`](./docs/decisions.md) for the choices behind them.
 
 ## Getting started
 

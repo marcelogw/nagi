@@ -133,6 +133,20 @@ Each rule's known blind spots are written next to it in
 string or month key rendered straight into JSX. All three need type information
 to catch, so none is claimed to be covered.
 
+## Code conventions
+
+The conventions no linter can check — `type` over `interface`, where logic
+lives, what gets a name instead of a literal — are in
+[`AGENTS.md`](./AGENTS.md), alongside the rest of the rules an agent reads every
+session. They are there rather than here so there is one copy: two would drift,
+and the one that drifts is always the one you happened to read.
+
+The words themselves are in [`docs/glossary.md`](./docs/glossary.md) — one name
+per concept, which is what keeps a single thing from acquiring three. It holds
+no translations: those live in the message catalogues, so a new language never
+touches it. The choices that shape the product — and the ones still open — are
+in [`docs/decisions.md`](./docs/decisions.md).
+
 ## Tests
 
 Four layers, and something belongs to exactly one of them.

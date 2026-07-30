@@ -56,6 +56,31 @@ Only billing is closed-source. License: AGPL-3.0.
 - **Product language is i18n-driven, not hardcoded.** No user-visible string literal in component code — everything goes through message files.
 - **English-first.** `en` is the source locale and the naming authority; `pt-BR` is the first translation, with more to follow. The locale registry is a list, not a pair — adding a language is one file plus one entry. Currency is a **separate setting**, never derived from the language.
 
+## Code conventions
+
+The rules a linter cannot see. What *is* machine-checked — the banned patterns,
+the message catalogues, these three files staying identical — is listed in
+`CONTRIBUTING.md` under "What the linters refuse", and is not repeated here.
+
+- **Names come from `docs/glossary.md`.** Identifiers, types and message keys
+  use the canonical English term for a concept — never a word borrowed from one
+  translation. A concept that needs a new name gets added to the glossary in the
+  same change.
+- **Money is `Cents`** — an integer — in state, in `src/domain/`, in storage and
+  in props. Formatting happens once at the edge, through `useFormatters()`.
+- `type` over `interface`, except where an interface is genuinely extended.
+- Explicit prop types on every component.
+- **Sorting and filtering are derived state** — a selector or a `useMemo`, never
+  assembled inline in JSX.
+- **One `newId()`**, `crypto.randomUUID()` behind it, used everywhere. A second
+  id generator is how two records end up with incompatible keys.
+- **No magic string for an ID** — reference the constant. A default argument
+  holding a literal id is the same defect with a longer fuse.
+- **No magic number for a business rule** — name it. A `24` in a recurrence
+  loop is a policy nobody can find later.
+- **Anything longer than a few lines inside a store action belongs in
+  `src/domain/`**, where it is a pure function with a test.
+
 ## Design system
 
 Product code consumes **semantic design tokens only** (`--primary`, `--success`,
