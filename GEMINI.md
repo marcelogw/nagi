@@ -90,6 +90,11 @@ The brand's signature accent (a single coral dot) has a closed, narrow set of
 allowed uses — do not introduce new coral usage without checking the design
 reference first. Delete/danger is **red (`--danger`), never coral**.
 
+The reference is `.claude/skills/nagi-design/SKILL.md`, versioned here: the
+tokens, the brand, the closed coral list, and an index of which screens the
+design actually defines — which is what tells "undefined" apart from "I did not
+look". Read it before writing or restyling any UI.
+
 ## Design fidelity — do not invent
 
 The design system owns everything the user sees. It is a source of truth, not a suggestion.

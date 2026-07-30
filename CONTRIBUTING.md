@@ -125,7 +125,11 @@ and the copy that drifts is always the one that lets the bad write through. What
 it changes is *when* you find out: at the keystroke instead of on the pull
 request. A skill advises; a hook decides.
 
-Personal overrides go in `.claude/settings.local.json`, which is git-ignored.
+`.claude/skills/nagi-design/` is committed for the same reason: it is the design
+system as a rule set — tokens, brand, the closed coral list, and an index of what
+the design defines — so a session does not have to rediscover it. The rest of
+`.claude/` is personal tooling and stays ignored, as does
+`.claude/settings.local.json`, where personal overrides go.
 
 Each rule's known blind spots are written next to it in
 `scripts/check-patterns.mjs`. The largest: a date built from a string
