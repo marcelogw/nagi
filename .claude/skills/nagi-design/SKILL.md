@@ -106,12 +106,19 @@ product.
 `--weight-extrabold`), `--tracking-tight`, with the final dot in
 `--accent-coral`. There is no other logotype, tagline or mascot.
 
-**Symbol:** a disc holding water at rest under the concave curve of a meniscus —
-teal water, `--primary-tint` fill, `--primary` ring. It reads as *contain*, which
-is the financial idea. This curve is the only hand-drawn shape in the entire
-system and it exists solely in brand identity; the mono version is the stroke
-alone. **No coral inside the symbol** — coral appears exactly once, on the
-wordmark dot.
+**Symbol:** a single stroke — a wave losing force until the water lies flat.
+Three oscillations decaying 13 : 8 : 5 (Fibonacci) over gaps that shrink by φ.
+It reads as *settle*, and flat water is water you can read through, which is the
+financial idea. The only hand-drawn shape in the entire system; everything else
+is Lucide line geometry.
+
+`NagiMark` in `src/components/shell/` is the only copy in product code, and
+`public/favicon.svg` restates the same path for the browser tab because a favicon
+cannot resolve `var()`. **Do not redraw it, do not inline it a third time, and do
+not adjust the control points** — they were solved numerically and the comment in
+the component says what breaks. The symbol is **monochrome** (`currentColor`), so
+it needs no colour or dark-mode variant, and **no coral goes inside it** — coral
+appears exactly once, on the wordmark dot.
 
 **Voice:** calm, second person, no jargon, one-word labels, and let the numbers
 speak. No gamification, no urgency, no inflating adjectives.
