@@ -1,5 +1,3 @@
-import { useId } from 'react'
-
 /**
  * The wordmark, as constants rather than JSX literals.
  *
@@ -12,37 +10,33 @@ const WORDMARK = 'nagi'
 const WORDMARK_DOT = '.'
 
 /**
- * The brand symbol: a disc holding water at rest, with the concave curve of a
- * meniscus. The one hand-drawn curve the design system allows, and it lives
- * only in the identity — UI icons stay Lucide line geometry.
+ * The brand symbol: a wave losing force until the water lies flat. Three
+ * oscillations decaying 13 : 8 : 5 (Fibonacci) over gaps that shrink by φ.
  *
- * No coral in here. Coral appears exactly once on the screen, on the wordmark
- * dot next to this.
+ * Geometry frozen 2026-07-30, round 8 — do not adjust by eye. The control
+ * points 19.87 / 24.47 / 33.2 / 36.3 were solved numerically so the waterline
+ * crossings land on 23.41 / 35.41 / 42.82, which is what makes the ratios come
+ * out golden; nudging them breaks the construction and nobody notices for
+ * months. Opening the curve further is closed too: past ~2.5 of curvature the
+ * drawing reads as the letter R.
+ *
+ * Monochrome by definition — it takes its colour from whatever contains it, so
+ * it needs no dark-mode variant. Coral marks the answer in the product (the
+ * balance, the goal) and the wordmark dot beside this, never the symbol.
  */
-export function NagiMark() {
-  // Two marks on one page would otherwise share a clip-path id, and the second
-  // would silently clip against the first.
-  const clipId = useId()
+const MARK_PATH =
+  'M4 24C9.4 24 9.4 11 14.6 11C19.87 11 24.47 32 30 32C33.2 32 36.3 19 39.1 19C41.35 19 41.35 24 42.82 24L52 24'
 
+export function NagiMark() {
   return (
-    <svg width="34" height="34" viewBox="0 0 48 48" fill="none" role="img" aria-label="Nagi">
-      <defs>
-        <clipPath id={clipId}>
-          <circle cx="24" cy="24" r="21" />
-        </clipPath>
-      </defs>
-      <circle cx="24" cy="24" r="21" fill="var(--primary-tint)" />
-      <g clipPath={`url(#${clipId})`}>
-        <path d="M0 23 Q24 33 48 23 L48 48 L0 48 Z" fill="var(--success)" />
-      </g>
+    <svg width="34" height="19" viewBox="0 4 56 32" fill="none" role="img" aria-label="Nagi">
       <path
-        d="M3 23 Q24 33 45 23"
-        fill="none"
-        stroke="color-mix(in oklch, var(--success) 65%, var(--foreground))"
-        strokeWidth="2.2"
+        d={MARK_PATH}
+        stroke="currentColor"
+        strokeWidth="4.5"
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
-      <circle cx="24" cy="24" r="21" fill="none" stroke="var(--primary)" strokeWidth="2.4" />
     </svg>
   )
 }
