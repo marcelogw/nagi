@@ -18,10 +18,16 @@
   --surface-muted: var(--slate-100); /* secondary fills, chart tracks */
   --surface-subtle: var(--slate-150);
 
-  /* Text */
+  /* Text
+     `--foreground-subtle` used to be slate-400 and measured 2,64:1 on --surface —
+     the comment said "placeholders, disabled", which would be exempt, but it was
+     read as informative text (e-mails, dates, counters) across the kit. It is now
+     a legal text colour; the exempt use moved to --foreground-disabled, which is
+     allowed to fail because nothing it paints has to be read. */
   --foreground: var(--slate-900);
-  --foreground-muted: var(--slate-600); /* secondary text, meta labels */
-  --foreground-subtle: var(--slate-400); /* placeholders, disabled */
+  --foreground-muted: var(--slate-600); /* secondary text, meta labels — 6,40:1 */
+  --foreground-subtle: var(--slate-500); /* quiet but readable text — 4,76:1 (AA) */
+  --foreground-disabled: var(--slate-400); /* placeholders, disabled — exempt from AA */
 
   /* Lines */
   --border: var(--slate-200);
@@ -58,6 +64,25 @@
   --income: var(--teal-500);
   --expense: var(--slate-300);
   --expense-strong: var(--slate-400);
+
+  /* Scrim behind modals and sheets. Was written inline as
+     oklch(0.20 0.02 240 / 0.45) in three different files — same value, three
+     places to forget. Re-hued to 216 with the shadows. */
+  --scrim: oklch(0.2 0.02 216 / 0.45);
+
+  /* Data-viz categorical slots — identity only (which category), never magnitude.
+     Assign in order and never cycle: a ninth series folds into "Outros" or the
+     chart facets. Both modes take the same eight (see palette.css), so there is
+     no override in .dark — this alias is where one would go if that ever changes.
+     Colour never carries identity alone: every chart ships label + value + order. */
+  --chart-1: var(--viz-1);
+  --chart-2: var(--viz-2);
+  --chart-3: var(--viz-3);
+  --chart-4: var(--viz-4);
+  --chart-5: var(--viz-5);
+  --chart-6: var(--viz-6);
+  --chart-7: var(--viz-7);
+  --chart-8: var(--viz-8);
 }
 
 .dark {
@@ -69,10 +94,11 @@
   --surface-muted: var(--slate-850);
   --surface-subtle: var(--slate-800);
 
-  /* Text */
+  /* Text — same split as light: subtle is readable (5,18:1), disabled is not. */
   --foreground: oklch(0.96 0.004 215);
-  --foreground-muted: oklch(0.7 0.012 215);
-  --foreground-subtle: oklch(0.55 0.015 215);
+  --foreground-muted: oklch(0.7 0.012 215); /* 7,00:1 */
+  --foreground-subtle: oklch(0.62 0.015 215); /* 5,18:1 (AA) */
+  --foreground-disabled: oklch(0.55 0.015 215); /* exempt from AA */
 
   /* Lines */
   --border: var(--slate-800);
@@ -83,7 +109,7 @@
   /* Primary — lighter for contrast on dark surfaces */
   --primary: var(--blue-500);
   --primary-hover: var(--blue-400);
-  --primary-foreground: oklch(0.14 0.02 230);
+  --primary-foreground: oklch(0.14 0.02 216); /* was hue 230, a pre-rebrand leftover */
   --primary-tint: oklch(0.66 0.11 212 / 0.16);
 
   /* Success */
@@ -109,4 +135,7 @@
   --income: var(--teal-600);
   --expense: var(--slate-700);
   --expense-strong: var(--slate-600);
+
+  /* Deeper than the light scrim: it has to darken an already dark surface. */
+  --scrim: oklch(0.08 0.02 216 / 0.6);
 }

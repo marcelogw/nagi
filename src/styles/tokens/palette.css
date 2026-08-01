@@ -41,13 +41,18 @@
   --amber-500: oklch(0.75 0.16 75);
   --amber-600: oklch(0.68 0.15 75);
 
-  /* --- Neutrals: sea-tempered slate ramp (hue ~215, very low chroma) --- */
-  --slate-000: oklch(1 0 0);
-  --slate-050: oklch(0.98 0.006 215);
-  --slate-100: oklch(0.96 0.008 215);
-  --slate-150: oklch(0.95 0.008 215);
-  --slate-200: oklch(0.91 0.008 215);
-  --slate-300: oklch(0.86 0.01 215);
+  /* --- Neutrals: sea-tempered slate ramp (hue ~215) ---
+     The ramp used to open on oklch(1 0 0) — chroma literally zero — and carry
+     0,006 through the surfaces the user actually looks at, roughly a twentieth
+     of the primary's chroma and below the just-noticeable difference. The sea
+     temper was declared in this comment and nowhere in the pixels. The light
+     end now carries enough chroma to be seen; the dark end already did. */
+  --slate-000: oklch(0.995 0.004 215);
+  --slate-050: oklch(0.98 0.012 215);
+  --slate-100: oklch(0.96 0.014 215);
+  --slate-150: oklch(0.95 0.014 215);
+  --slate-200: oklch(0.91 0.014 215);
+  --slate-300: oklch(0.86 0.014 215);
   --slate-400: oklch(0.7 0.012 215);
   --slate-500: oklch(0.55 0.015 215);
   --slate-600: oklch(0.48 0.015 216);
@@ -57,4 +62,36 @@
   --slate-900: oklch(0.18 0.02 216);
   --slate-925: oklch(0.16 0.018 215);
   --slate-950: oklch(0.14 0.018 215);
+
+  /* --- Data-viz: the categorical ramp ---
+     Eight hues in a fixed order. The order IS the safety mechanism: slots are
+     assigned in sequence and never cycled, so only neighbours ever touch, and
+     every neighbouring pair is checked.
+
+     The previous ramp lived inline in three files with three different
+     cardinalities (8 / 7 / 5) and held L and C constant at ~0.63 / 0.10 so only
+     hue varied. Measured, it failed three of the five checks: two slots sat under
+     the chroma floor, and slots 2↔3 came out ΔE 0.8 under deuteranopia and 6.4
+     under normal vision — below the 15 floor, meaning full-colour readers could
+     not tell them apart either. It was §4's "distinção abaixo do limiar de
+     percepção", repeating in the charts.
+
+     These steps were solved, not picked: the eight hues are held (coral ~42 is
+     excluded — it is the reserved accent that marks the answer) and L/C searched
+     for the cheapest assignment clearing every threshold, cost measured as
+     distance from the original calm step. Worst adjacent pair is now ΔE 8.9
+     under protanopia and 16.9 under normal vision, and the same eight clear both
+     modes, so dark mode needs no separate set.
+
+     Re-run before changing any value:
+       node scripts/validate_palette.js "<hex,…>" --mode light  --surface "#fbfeff"
+       node scripts/validate_palette.js "<hex,…>" --mode dark   --surface "#071417" */
+  --viz-1: oklch(0.63 0.11 210); /* #009bae */
+  --viz-2: oklch(0.53 0.11 25); /* #a2504b */
+  --viz-3: oklch(0.63 0.11 168); /* #339e7c */
+  --viz-4: oklch(0.63 0.11 300); /* #9379c2 */
+  --viz-5: oklch(0.63 0.11 95); /* #9e882f */
+  --viz-6: oklch(0.63 0.11 250); /* #528dc9 */
+  --viz-7: oklch(0.63 0.11 350); /* #bb6c92 */
+  --viz-8: oklch(0.57 0.11 145); /* #4a884d */
 }
