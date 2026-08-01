@@ -35,7 +35,7 @@
 /* "A casa fica, o mês muda": the navigation never animates, only the content
    region does. Keyed on the route, so it replays on every navigation. */
 .app-shell__main {
-  animation: content-enter var(--duration-base) var(--ease-out);
+  animation: content-enter var(--duration-base) var(--ease-settle);
 }
 
 @keyframes content-enter {
@@ -77,11 +77,13 @@
 }
 
 .nav-rail .wordmark {
-  font-size: var(--text-2xl);
+  font-size: var(--text-xl);
 }
 
 .app-header .wordmark {
-  font-size: var(--text-xl);
+  /* Smaller than the page title beside it. The header names where you are;
+     the brand only has to be present. */
+  font-size: var(--text-lg);
 }
 
 /* The one coral on the screen. Its allowed uses are a closed list and this is
@@ -90,9 +92,12 @@
   color: var(--accent-coral);
 }
 
+/* The Label role. It used to pull IBM Plex Mono for this one line — a whole
+   third family downloaded to say "NAVIGATION" in a rail. Uppercase, tracked
+   and semibold does the same job in the family already on the page. */
 .nav-rail__eyebrow {
-  font-family: var(--font-mono);
   font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
   color: var(--foreground-subtle);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -120,7 +125,7 @@
   color: var(--foreground-muted);
   font-weight: var(--weight-medium);
   font-size: var(--text-base);
-  transition: background var(--duration-fast) var(--ease-standard);
+  transition: background var(--duration-fast) var(--ease-settle);
 }
 
 .nav-rail__link:hover {
@@ -146,11 +151,11 @@
   min-width: 0;
   text-decoration: none;
   color: var(--primary);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   font-weight: var(--weight-medium);
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
-  transition: background var(--duration-fast) var(--ease-standard);
+  transition: background var(--duration-fast) var(--ease-settle);
 }
 
 .nav-rail__profile:hover {
@@ -219,7 +224,7 @@
   margin: 0;
   font-family: var(--font-heading);
   font-weight: var(--weight-extrabold);
-  font-size: var(--text-2xl);
+  font-size: var(--text-xl);
   letter-spacing: var(--tracking-tight);
 }
 
@@ -249,7 +254,7 @@
   justify-content: center;
   text-decoration: none;
   color: var(--primary);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   font-weight: var(--weight-medium);
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-sm);
@@ -277,7 +282,7 @@
   background: var(--surface);
   color: var(--foreground-subtle);
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-standard);
+  transition: background var(--duration-fast) var(--ease-settle);
 }
 
 .theme-toggle:hover {

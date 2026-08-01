@@ -1,5 +1,40 @@
-/* Webfonts. Tempest pairs a humanist sans (body/UI) with a rounded grotesque
-   (headings) and a mono for numerics. Loaded from Google Fonts CSS2, which
-   ships the @font-face rules to consumers. */
+/* ============================================================================
+   WEBFONTS — two families, self-hosted, variable.
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+   This file used to @import three families from Google Fonts: Inter, Nunito
+   and IBM Plex Mono. That is three requests to a third party on every load, in
+   a product whose pitch is privacy and self-hosting — the contradiction was
+   the reason to change, ahead of any question of taste.
+
+   IBM Plex Mono is gone. It held two roles: uppercase eyebrow labels and
+   amounts. Inter does both — it carries `tnum`, so figures are tabular on
+   demand, and a tracked uppercase Inter reads as a label without a third
+   family being downloaded to say so.
+
+   Nunito stays, chosen against Fraunces, Archivo Expanded, Bricolage Grotesque
+   and Instrument Serif at real size (`../nagi-design/foundations/display-face.html`).
+   One thing to know about it: Nunito has NO `tnum` feature. Its figures happen
+   to be drawn on a single 600/1000 advance, so amounts align by how the face
+   was drawn, not by a feature we can ask for. If the display family is ever
+   swapped, check digit widths first — `--numeric-features` will not save it.
+
+   Both files are the `latin` subset (covers every Portuguese diacritic) and
+   both are variable, so one file per family covers the whole weight range.
+   Licences ship beside them in `public/fonts/`, as the OFL requires.
+   ============================================================================ */
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Nunito';
+  src: url('/fonts/nunito.woff2') format('woff2');
+  font-weight: 200 1000;
+  font-style: normal;
+  font-display: swap;
+}

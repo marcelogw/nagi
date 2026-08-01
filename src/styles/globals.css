@@ -69,8 +69,8 @@ body {
      else to animate. The first paint is already correct (the blocking script in
      index.html), so this never animates the page into its own theme. */
   transition:
-    background-color var(--duration-slow) var(--ease-standard),
-    color var(--duration-slow) var(--ease-standard);
+    background-color var(--duration-slow) var(--ease-settle),
+    color var(--duration-slow) var(--ease-settle);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

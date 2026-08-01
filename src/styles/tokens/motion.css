@@ -1,15 +1,33 @@
 /* ============================================================================
-   MOTION TOKENS — durations & easing. Nagi motion is calm: short, eased,
-   no bounce. Used for hovers, theme switches, progress fills.
+   MOTION TOKENS — durations & easing.
+
+   Both ladders come from the mark, not from a framework.
+
+   THE CURVE. The wave in the Nagi mark rests on y=24 and reaches 11, 32, 19
+   before settling — amplitudes 13, 8, 5 from rest. Each is 1/φ of the one
+   before (8/13 = 0,615 · 5/8 = 0,625 · 1/φ = 0,618), so the mark's envelope is
+   a golden decay that dies in three half-cycles. Fitting a cubic-bezier to
+   (1 − φ^−3t)/(1 − φ^−3) over t ∈ [0,1] lands on the curve below, with a
+   maximum error of 0,0011 — sub-pixel over any distance this UI moves.
+
+   Its character is the opposite of the Material curves it replaces: those hold
+   still, then rush. This one displaces at once and then settles, asymptotically,
+   without bounce. That is what water does, and it is why nothing here bounces.
+
+   THE DURATIONS. Anchored at 200ms and stepped by φ, so they carry the same
+   additive sequence as the mark's amplitudes: 124 + 200 = 324, 200 + 324 = 524.
    ============================================================================ */
 
 :root {
-  --duration-fast: 120ms; /* hovers, presses */
-  --duration-base: 200ms; /* most transitions */
-  --duration-slow: 320ms; /* panel / sheet entrances */
-  --duration-slower: 600ms; /* progress bars, chart draw */
+  --duration-fast: 124ms; /* hovers, presses — 200/φ */
+  --duration-base: 200ms; /* most transitions — the anchor */
+  --duration-slow: 324ms; /* panel / sheet entrances — 200φ */
+  --duration-slower: 524ms; /* progress bars, chart draw — 200φ² */
 
-  --ease-standard: cubic-bezier(0.2, 0, 0, 1); /* enter/move */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* decelerate */
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* symmetric */
+  /* The golden settle. One curve, because in this UI everything arrives and
+     nothing leaves.
+     ponytail: add an accelerating counterpart the day something has to exit
+     (a dismissed sheet, a deleted row) — arrivals and exits read wrong on the
+     same curve. Until then a second easing is a choice nobody has to make. */
+  --ease-settle: cubic-bezier(0.28, 0.53, 0.6, 0.82);
 }
