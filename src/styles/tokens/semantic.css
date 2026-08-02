@@ -44,7 +44,9 @@
   /* Success (teal) */
   --success: var(--teal-500); /* FILLS / large-bold / data-viz / ícones */
   --success-text: var(--teal-700); /* teal como TEXTO pequeno em fundo claro (AA) */
-  --success-foreground: oklch(0.99 0 0);
+  --success-foreground: oklch(
+    0.14 0.02 168
+  ); /* tinta escura sobre o fill teal — branco dava 2,21:1 (o .dark já usava esta) */
   --success-tint: var(--teal-050);
 
   /* Warning (amber) */
