@@ -17,8 +17,8 @@
     0.54 0.12 212
   ); /* primary @ light — WCAG AA: 4.7:1 sobre branco (texto + botão) */
   --blue-700: oklch(
-    0.47 0.115 214
-  ); /* hover @ light + primary-text @ light — WCAG AA: 5,59:1 sobre --primary-tint, 6,16:1 sobre --surface, 5,91:1 sobre --background. --primary (blue-600) sobre o tint dava 4,17 e reprovava. */
+    0.47 0.082 214
+  ); /* hover @ light + primary-text @ light — WCAG AA: 5,92:1 sobre --primary-tint, 6,53:1 sobre --surface, 6,26:1 sobre --background. --primary (blue-600) sobre o tint dava 4,17 e reprovava. Croma 0,115 ficava FORA do gamut sRGB (R linear −0,036): o clamp do navegador exibia hue 220,9 em vez de 214, a ~9° do hue da marca. 0,082 é o croma máximo que cabe neste L e neste hue. */
   --blue-050: oklch(0.96 0.02 212); /* tint / icon chip bg @ light */
 
   /* --- Brand: Teal (success, growth) --- */
@@ -26,8 +26,8 @@
   --teal-500: oklch(0.72 0.16 168); /* success @ light */
   --teal-600: oklch(0.65 0.15 168); /* success @ dark */
   --teal-700: oklch(
-    0.51 0.13 168
-  ); /* success-text @ light — WCAG AA: 5,19:1 sobre --surface e 4,55:1 sobre --success-tint, que é o outro fundo em que ele cai (chip "Sobrou", avatar). Em 0.52 o par sobre o tint dava 4,37 e reprovava. */
+    0.51 0.103 168
+  ); /* success-text @ light — WCAG AA: 5,37:1 sobre --surface e 4,78:1 sobre --success-tint, que é o outro fundo em que ele cai (chip "Sobrou", avatar). Em L 0.52 o par sobre o tint dava 4,37 e reprovava. Croma 0,13 ficava FORA do gamut sRGB (R linear −0,032); 0,103 é o máximo que cabe neste L e neste hue. */
   --teal-050: oklch(0.95 0.04 168);
 
   /* --- Brand: Coral (energy, friendliness — accent only) ---
@@ -42,16 +42,20 @@
   --coral-500: oklch(0.68 0.18 42);
   --coral-700: oklch(
     0.54 0.16 42
-  ); /* accent-coral-text @ light — WCAG AA: 4,63:1 sobre --accent-coral-tint, 5,36:1 sobre --surface. --accent-coral (coral-500) sobre o tint dava 2,64 e reprovava até o piso de 3:1 de elemento gráfico. */
-  --coral-050: oklch(0.95 0.03 42);
+  ); /* accent-coral-text @ light — WCAG AA: 4,66:1 sobre --accent-coral-tint, 5,36:1 sobre --surface. --accent-coral (coral-500) sobre o tint dava 2,64 e reprovava até o piso de 3:1 de elemento gráfico. */
+  --coral-050: oklch(
+    0.95 0.026 42
+  ); /* croma 0,03 caía fora do gamut sRGB (R linear 1,020); 0,026 é o máximo neste L e hue */
 
   /* --- Status: Red (destructive) --- */
   --red-400: oklch(0.62 0.2 28);
   --red-500: oklch(0.55 0.22 28);
   --red-300: oklch(
     0.74 0.155 28
-  ); /* danger-text @ dark — WCAG AA: 4,93:1 sobre --danger-tint composto, 7,60:1 sobre --surface. --danger (red-400) sobre o próprio tint dava 3,04 e reprovava. */
-  --red-050: oklch(0.95 0.03 28); /* danger tint @ light — mesmo degrau dos outros -050 */
+  ); /* danger-text @ dark — WCAG AA: 4,95:1 sobre --danger-tint composto, 7,62:1 sobre --surface. --danger (red-400) sobre o próprio tint dava 3,04 e reprovava. */
+  --red-050: oklch(
+    0.95 0.024 28
+  ); /* danger tint @ light — mesmo degrau dos outros -050. Croma 0,03 caía fora do gamut sRGB (R linear 1,029); 0,024 é o máximo neste L e hue */
 
   /* --- Status: Amber (warning) --- */
   --amber-500: oklch(0.75 0.16 75);
