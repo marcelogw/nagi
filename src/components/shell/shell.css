@@ -65,7 +65,25 @@
   align-items: center;
   gap: var(--space-3);
   padding: 0 var(--space-2) var(--space-4);
-  border-bottom: 1px solid var(--border);
+  /* A régua sob o wordmark é a linha d'água (tokens/brand.css), não uma borda
+     lisa: é o primeiro lugar da tela e o que mais repete, que é onde um ativo de
+     marca ganha memória. Mesma curva do símbolo, nunca uma parecida. */
+  position: relative;
+}
+
+/* A máscara de .nagi-waterline (tokens/brand.css) num ::after, porque aqui o
+   divisor não é um nó próprio e não há onde pendurar a classe. Mesma altura de
+   todo o resto: este bloco sobrescrevia --wl-h para 14px e ganhava uma faixa de
+   14px com a curva ainda desenhada em 11 — ver o aviso em brand.css. */
+.nav-rail__brand::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--wl-h) / -2);
+  height: var(--wl-h);
+  background: var(--border);
+  mask: var(--waterline-mask);
 }
 
 .wordmark {
@@ -133,7 +151,7 @@
 }
 
 .nav-rail__link[aria-current='page'] {
-  color: var(--primary);
+  color: var(--primary-text);
   background: var(--primary-tint);
   font-weight: var(--weight-semibold);
 }
@@ -150,7 +168,9 @@
   flex: 1;
   min-width: 0;
   text-decoration: none;
-  color: var(--primary);
+  /* Não é --primary: este link recebe --surface-muted no hover (4,16:1) e
+     --primary-tint quando ativo (4,17:1). Ambos reprovam AA. */
+  color: var(--primary-text);
   font-size: var(--text-base);
   font-weight: var(--weight-medium);
   padding: var(--space-1) var(--space-2);

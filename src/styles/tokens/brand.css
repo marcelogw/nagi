@@ -1,0 +1,59 @@
+/* ============================================================================
+   BRAND MOTIF TOKENS
+   The water-line: the one hand-drawn curve the system allows (see the icons.css
+   header — Lucide covers UI, this covers identity). It is the SAME geometry as
+   the symbol, never a lookalike: a wave that loses force and leaves the water
+   flat. Amplitudes 13 : 8 : 5, gaps decaying by φ, crossing the water line at
+   23,41 / 35,41 / 42,82. Frozen 30/07/2026 (rodada-8-simbolo.md); the control
+   points were solved numerically, so DO NOT nudge them by eye.
+
+   `--waterline` is a MASK, not an image — the alpha carries the shape and the
+   colour comes from whatever paints the box, so the motif stays tokenised and
+   theme-aware for free. Use the `.nagi-waterline` class rather than retyping the
+   three mask layers: the flanking gradients are the still water the curve settles
+   into, and dropping them leaves a floating squiggle, which is the symbol, not
+   the motif. Override the colour with `background`, the height with `--wl-h`.
+
+   Decorative by definition — mark it `aria-hidden` wherever it is a divider.
+   ============================================================================ */
+
+:root {
+  --waterline: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 4 56 32'%3E%3Cpath d='M4 24C9.4 24 9.4 11 14.6 11C19.87 11 24.47 32 30 32C33.2 32 36.3 19 39.1 19C41.35 19 41.35 24 42.82 24L52 24' fill='none' stroke='%23000' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+
+  /* --wl-h governa a AMPLITUDE, não só o tamanho: a curva tem 32 unidades de
+     altura para 56 de largura, então subir a altura deixa a onda pontuda e ela
+     passa a ler como eletrocardiograma — metáfora errada num app de dinheiro.
+     11px é onde ela volta a ser água. */
+  --wl-h: 11px;
+
+  /* O vão de cada lado é DERIVADO da altura: metade da largura que a curva ganha
+     (--wl-h × 56/32) mais 5px de ar. Era um 15px cravado, e a segunda cópia da
+     máscara já tinha divergido para 24px — vão demais, com a água se separando
+     da onda.
+
+     ⚠ --wl-h TEM UM VALOR SÓ, e é aqui. Não o sobrescreva num seletor filho:
+     var() é substituído no elemento que DECLARA a propriedade, então --wl-gap e
+     --waterline-mask abaixo já congelam o 11px de :root — um filho que redefina
+     --wl-h ganha uma caixa mais alta com a MESMA curva dentro, desalinhada e sem
+     erro nenhum no console. Era o que o rail fazia com 14px, que de quebra é
+     acima do limite onde a onda vira eletrocardiograma. Se algum dia a linha
+     precisar mesmo de dois tamanhos, a saída é `1em` no lugar de var(--wl-h)
+     aqui, com font-size carregando a altura — não sobrescrever o token. */
+  --wl-gap: calc(var(--wl-h) * 0.875 + 5px);
+
+  /* As três camadas numa variável só: a curva ao centro, e a água parada de cada
+     lado. Quem precisar da máscara num pseudo-elemento (onde não há como pendurar
+     a classe) usa `mask: var(--waterline-mask)`, em vez de redigitar as camadas.
+     Retipar máscara é o mesmo erro de classe que custou duas sessões com o teal. */
+  --waterline-mask:
+    var(--waterline) center / auto var(--wl-h) no-repeat,
+    linear-gradient(#000, #000) left center / calc(50% - var(--wl-gap)) 1px no-repeat,
+    linear-gradient(#000, #000) right center / calc(50% - var(--wl-gap)) 1px no-repeat;
+}
+
+.nagi-waterline {
+  display: block; /* senão a altura não pega num <span> fora de um flex container */
+  height: var(--wl-h);
+  background: var(--border);
+  mask: var(--waterline-mask);
+}

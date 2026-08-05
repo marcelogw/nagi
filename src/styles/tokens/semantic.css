@@ -39,11 +39,12 @@
   --primary: var(--blue-600);
   --primary-hover: var(--blue-700);
   --primary-foreground: oklch(0.99 0 0);
+  --primary-text: var(--blue-700); /* azul como TEXTO sobre --primary-tint (AA) — ver nota abaixo */
   --primary-tint: var(--blue-050); /* icon chips, subtle bg */
 
   /* Success (teal) */
-  --success: var(--teal-500); /* FILLS / large-bold / data-viz / ícones */
-  --success-text: var(--teal-700); /* teal como TEXTO pequeno em fundo claro (AA) */
+  --success: var(--teal-500); /* FILLS / large-bold / data-viz — NÃO para conteúdo dentro do tint */
+  --success-text: var(--teal-700); /* teal dentro de --success-tint: texto E ícone (AA) */
   --success-foreground: oklch(
     0.14 0.02 168
   ); /* tinta escura sobre o fill teal — branco dava 2,21:1 (o .dark já usava esta) */
@@ -53,13 +54,33 @@
   --warning: var(--amber-500);
   --warning-foreground: var(--slate-900);
 
-  /* Danger (red) */
+  /* Danger (red)
+     `--danger-tint` nasceu porque "fundo tingido de erro" existia em três formas
+     divergentes e nenhuma nomeada: o tint do CORAL em Badge.jsx e no hover de
+     excluir (colisão semântica antes de ser problema de número — e 2,65:1 no
+     escuro), e um `oklch(0.62 0.20 20 / 0.12)` cravado à mão em ConfirmDialog,
+     literal fora da paleta e igual nos dois temas. Não é matiz nova: é o tint do
+     vermelho que já existe, construído como os outros três. */
   --danger: var(--red-500);
   --danger-foreground: oklch(0.99 0 0);
+  /* No claro a base já passa sobre o próprio tint (4,62:1), então o -text
+     coincide com ela. Existe mesmo assim: a regra é "dentro do tint use o -text"
+     nas quatro famílias, e ter o alias aqui deixa o claro divergir um dia sem
+     tocar em nenhum site de uso. */
+  --danger-text: var(--red-500);
+  --danger-tint: var(--red-050);
 
-  /* Accent (coral — sparingly) */
-  --accent-coral: var(--coral-500);
+  /* Accent (coral — sparingly)
+     A REGRA DO TINT: dentro de um chip `-tint`, o conteúdo (texto E
+     ícone) usa o token `-text`; a cor base fica para fill, borda e anel. A regra
+     antiga separava "ícone usa a base, texto usa a -text" e produziu o mesmo
+     defeito duas vezes — teal a 1,99:1 e coral a 2,64:1 sobre o próprio tint,
+     abaixo até do piso de 3:1 de elemento gráfico (WCAG 1.4.11). Duas cores por
+     fundo exigem duas medições por família; uma regra só não tem como falhar
+     pela metade. */
+  --accent-coral: var(--coral-500); /* o ponto do wordmark, selos, fills — nunca dentro do tint */
   --accent-coral-foreground: oklch(0.99 0 0);
+  --accent-coral-text: var(--coral-700); /* coral dentro de --accent-coral-tint (AA) */
   --accent-coral-tint: var(--coral-050);
 
   /* Data-viz: income vs expense semantics */
@@ -112,6 +133,9 @@
   --primary: var(--blue-500);
   --primary-hover: var(--blue-400);
   --primary-foreground: oklch(0.14 0.02 216); /* was hue 230, a pre-rebrand leftover */
+  --primary-text: var(
+    --blue-300
+  ); /* blue-400 dava 4,24:1 sobre o tint e reprovava — mesmo degrau de L do --success-text (teal-400) */
   --primary-tint: oklch(0.66 0.11 212 / 0.16);
 
   /* Success */
@@ -127,10 +151,17 @@
   /* Danger */
   --danger: var(--red-400);
   --danger-foreground: oklch(0.99 0 0);
+  --danger-text: var(--red-300); /* red-400 sobre o próprio tint dava 3,04:1 */
+  --danger-tint: oklch(
+    0.62 0.2 28 / 0.16
+  ); /* mesma construção em alpha dos outros tints do escuro */
 
   /* Accent */
   --accent-coral: var(--coral-500);
   --accent-coral-foreground: oklch(0.99 0 0);
+  --accent-coral-text: var(
+    --coral-300
+  ); /* mesmo degrau de L do --primary-text (blue-300); em L 0,74 o par sobre o tint dava 4,34 e reprovava */
   --accent-coral-tint: oklch(0.68 0.18 42 / 0.16);
 
   /* Data-viz */

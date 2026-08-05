@@ -68,11 +68,12 @@ hardcoded colour is rejected by the linter for the same reason.
 | Surfaces | `--background` `--surface` `--surface-muted` `--surface-subtle` |
 | Text | `--foreground` `--foreground-muted` `--foreground-subtle` |
 | Lines & focus | `--border` `--border-strong` `--input` `--ring` |
-| Brand | `--primary` `--primary-hover` `--primary-foreground` `--primary-tint` |
+| Brand | `--primary` `--primary-hover` `--primary-foreground` `--primary-text` `--primary-tint` |
 | Positive | `--success` `--success-text` `--success-foreground` `--success-tint` |
 | Attention | `--warning` `--warning-foreground` |
-| Destructive | `--danger` `--danger-foreground` |
-| Accent | `--accent-coral` `--accent-coral-foreground` `--accent-coral-tint` |
+| Destructive | `--danger` `--danger-foreground` `--danger-text` `--danger-tint` |
+| Accent | `--accent-coral` `--accent-coral-foreground` `--accent-coral-text` `--accent-coral-tint` |
+| Brand motif | `--waterline` `--waterline-mask` `--wl-h` `--wl-gap` |
 | Money | `--income` `--expense` `--expense-strong` |
 
 Scales, same rule — a step or nothing: `--space-*` (4px grid), `--radius-*`,
@@ -88,8 +89,25 @@ needs adjusting for dark is a layout bug.
 Getting these backwards is the fastest way to make the app read as a different
 product.
 
-- **Income is teal.** As *text* — an amount, a label — teal is `--success-text`,
-  which is the AA-legible one. `--success` is for fills, icons and chart series.
+- **The tint rule.** Inside a `-tint` chip, the content — text **and
+  icon** — uses that family's `-text` token: `--primary-text`, `--success-text`,
+  `--accent-coral-text`, `--danger-text`. The base colour stays for fills, borders and the focus
+  ring. Splitting the two ("icon uses the base colour") shipped the same defect
+  twice: `--success` is 1.99:1 on its own tint and `--accent-coral` is 2.64:1 —
+  under even the 3:1 graphical-object floor of WCAG 1.4.11. Two colours per
+  background need two measurements per family; one rule cannot half-fail.
+- **Income is teal.** As *text* — an amount, a label — teal is `--success-text`.
+  `--success` is for fills, chart series and large bold type.
+- **Brand blue follows the same split.** On anything tinted — `--primary-tint`,
+  `--surface-muted`, `--surface-subtle` — blue is `--primary-text`.
+  `--primary` only clears AA on `--surface`; on the tint it is 4.17:1 and on the
+  page `--background` 4.41:1. `--primary` stays for fills, borders and the ring.
+- **The water-line** is the brand motif, and it is a MASK, not an image: the
+  colour comes from `background`, so dark mode is free. Use the `.nagi-waterline`
+  class, or `mask: var(--waterline-mask)` in a pseudo-element where no class can
+  hang — never retype the three mask layers. `--wl-h` governs amplitude, not just
+  size: above ~12px the wave goes spiky and reads as an ECG, the wrong metaphor
+  for a money app. The side gap derives from it. Always `aria-hidden`.
 - **Expense is slate, never red.** `--expense` / `--expense-strong`. Red on a
   routine grocery bill turns ordinary spending into an error.
 - **Red is `--danger`, and only for error, overspend and delete.**
@@ -214,8 +232,10 @@ Non-negotiable in an app about money.
 - **Never communicate with hue alone.** Charts always carry label, value and a
   fixed series order — the donut also has a track and 2px gaps between slices.
   Status states pair colour with an icon and text.
-- Teal text uses `--success-text`. Coral is only large, bold or graphical (3:1) —
-  never body text. `--foreground-subtle` is placeholder and disabled only.
+- Inside a `-tint` chip, text and icon both use that family's `-text` token.
+  `--accent-coral` itself is only large, bold or graphical (3:1) — never body
+  text. `--foreground-subtle` is quiet but readable (4.76:1, AA); placeholder and
+  disabled live in `--foreground-disabled`.
 - Visible `--ring` focus on everything interactive; icon-only controls carry an
   `aria-label`; dialogs trap focus and restore it on close.
 - Both themes and both breakpoints are part of "done", not a later pass.

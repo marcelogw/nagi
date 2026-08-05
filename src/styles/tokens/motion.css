@@ -31,3 +31,57 @@
      same curve. Until then a second easing is a choice nobody has to make. */
   --ease-settle: cubic-bezier(0.28, 0.53, 0.6, 0.82);
 }
+
+/* ----------------------------------------------------------------------------
+   O TRAÇO QUE SE DESENHA. readme.md já prescrevia "progresso / gráfico →
+   preenche/desenha em --duration-slower"; isto é a spec sendo cumprida, não um
+   efeito novo. A linha chega da esquerda e assenta na --ease-settle: assentar
+   termina em 凪, que é o nome; oscilar seria a maré, que o nome nega.
+
+   `pathLength: 1` normaliza o comprimento do traço, então o mesmo par de regras
+   serve para qualquer path sem ninguém medir geometria em JS.
+
+   O estado SEM animação já é o estado final (dashoffset 0, opacidade cheia): o
+   keyframe só declara o `from`. Se a animação não rodar — reduced-motion, CSS
+   que não carregou, print — o gráfico aparece inteiro, nunca em branco.
+   ---------------------------------------------------------------------------- */
+@keyframes nagi-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes nagi-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Exige `pathLength="1"` no <path> — é atributo SVG, não existe como propriedade
+   CSS, então tem de ir no elemento. Sem ele o dasharray volta a ser em unidades
+   de usuário e o traço aparece pontilhado. */
+.nagi-draw {
+  stroke-dasharray: 1;
+  animation: nagi-draw var(--duration-slower) var(--ease-settle) both;
+}
+
+/* A área e o ponto final só acompanham: a área aparece junto com o traço, e o
+   ponto espera a linha chegar nele. Sem o atraso, o fim do gráfico existe antes
+   da linha que leva até lá. */
+.nagi-draw-area {
+  animation: nagi-fade-in var(--duration-slower) var(--ease-settle) both;
+}
+
+.nagi-draw-tip {
+  animation: nagi-fade-in var(--duration-base) var(--ease-settle) var(--duration-slower) both;
+}
+
+/* Quem pediu menos movimento recebe o gráfico pronto, não uma versão degradada:
+   cor, forma e valor são idênticos — só o tempo desaparece. */
+@media (prefers-reduced-motion: reduce) {
+  .nagi-draw,
+  .nagi-draw-area,
+  .nagi-draw-tip {
+    animation: none;
+  }
+}

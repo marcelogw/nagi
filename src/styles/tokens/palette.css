@@ -8,38 +8,53 @@
 
 :root {
   /* --- Brand: Blue (primary — calm sea) --- */
-  --blue-300: oklch(0.8 0.075 212);
+  --blue-300: oklch(
+    0.8 0.075 212
+  ); /* primary-text @ dark — WCAG AA: 5,58:1 sobre --primary-tint composto e 10,29:1 sobre --surface. blue-400 (L=0.72) dava 4,24 sobre o tint e reprovava. */
   --blue-400: oklch(0.72 0.1 212);
   --blue-500: oklch(0.66 0.11 212); /* primary @ dark */
   --blue-600: oklch(
     0.54 0.12 212
   ); /* primary @ light — WCAG AA: 4.7:1 sobre branco (texto + botão) */
-  --blue-700: oklch(0.47 0.115 214); /* hover @ light */
+  --blue-700: oklch(
+    0.47 0.115 214
+  ); /* hover @ light + primary-text @ light — WCAG AA: 5,59:1 sobre --primary-tint, 6,16:1 sobre --surface, 5,91:1 sobre --background. --primary (blue-600) sobre o tint dava 4,17 e reprovava. */
   --blue-050: oklch(0.96 0.02 212); /* tint / icon chip bg @ light */
 
   /* --- Brand: Teal (success, growth) --- */
-  --teal-300: oklch(0.82 0.11 168);
   --teal-400: oklch(0.78 0.14 168);
   --teal-500: oklch(0.72 0.16 168); /* success @ light */
   --teal-600: oklch(0.65 0.15 168); /* success @ dark */
-  --teal-700: oklch(0.51 0.13 168); /* success-text @ light — WCAG AA: 5,19:1 sobre --surface e 4,55:1 sobre --success-tint, que é o outro fundo em que ele cai (chip "Sobrou", avatar). Em 0.52 o par sobre o tint dava 4,37 e reprovava. */
+  --teal-700: oklch(
+    0.51 0.13 168
+  ); /* success-text @ light — WCAG AA: 5,19:1 sobre --surface e 4,55:1 sobre --success-tint, que é o outro fundo em que ele cai (chip "Sobrou", avatar). Em 0.52 o par sobre o tint dava 4,37 e reprovava. */
   --teal-050: oklch(0.95 0.04 168);
 
-  /* --- Brand: Coral (energy, friendliness — accent only) --- */
-  --coral-400: oklch(0.74 0.15 42);
+  /* --- Brand: Coral (energy, friendliness — accent only) ---
+     A chroma dos dois degraus de texto é a MÁXIMA que cabe no gamut sRGB naquele
+     L, não um número escolhido: pedir 0,19 em L 0,54 sai do gamut e o navegador
+     clampa em silêncio, então a cor que chega à tela não é a que está escrita —
+     e a razão medida passa a ser a da cor clampada. Ao mexer aqui, cheque o
+     gamut antes de acreditar no contraste. */
+  --coral-300: oklch(
+    0.76 0.145 42
+  ); /* accent-coral-text @ dark — WCAG AA: 4,71:1 sobre --accent-coral-tint composto, 8,30:1 sobre --surface */
   --coral-500: oklch(0.68 0.18 42);
-  --coral-600: oklch(0.62 0.19 40);
+  --coral-700: oklch(
+    0.54 0.16 42
+  ); /* accent-coral-text @ light — WCAG AA: 4,63:1 sobre --accent-coral-tint, 5,36:1 sobre --surface. --accent-coral (coral-500) sobre o tint dava 2,64 e reprovava até o piso de 3:1 de elemento gráfico. */
   --coral-050: oklch(0.95 0.03 42);
 
   /* --- Status: Red (destructive) --- */
   --red-400: oklch(0.62 0.2 28);
   --red-500: oklch(0.55 0.22 28);
-  --red-600: oklch(0.49 0.21 28);
+  --red-300: oklch(
+    0.74 0.155 28
+  ); /* danger-text @ dark — WCAG AA: 4,93:1 sobre --danger-tint composto, 7,60:1 sobre --surface. --danger (red-400) sobre o próprio tint dava 3,04 e reprovava. */
+  --red-050: oklch(0.95 0.03 28); /* danger tint @ light — mesmo degrau dos outros -050 */
 
   /* --- Status: Amber (warning) --- */
-  --amber-400: oklch(0.8 0.14 75);
   --amber-500: oklch(0.75 0.16 75);
-  --amber-600: oklch(0.68 0.15 75);
 
   /* --- Neutrals: sea-tempered slate ramp (hue ~215) ---
      The ramp used to open on oklch(1 0 0) — chroma literally zero — and carry
@@ -60,7 +75,6 @@
   --slate-800: oklch(0.24 0.02 215);
   --slate-850: oklch(0.2 0.02 215);
   --slate-900: oklch(0.18 0.02 216);
-  --slate-925: oklch(0.16 0.018 215);
   --slate-950: oklch(0.14 0.018 215);
 
   /* --- Data-viz: the categorical ramp ---
@@ -83,9 +97,12 @@
      under protanopia and 16.9 under normal vision, and the same eight clear both
      modes, so dark mode needs no separate set.
 
-     Re-run before changing any value:
-       node scripts/validate_palette.js "<hex,…>" --mode light  --surface "#fbfeff"
-       node scripts/validate_palette.js "<hex,…>" --mode dark   --surface "#071417" */
+     ⚠ O validador de ΔE que media estas oito NÃO existe neste repo — este
+     comentário prescrevia `scripts/validate_palette.js`, que nunca foi commitado.
+     Os números acima vieram dele e não são reprodutíveis hoje. Quem for mexer em
+     --viz-* reconstrói o validador primeiro; mudar um valor sem ele é apagar a
+     única garantia que a rampa tem. `scripts/contrast.js` mede CONTRASTE (WCAG),
+     que é outra coisa: ele não diz nada sobre distinguir duas séries entre si. */
   --viz-1: oklch(0.63 0.11 210); /* #009bae */
   --viz-2: oklch(0.53 0.11 25); /* #a2504b */
   --viz-3: oklch(0.63 0.11 168); /* #339e7c */
