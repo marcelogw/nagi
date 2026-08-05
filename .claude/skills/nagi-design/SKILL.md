@@ -68,11 +68,12 @@ hardcoded colour is rejected by the linter for the same reason.
 | Surfaces | `--background` `--surface` `--surface-muted` `--surface-subtle` |
 | Text | `--foreground` `--foreground-muted` `--foreground-subtle` |
 | Lines & focus | `--border` `--border-strong` `--input` `--ring` |
-| Brand | `--primary` `--primary-hover` `--primary-foreground` `--primary-tint` |
+| Brand | `--primary` `--primary-hover` `--primary-foreground` `--primary-text` `--primary-tint` |
 | Positive | `--success` `--success-text` `--success-foreground` `--success-tint` |
 | Attention | `--warning` `--warning-foreground` |
-| Destructive | `--danger` `--danger-foreground` |
-| Accent | `--accent-coral` `--accent-coral-foreground` `--accent-coral-tint` |
+| Destructive | `--danger` `--danger-foreground` `--danger-text` `--danger-tint` |
+| Accent | `--accent-coral` `--accent-coral-foreground` `--accent-coral-text` `--accent-coral-tint` |
+| Brand motif | `--waterline` `--waterline-mask` `--wl-h` `--wl-gap` |
 | Money | `--income` `--expense` `--expense-strong` |
 
 Scales, same rule — a step or nothing: `--space-*` (4px grid), `--radius-*`,
@@ -88,8 +89,25 @@ needs adjusting for dark is a layout bug.
 Getting these backwards is the fastest way to make the app read as a different
 product.
 
-- **Income is teal.** As *text* — an amount, a label — teal is `--success-text`,
-  which is the AA-legible one. `--success` is for fills, icons and chart series.
+- **The tint rule.** Inside a `-tint` chip, the content — text **and
+  icon** — uses that family's `-text` token: `--primary-text`, `--success-text`,
+  `--accent-coral-text`, `--danger-text`. The base colour stays for fills, borders and the focus
+  ring. Splitting the two ("icon uses the base colour") shipped the same defect
+  twice: `--success` is 1.99:1 on its own tint and `--accent-coral` is 2.64:1 —
+  under even the 3:1 graphical-object floor of WCAG 1.4.11. Two colours per
+  background need two measurements per family; one rule cannot half-fail.
+- **Income is teal.** As *text* — an amount, a label — teal is `--success-text`.
+  `--success` is for fills, chart series and large bold type.
+- **Brand blue follows the same split.** On anything tinted — `--primary-tint`,
+  `--surface-muted`, `--surface-subtle` — blue is `--primary-text`.
+  `--primary` only clears AA on `--surface`; on the tint it is 4.17:1 and on the
+  page `--background` 4.41:1. `--primary` stays for fills, borders and the ring.
+- **The water-line** is the brand motif, and it is a MASK, not an image: the
+  colour comes from `background`, so dark mode is free. Use the `.nagi-waterline`
+  class, or `mask: var(--waterline-mask)` in a pseudo-element where no class can
+  hang — never retype the three mask layers. `--wl-h` governs amplitude, not just
+  size: above ~12px the wave goes spiky and reads as an ECG, the wrong metaphor
+  for a money app. The side gap derives from it. Always `aria-hidden`.
 - **Expense is slate, never red.** `--expense` / `--expense-strong`. Red on a
   routine grocery bill turns ordinary spending into an error.
 - **Red is `--danger`, and only for error, overspend and delete.**
@@ -106,12 +124,19 @@ product.
 `--weight-extrabold`), `--tracking-tight`, with the final dot in
 `--accent-coral`. There is no other logotype, tagline or mascot.
 
-**Symbol:** a disc holding water at rest under the concave curve of a meniscus —
-teal water, `--primary-tint` fill, `--primary` ring. It reads as *contain*, which
-is the financial idea. This curve is the only hand-drawn shape in the entire
-system and it exists solely in brand identity; the mono version is the stroke
-alone. **No coral inside the symbol** — coral appears exactly once, on the
-wordmark dot.
+**Symbol:** a single stroke — a wave losing force until the water lies flat.
+Three oscillations decaying 13 : 8 : 5 (Fibonacci) over gaps that shrink by φ.
+It reads as *settle*, and flat water is water you can read through, which is the
+financial idea. The only hand-drawn shape in the entire system; everything else
+is Lucide line geometry.
+
+`NagiMark` in `src/components/shell/` is the only copy in product code, and
+`public/favicon.svg` restates the same path for the browser tab because a favicon
+cannot resolve `var()`. **Do not redraw it, do not inline it a third time, and do
+not adjust the control points** — they were solved numerically and the comment in
+the component says what breaks. The symbol is **monochrome** (`currentColor`), so
+it needs no colour or dark-mode variant, and **no coral goes inside it** — coral
+appears exactly once, on the wordmark dot.
 
 **Voice:** calm, second person, no jargon, one-word labels, and let the numbers
 speak. No gamification, no urgency, no inflating adjectives.
@@ -154,8 +179,8 @@ illustrative SVG anywhere in the interface.
 
 - **Calm and restrained.** Hierarchy comes from weight, family and white space —
   not from inflating size. An amount in a row or field is `--text-lg` at most;
-  the only large number on a screen is its hero balance (`--text-4xl`).
-  A modal or card title is `--text-lg`, a confirm-dialog title `--text-md`.
+  the only large number on a screen is its hero balance (`--text-2xl`).
+  A modal or card title is `--text-lg`, a confirm-dialog title `--text-base`.
   Weight 800 appears nowhere but the hero balance. If something feels loud,
   shrink it before adding anything.
 - **4px grid.** Every padding, gap, size and radius is a `--space-*` /
@@ -169,7 +194,7 @@ illustrative SVG anywhere in the interface.
   with space, not rules.
 - **White space is active.** Prefer removing to adding. Do not fill empty areas.
 - **Every interactive element has hover and focus** — a calm
-  `--duration-fast` / `--ease-standard` transition, never a jump. Primary button
+  `--duration-fast` / `--ease-settle` transition, never a jump. Primary button
   to `--primary-hover`; secondary to `--surface-subtle`; ghost and icon buttons
   to a `--surface-muted` fill; fields and triggers to a `--border-strong` border,
   with a visible `--ring` on focus; text actions to a light `--primary-tint`.
@@ -189,13 +214,18 @@ Motion clarifies; it never entertains. Everything comes from `--duration-*` and
 `--ease-*` — short, eased, no bounce or overshoot — and everything honours
 `prefers-reduced-motion` by dropping to ~0 and keeping opacity only.
 
+There is exactly **one** easing token: `--ease-settle`, the authored curve of the
+tide coming to rest. Every row below uses it. There is no `--ease-out` or
+`--ease-standard` to reach for — if a transition seems to want one, it wants a
+different duration instead.
+
 | What | How |
 | --- | --- |
-| Hover, press | `--duration-fast`, `--ease-standard` |
+| Hover, press | `--duration-fast`, `--ease-settle` |
 | Collapse, expand | `--duration-base`, animating `grid-template-rows` 1fr↔0fr on a wrapper with `overflow: hidden; min-height: 0` — never a bare `display: none`. Chevron rotates 0°↔−90° |
-| Modal | backdrop fade, dialog rises ~8px and scales 0.98→1, `--duration-slow` `--ease-out`; exit at `--duration-base` |
-| Sheet | slides from its anchored edge, `--duration-slow` `--ease-out` |
-| Toast, undo | rise and fade in at `--duration-base` `--ease-out`; auto-dismiss fades and shrinks slightly |
+| Modal | backdrop fade, dialog rises ~8px and scales 0.98→1, `--duration-slow` `--ease-settle`; exit at `--duration-base` |
+| Sheet | slides from its anchored edge, `--duration-slow` `--ease-settle` |
+| Toast, undo | rise and fade in at `--duration-base` `--ease-settle`; auto-dismiss fades and shrinks slightly |
 | Progress, charts | draw in over `--duration-slower` — the only long duration, and only for data that grows |
 | Screen change | the shell does not move. Only the content region cross-fades and rises ~8px: **the house stays, the month changes** |
 | Theme switch | background transitions over `--duration-slow` |
@@ -207,8 +237,10 @@ Non-negotiable in an app about money.
 - **Never communicate with hue alone.** Charts always carry label, value and a
   fixed series order — the donut also has a track and 2px gaps between slices.
   Status states pair colour with an icon and text.
-- Teal text uses `--success-text`. Coral is only large, bold or graphical (3:1) —
-  never body text. `--foreground-subtle` is placeholder and disabled only.
+- Inside a `-tint` chip, text and icon both use that family's `-text` token.
+  `--accent-coral` itself is only large, bold or graphical (3:1) — never body
+  text. `--foreground-subtle` is quiet but readable (4.76:1, AA); placeholder and
+  disabled live in `--foreground-disabled`.
 - Visible `--ring` focus on everything interactive; icon-only controls carry an
   `aria-label`; dialogs trap focus and restore it on close.
 - Both themes and both breakpoints are part of "done", not a later pass.

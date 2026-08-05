@@ -7,7 +7,7 @@
 
 :root {
   /* Sizes — pair with the type scale so icons align to their label */
-  --icon-xs: 14px; /* inline with --text-sm/xs, dense chips */
+  --icon-xs: 14px; /* inline with --text-xs, dense chips */
   --icon-sm: 16px; /* inline with body, buttons */
   --icon-md: 18px; /* list rows, default UI */
   --icon-lg: 20px; /* section headers */

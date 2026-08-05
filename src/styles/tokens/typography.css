@@ -5,21 +5,35 @@
    ============================================================================ */
 
 :root {
-  /* Families */
+  /* Families — two, self-hosted. See fonts.css for why the third one left. */
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; /* body & UI */
   --font-heading: 'Nunito', var(--font-sans); /* headings, balances */
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace; /* numerics, codes, labels */
 
-  /* Size scale. UI baseline is --text-base (14px). */
-  --text-xs: 0.75rem; /* 12 — micro labels, chart ticks */
-  --text-sm: 0.8125rem; /* 13 — meta, captions */
+  /* Size scale — two registers with a deliberate silence between them.
+
+     The old scale ran 12·13·14·15·17·20·24·30·38: nine steps, five of them
+     inside 12–17 at ratios of 1,07–1,08. At those ratios the eye reads one
+     size, so nothing was ever emphasised — every screen came out uniformly
+     mid-grey. That is the whole "everything whispers at the same volume"
+     problem, encoded in a token file.
+
+     The replacement refuses the smooth ramp. UI is flat on purpose: three
+     sizes whose differences are functional, never hierarchical — inside the
+     interface, rank comes from weight and colour. Display is loud on purpose
+     and starts a long way up: φ from the UI ceiling, the same 1,618 the mark's
+     wave decays by. There is nothing between 16 and 26 because a screen gets
+     one unequivocal focus, and a middle size is how a focus gets negotiated
+     away. */
+
+  /* UI register — flat. Hierarchy here comes from weight and colour. */
+  --text-xs: 0.75rem; /* 12 — micro labels, chart ticks, mono eyebrows */
   --text-base: 0.875rem; /* 14 — body / UI default */
-  --text-md: 0.9375rem; /* 15 — emphasized body */
-  --text-lg: 1.0625rem; /* 17 — card titles, section heads */
-  --text-xl: 1.25rem; /* 20 — subheadings */
-  --text-2xl: 1.5rem; /* 24 — page titles */
-  --text-3xl: 1.875rem; /* 30 — hero numbers (mobile) */
-  --text-4xl: 2.375rem; /* 38 — hero balance */
+  --text-lg: 1rem; /* 16 — emphasis inside a card; the UI ceiling */
+
+  /* Display register — where the product speaks. φ from 16. */
+  --text-xl: 1.625rem; /* 26 = 16φ  — page & section titles */
+  --text-2xl: 2.625rem; /* 42 = 16φ² — the month's result ("Sobrou") */
+  --text-3xl: 4.25rem; /* 68 = 16φ³ — hero / landing */
 
   /* Weights */
   --weight-regular: 400;
@@ -38,13 +52,16 @@
   --tracking-tight: -0.02em; /* large display */
   --tracking-normal: 0;
   --tracking-wide: 0.02em;
-  --tracking-caps: 0.14em; /* mono eyebrow labels, uppercase */
+  --tracking-caps: 0.14em; /* eyebrow labels, uppercase */
 
   /* Numeric rendering — CRITICAL for finance. Apply wherever amounts appear so
      digits share one advance width and align in columns:
        font-feature-settings: var(--numeric-features);
-     IBM Plex Mono is monospaced by nature; this makes Inter/Nunito numerals
-     tabular + lining too. */
+     This works for Inter, which carries `tnum`. It does NOT work for Nunito,
+     which has no such feature — Nunito's figures are all drawn 600/1000 wide,
+     so they align by drawing rather than by contract. Amounts in the display
+     family are safe today and would break silently on a family swap; check
+     digit advance widths before changing --font-heading. */
   --numeric-features: 'tnum' 1, 'lnum' 1;
 }
 
@@ -52,13 +69,16 @@
    TYPE ROLES — the semantic type styles. Compose from the tokens above.
    Documented as a mapping (the system is inline-style based; copy these recipes).
 
-   Display   hero balances      → Nunito 800 · --text-4xl · lh tight · track tight
-   Title     page titles        → Nunito 700 · --text-2xl · lh snug
-   Heading   section/card head  → Nunito 700 · --text-lg  · lh snug
-   Subhead   in-card emphasis   → Inter 600  · --text-md  · lh snug
-   Body      default UI/text    → Inter 400  · --text-base · lh normal
-   Body-strong                  → Inter 600  · --text-base
-   Caption   meta, dates        → Inter 400/500 · --text-sm · muted
-   Label     eyebrows/overline  → IBM Plex Mono 500 · --text-xs · UPPER · track caps
-   Numeric   any amount         → IBM Plex Mono · size per context · numeric-features
+   Hero      landing balance    → --text-3xl · 800 · lh tight · track tight
+   Display   the month's result → --text-2xl · 800 · lh tight · track tight
+   Title     page & section     → --text-xl  · 700 · lh snug
+   Subhead   in-card emphasis   → --text-lg  · 600 · lh snug
+   Body      default UI/text    → --text-base · 400 · lh normal
+   Body-strong                  → --text-base · 600
+   Caption   meta, dates        → --text-xs · 400/500 · muted
+   Label     eyebrows/overline  → --text-xs · sans 600 · UPPER · track caps
+   Numeric   any amount         → size per context · numeric-features
+
+   Note there is no size between Subhead (16) and Title (26). That gap is the
+   design: a screen picks one thing to be loud about.
    ---------------------------------------------------------------------------- */

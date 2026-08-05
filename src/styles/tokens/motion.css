@@ -1,15 +1,87 @@
 /* ============================================================================
-   MOTION TOKENS — durations & easing. Nagi motion is calm: short, eased,
-   no bounce. Used for hovers, theme switches, progress fills.
+   MOTION TOKENS — durations & easing.
+
+   Both ladders come from the mark, not from a framework.
+
+   THE CURVE. The wave in the Nagi mark rests on y=24 and reaches 11, 32, 19
+   before settling — amplitudes 13, 8, 5 from rest. Each is 1/φ of the one
+   before (8/13 = 0,615 · 5/8 = 0,625 · 1/φ = 0,618), so the mark's envelope is
+   a golden decay that dies in three half-cycles. Fitting a cubic-bezier to
+   (1 − φ^−3t)/(1 − φ^−3) over t ∈ [0,1] lands on the curve below, with a
+   maximum error of 0,0011 — sub-pixel over any distance this UI moves.
+
+   Its character is the opposite of the Material curves it replaces: those hold
+   still, then rush. This one displaces at once and then settles, asymptotically,
+   without bounce. That is what water does, and it is why nothing here bounces.
+
+   THE DURATIONS. Anchored at 200ms and stepped by φ, so they carry the same
+   additive sequence as the mark's amplitudes: 124 + 200 = 324, 200 + 324 = 524.
    ============================================================================ */
 
 :root {
-  --duration-fast: 120ms; /* hovers, presses */
-  --duration-base: 200ms; /* most transitions */
-  --duration-slow: 320ms; /* panel / sheet entrances */
-  --duration-slower: 600ms; /* progress bars, chart draw */
+  --duration-fast: 124ms; /* hovers, presses — 200/φ */
+  --duration-base: 200ms; /* most transitions — the anchor */
+  --duration-slow: 324ms; /* panel / sheet entrances — 200φ */
+  --duration-slower: 524ms; /* progress bars, chart draw — 200φ² */
 
-  --ease-standard: cubic-bezier(0.2, 0, 0, 1); /* enter/move */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* decelerate */
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* symmetric */
+  /* The golden settle. One curve, because in this UI everything arrives and
+     nothing leaves.
+     ponytail: add an accelerating counterpart the day something has to exit
+     (a dismissed sheet, a deleted row) — arrivals and exits read wrong on the
+     same curve. Until then a second easing is a choice nobody has to make. */
+  --ease-settle: cubic-bezier(0.28, 0.53, 0.6, 0.82);
+}
+
+/* ----------------------------------------------------------------------------
+   O TRAÇO QUE SE DESENHA. readme.md já prescrevia "progresso / gráfico →
+   preenche/desenha em --duration-slower"; isto é a spec sendo cumprida, não um
+   efeito novo. A linha chega da esquerda e assenta na --ease-settle: assentar
+   termina em 凪, que é o nome; oscilar seria a maré, que o nome nega.
+
+   `pathLength: 1` normaliza o comprimento do traço, então o mesmo par de regras
+   serve para qualquer path sem ninguém medir geometria em JS.
+
+   O estado SEM animação já é o estado final (dashoffset 0, opacidade cheia): o
+   keyframe só declara o `from`. Se a animação não rodar — reduced-motion, CSS
+   que não carregou, print — o gráfico aparece inteiro, nunca em branco.
+   ---------------------------------------------------------------------------- */
+@keyframes nagi-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes nagi-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Exige `pathLength="1"` no <path> — é atributo SVG, não existe como propriedade
+   CSS, então tem de ir no elemento. Sem ele o dasharray volta a ser em unidades
+   de usuário e o traço aparece pontilhado. */
+.nagi-draw {
+  stroke-dasharray: 1;
+  animation: nagi-draw var(--duration-slower) var(--ease-settle) both;
+}
+
+/* A área e o ponto final só acompanham: a área aparece junto com o traço, e o
+   ponto espera a linha chegar nele. Sem o atraso, o fim do gráfico existe antes
+   da linha que leva até lá. */
+.nagi-draw-area {
+  animation: nagi-fade-in var(--duration-slower) var(--ease-settle) both;
+}
+
+.nagi-draw-tip {
+  animation: nagi-fade-in var(--duration-base) var(--ease-settle) var(--duration-slower) both;
+}
+
+/* Quem pediu menos movimento recebe o gráfico pronto, não uma versão degradada:
+   cor, forma e valor são idênticos — só o tempo desaparece. */
+@media (prefers-reduced-motion: reduce) {
+  .nagi-draw,
+  .nagi-draw-area,
+  .nagi-draw-tip {
+    animation: none;
+  }
 }

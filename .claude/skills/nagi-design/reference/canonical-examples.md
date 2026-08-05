@@ -92,7 +92,7 @@ export function AmountField({ value, onChange, error, testId = 'amount' }: Amoun
 }
 
 .field__label {
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   font-weight: var(--weight-medium);
   color: var(--foreground-muted);
 }
@@ -104,15 +104,16 @@ export function AmountField({ value, onChange, error, testId = 'amount' }: Amoun
   background: var(--surface);
   color: var(--foreground);
   font-family: var(--font-sans);
-  font-size: var(--text-md);
-  transition: border-color var(--duration-fast) var(--ease-standard);
+  font-size: var(--text-base);
+  transition: border-color var(--duration-fast) var(--ease-settle);
 }
 
 /* Money is right-aligned on tabular numerals so columns of it compare at a
-   glance — the same rule that governs every amount on a list row. */
+   glance — the same rule that governs every amount on a list row. There is no
+   mono family to switch to: Inter carries `tnum`/`lnum`, and it is
+   `--numeric-features` over `--font-sans` that lines the digits up. */
 .field__input--amount {
   text-align: right;
-  font-family: var(--font-mono);
   font-feature-settings: var(--numeric-features);
 }
 
@@ -130,7 +131,7 @@ export function AmountField({ value, onChange, error, testId = 'amount' }: Amoun
 }
 
 .field__error {
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   color: var(--danger);
 }
 ```
@@ -231,11 +232,11 @@ export function DeleteCategoryDialog({
   gap: var(--space-4);
 }
 
-/* A confirm dialog's title is --text-md, one step below a modal's: it is a
+/* A confirm dialog's title is --text-base, one step below a modal's: it is a
    question, not a screen. Emphasis comes from weight, never from size. */
 .confirm__title {
   font-family: var(--font-heading);
-  font-size: var(--text-md);
+  font-size: var(--text-base);
   font-weight: var(--weight-semibold);
   color: var(--foreground);
 }
@@ -259,7 +260,7 @@ export function DeleteCategoryDialog({
   border-radius: var(--radius-md);
   font-size: var(--text-base);
   font-weight: var(--weight-medium);
-  transition: background-color var(--duration-fast) var(--ease-standard);
+  transition: background-color var(--duration-fast) var(--ease-settle);
 }
 
 .confirm__action--danger {

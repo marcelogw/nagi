@@ -1,6 +1,6 @@
-# nagi 凪
+# nagi
 
-> The calm after the wind stops.
+> 凪 — the calm after the wind stops.
 
 Nagi is an open-source personal and household finance app. Track income,
 expenses, savings, and goals with a calm, uncluttered month-by-month view —

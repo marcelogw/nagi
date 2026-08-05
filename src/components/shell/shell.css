@@ -35,7 +35,7 @@
 /* "A casa fica, o mês muda": the navigation never animates, only the content
    region does. Keyed on the route, so it replays on every navigation. */
 .app-shell__main {
-  animation: content-enter var(--duration-base) var(--ease-out);
+  animation: content-enter var(--duration-base) var(--ease-settle);
 }
 
 @keyframes content-enter {
@@ -65,7 +65,25 @@
   align-items: center;
   gap: var(--space-3);
   padding: 0 var(--space-2) var(--space-4);
-  border-bottom: 1px solid var(--border);
+  /* A régua sob o wordmark é a linha d'água (tokens/brand.css), não uma borda
+     lisa: é o primeiro lugar da tela e o que mais repete, que é onde um ativo de
+     marca ganha memória. Mesma curva do símbolo, nunca uma parecida. */
+  position: relative;
+}
+
+/* A máscara de .nagi-waterline (tokens/brand.css) num ::after, porque aqui o
+   divisor não é um nó próprio e não há onde pendurar a classe. Mesma altura de
+   todo o resto: este bloco sobrescrevia --wl-h para 14px e ganhava uma faixa de
+   14px com a curva ainda desenhada em 11 — ver o aviso em brand.css. */
+.nav-rail__brand::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--wl-h) / -2);
+  height: var(--wl-h);
+  background: var(--border);
+  mask: var(--waterline-mask);
 }
 
 .wordmark {
@@ -77,11 +95,13 @@
 }
 
 .nav-rail .wordmark {
-  font-size: var(--text-2xl);
+  font-size: var(--text-xl);
 }
 
 .app-header .wordmark {
-  font-size: var(--text-xl);
+  /* Smaller than the page title beside it. The header names where you are;
+     the brand only has to be present. */
+  font-size: var(--text-lg);
 }
 
 /* The one coral on the screen. Its allowed uses are a closed list and this is
@@ -90,9 +110,12 @@
   color: var(--accent-coral);
 }
 
+/* The Label role. It used to pull IBM Plex Mono for this one line — a whole
+   third family downloaded to say "NAVIGATION" in a rail. Uppercase, tracked
+   and semibold does the same job in the family already on the page. */
 .nav-rail__eyebrow {
-  font-family: var(--font-mono);
   font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
   color: var(--foreground-subtle);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -120,7 +143,7 @@
   color: var(--foreground-muted);
   font-weight: var(--weight-medium);
   font-size: var(--text-base);
-  transition: background var(--duration-fast) var(--ease-standard);
+  transition: background var(--duration-fast) var(--ease-settle);
 }
 
 .nav-rail__link:hover {
@@ -128,7 +151,7 @@
 }
 
 .nav-rail__link[aria-current='page'] {
-  color: var(--primary);
+  color: var(--primary-text);
   background: var(--primary-tint);
   font-weight: var(--weight-semibold);
 }
@@ -145,12 +168,14 @@
   flex: 1;
   min-width: 0;
   text-decoration: none;
-  color: var(--primary);
-  font-size: var(--text-sm);
+  /* Não é --primary: este link recebe --surface-muted no hover (4,16:1) e
+     --primary-tint quando ativo (4,17:1). Ambos reprovam AA. */
+  color: var(--primary-text);
+  font-size: var(--text-base);
   font-weight: var(--weight-medium);
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
-  transition: background var(--duration-fast) var(--ease-standard);
+  transition: background var(--duration-fast) var(--ease-settle);
 }
 
 .nav-rail__profile:hover {
@@ -219,7 +244,7 @@
   margin: 0;
   font-family: var(--font-heading);
   font-weight: var(--weight-extrabold);
-  font-size: var(--text-2xl);
+  font-size: var(--text-xl);
   letter-spacing: var(--tracking-tight);
 }
 
@@ -249,7 +274,7 @@
   justify-content: center;
   text-decoration: none;
   color: var(--primary);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   font-weight: var(--weight-medium);
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-sm);
@@ -277,7 +302,7 @@
   background: var(--surface);
   color: var(--foreground-subtle);
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-standard);
+  transition: background var(--duration-fast) var(--ease-settle);
 }
 
 .theme-toggle:hover {

@@ -6,6 +6,7 @@
 @import './tokens/typography.css';
 @import './tokens/spacing.css';
 @import './tokens/icons.css';
+@import './tokens/brand.css';
 @import './tokens/elevation.css';
 @import './tokens/motion.css';
 
@@ -35,6 +36,7 @@
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-text: var(--primary-text);
   --color-primary-tint: var(--primary-tint);
 
   --color-success: var(--success);
@@ -47,9 +49,12 @@
 
   --color-danger: var(--danger);
   --color-danger-foreground: var(--danger-foreground);
+  --color-danger-text: var(--danger-text);
+  --color-danger-tint: var(--danger-tint);
 
   --color-accent-coral: var(--accent-coral);
   --color-accent-coral-foreground: var(--accent-coral-foreground);
+  --color-accent-coral-text: var(--accent-coral-text);
   --color-accent-coral-tint: var(--accent-coral-tint);
 
   --color-income: var(--income);
@@ -69,8 +74,8 @@ body {
      else to animate. The first paint is already correct (the blocking script in
      index.html), so this never animates the page into its own theme. */
   transition:
-    background-color var(--duration-slow) var(--ease-standard),
-    color var(--duration-slow) var(--ease-standard);
+    background-color var(--duration-slow) var(--ease-settle),
+    color var(--duration-slow) var(--ease-settle);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
