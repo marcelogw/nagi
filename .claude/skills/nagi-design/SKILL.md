@@ -179,8 +179,8 @@ illustrative SVG anywhere in the interface.
 
 - **Calm and restrained.** Hierarchy comes from weight, family and white space —
   not from inflating size. An amount in a row or field is `--text-lg` at most;
-  the only large number on a screen is its hero balance (`--text-4xl`).
-  A modal or card title is `--text-lg`, a confirm-dialog title `--text-md`.
+  the only large number on a screen is its hero balance (`--text-2xl`).
+  A modal or card title is `--text-lg`, a confirm-dialog title `--text-base`.
   Weight 800 appears nowhere but the hero balance. If something feels loud,
   shrink it before adding anything.
 - **4px grid.** Every padding, gap, size and radius is a `--space-*` /
@@ -194,7 +194,7 @@ illustrative SVG anywhere in the interface.
   with space, not rules.
 - **White space is active.** Prefer removing to adding. Do not fill empty areas.
 - **Every interactive element has hover and focus** — a calm
-  `--duration-fast` / `--ease-standard` transition, never a jump. Primary button
+  `--duration-fast` / `--ease-settle` transition, never a jump. Primary button
   to `--primary-hover`; secondary to `--surface-subtle`; ghost and icon buttons
   to a `--surface-muted` fill; fields and triggers to a `--border-strong` border,
   with a visible `--ring` on focus; text actions to a light `--primary-tint`.
@@ -214,13 +214,18 @@ Motion clarifies; it never entertains. Everything comes from `--duration-*` and
 `--ease-*` — short, eased, no bounce or overshoot — and everything honours
 `prefers-reduced-motion` by dropping to ~0 and keeping opacity only.
 
+There is exactly **one** easing token: `--ease-settle`, the authored curve of the
+tide coming to rest. Every row below uses it. There is no `--ease-out` or
+`--ease-standard` to reach for — if a transition seems to want one, it wants a
+different duration instead.
+
 | What | How |
 | --- | --- |
-| Hover, press | `--duration-fast`, `--ease-standard` |
+| Hover, press | `--duration-fast`, `--ease-settle` |
 | Collapse, expand | `--duration-base`, animating `grid-template-rows` 1fr↔0fr on a wrapper with `overflow: hidden; min-height: 0` — never a bare `display: none`. Chevron rotates 0°↔−90° |
-| Modal | backdrop fade, dialog rises ~8px and scales 0.98→1, `--duration-slow` `--ease-out`; exit at `--duration-base` |
-| Sheet | slides from its anchored edge, `--duration-slow` `--ease-out` |
-| Toast, undo | rise and fade in at `--duration-base` `--ease-out`; auto-dismiss fades and shrinks slightly |
+| Modal | backdrop fade, dialog rises ~8px and scales 0.98→1, `--duration-slow` `--ease-settle`; exit at `--duration-base` |
+| Sheet | slides from its anchored edge, `--duration-slow` `--ease-settle` |
+| Toast, undo | rise and fade in at `--duration-base` `--ease-settle`; auto-dismiss fades and shrinks slightly |
 | Progress, charts | draw in over `--duration-slower` — the only long duration, and only for data that grows |
 | Screen change | the shell does not move. Only the content region cross-fades and rises ~8px: **the house stays, the month changes** |
 | Theme switch | background transitions over `--duration-slow` |
