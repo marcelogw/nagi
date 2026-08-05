@@ -1,6 +1,7 @@
 import { del, get, keys, set } from 'idb-keyval'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CardId, Category, CategoryId, CreditCard } from '@/domain/entities'
+import { SYSTEM_CATEGORY_ID } from '@/domain/entities'
 import type { Cents } from '@/domain/money'
 import { CATALOG_STORAGE_KEY, useCatalogStore } from './catalog-store'
 
@@ -20,6 +21,14 @@ describe('useCatalogStore', () => {
     const state = useCatalogStore.getState()
     expect(state.categories).toEqual([])
     expect(state.creditCards).toEqual([])
+  })
+
+  it('boots with the system category already present (Invariant 4)', async () => {
+    vi.resetModules()
+    const { useCatalogStore: freshStore } = await import('./catalog-store')
+    expect(freshStore.getState().categories).toEqual([
+      expect.objectContaining({ id: SYSTEM_CATEGORY_ID, isSystem: true, order: 0 }),
+    ])
   })
 
   it('updates state via setState correctly and persists to IndexedDB', async () => {

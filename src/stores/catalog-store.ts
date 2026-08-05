@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import type { Category, CreditCard } from '@/domain/entities'
+import { SYSTEM_CATEGORY_ID, type Category, type CreditCard } from '@/domain/entities'
 import { idbStorage } from '@/persistence/db'
 import { migrate } from '@/persistence/migrate'
 
@@ -12,10 +12,20 @@ export type CatalogState = {
   creditCards: CreditCard[]
 }
 
+/** Invariant 4 (domain/invariants.ts) requires exactly one system category to
+ * exist in any valid state — a fresh store must already satisfy it. */
+const DEFAULT_SYSTEM_CATEGORY: Category = {
+  id: SYSTEM_CATEGORY_ID,
+  color: 'brand-ink',
+  icon: null,
+  isSystem: true,
+  order: 0,
+}
+
 export const useCatalogStore = create<CatalogState>()(
   persist(
     immer<CatalogState>(() => ({
-      categories: [],
+      categories: [DEFAULT_SYSTEM_CATEGORY],
       creditCards: [],
     })),
     {
