@@ -19,6 +19,7 @@ string comes from the catalogue.
 
 ```tsx
 // src/components/transactions/AmountField.tsx
+import { useState } from 'react'
 import { useTranslations } from 'use-intl'
 import { parseAmount } from '@/domain/money'
 import { useFormatters } from '@/i18n/formatters'
@@ -47,6 +48,10 @@ export function AmountField({ value, onChange, error, testId = 'amount' }: Amoun
   const format = useFormatters()
   const errorId = `${testId}-error`
 
+  // Null means "not being edited", so the field shows the formatted amount.
+  // While it holds a string, that string is exactly what was typed.
+  const [typed, setTyped] = useState<string | null>(null)
+
   return (
     <div className="field">
       <label className="field__label" htmlFor={testId}>
@@ -58,12 +63,14 @@ export function AmountField({ value, onChange, error, testId = 'amount' }: Amoun
         data-testid={testId}
         className="field__input field__input--amount"
         inputMode="decimal"
-        defaultValue={format.currency(value)}
+        value={typed ?? format.currency(value)}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
         onChange={(event) => {
+          setTyped(event.target.value)
           onChange(parseAmount(event.target.value))
         }}
+        onBlur={() => setTyped(null)}
       />
 
       {error ? (
