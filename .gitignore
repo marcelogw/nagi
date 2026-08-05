@@ -18,8 +18,15 @@ blob-report/
 .idea
 .wolf/
 .kanban
+kanban/
 docs/migration/
 
-# Personal agent overrides. .claude/settings.json IS committed — it carries the
-# hooks every contributor should get.
-.claude/settings.local.json
+# .claude/ is personal AI tooling (OpenWolf skills, rules, commands) except
+# settings.json, which carries the hooks every contributor should get, and the
+# skills this repo owns. A negation cannot reach inside an ignored directory, so
+# each level has to be un-ignored before the level below it can be.
+.claude/*
+!.claude/settings.json
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/nagi-design/

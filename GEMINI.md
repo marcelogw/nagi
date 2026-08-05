@@ -1,9 +1,11 @@
 <!-- openwolf:begin -->
-# OpenWolf
+# OpenWolf — optional, personal tooling
 
-@.wolf/OPENWOLF.md
-
-This project uses OpenWolf for context management. Read and follow .wolf/OPENWOLF.md every session. Check .wolf/cerebrum.md before generating code. Check .wolf/anatomy.md before reading files.
+`.wolf/` is git-ignored (personal, not part of the shared repo). If it exists in your
+checkout, read and follow `.wolf/OPENWOLF.md` every session, check `.wolf/cerebrum.md`
+before generating code, and check `.wolf/anatomy.md` before reading files. If you don't
+have OpenWolf set up, ignore this section — it changes nothing about how a plain session
+works here.
 <!-- openwolf:end -->
 
 # Git Commit Standard
@@ -54,6 +56,31 @@ Only billing is closed-source. License: AGPL-3.0.
 - **Product language is i18n-driven, not hardcoded.** No user-visible string literal in component code — everything goes through message files.
 - **English-first.** `en` is the source locale and the naming authority; `pt-BR` is the first translation, with more to follow. The locale registry is a list, not a pair — adding a language is one file plus one entry. Currency is a **separate setting**, never derived from the language.
 
+## Code conventions
+
+The rules a linter cannot see. What *is* machine-checked — the banned patterns,
+the message catalogues, these three files staying identical — is listed in
+`CONTRIBUTING.md` under "What the linters refuse", and is not repeated here.
+
+- **Names come from `docs/glossary.md`.** Identifiers, types and message keys
+  use the canonical English term for a concept — never a word borrowed from one
+  translation. A concept that needs a new name gets added to the glossary in the
+  same change.
+- **Money is `Cents`** — an integer — in state, in `src/domain/`, in storage and
+  in props. Formatting happens once at the edge, through `useFormatters()`.
+- `type` over `interface`, except where an interface is genuinely extended.
+- Explicit prop types on every component.
+- **Sorting and filtering are derived state** — a selector or a `useMemo`, never
+  assembled inline in JSX.
+- **One `newId()`**, `crypto.randomUUID()` behind it, used everywhere. A second
+  id generator is how two records end up with incompatible keys.
+- **No magic string for an ID** — reference the constant. A default argument
+  holding a literal id is the same defect with a longer fuse.
+- **No magic number for a business rule** — name it. A `24` in a recurrence
+  loop is a policy nobody can find later.
+- **Anything longer than a few lines inside a store action belongs in
+  `src/domain/`**, where it is a pure function with a test.
+
 ## Design system
 
 Product code consumes **semantic design tokens only** (`--primary`, `--success`,
@@ -62,6 +89,11 @@ what keeps a rebrand cheap: re-point the semantic layer, touch zero product code
 The brand's signature accent (a single coral dot) has a closed, narrow set of
 allowed uses — do not introduce new coral usage without checking the design
 reference first. Delete/danger is **red (`--danger`), never coral**.
+
+The reference is `.claude/skills/nagi-design/SKILL.md`, versioned here: the
+tokens, the brand, the closed coral list, and an index of which screens the
+design actually defines — which is what tells "undefined" apart from "I did not
+look". Read it before writing or restyling any UI.
 
 ## Design fidelity — do not invent
 
@@ -92,6 +124,38 @@ Nothing ships on the strength of "it compiles". Before a change is called done:
 4. Both themes, and both breakpoints (the <960px rail → TabBar switch).
 5. The pitfalls linked from the feature's spec are verified as *not reproduced*.
 6. A second instance reviews the diff before merge.
+
+## Delegation model (agy) — optional, personal tooling
+
+If you have the `agy` CLI and its Claude Code skills configured, this project is
+trialing a delegation split: agy writes small, well-scoped implementation units;
+the orchestrating agent (Claude, or whichever LLM is reading this file) stays the
+architect and reviewer. If you don't have agy set up, ignore this section — it
+changes nothing about how a plain implementation works here.
+
+- **Default to delegating** once a task is scoped to something small, testable,
+  and unambiguous (a component, a hook, an isolated function, a test file). Don't
+  force a big or ambiguous task into that shape just to delegate it — if writing
+  a clean handoff spec costs more than doing it directly, do it directly.
+- **Delegating does not lower the bar.** The orchestrator stays fully accountable
+  for the merged result. A green success status only covers what the delegate's
+  own report proves — that this project's real `npm run quality`/`test`/`test:e2e`
+  commands ran and passed (vague or substituted commands don't count, re-run them
+  yourself). It never covers architecture, SOLID, or edge-case judgment against
+  every rule above (design fidelity, i18n) — that review is always the
+  orchestrator's, on every delegated change, no exceptions for a green status.
+- **The orchestrator's review is not the PR's second-instance review.** It's due
+  diligence on your own delegate, same as testing your own code before opening a
+  PR. It does not replace the independent second-instance review this file already
+  requires before merge (see Validation before delivery, Workflow) — that still
+  happens, regardless of who wrote the diff.
+- **OpenWolf bookkeeping applies to the delegate too, at the same bar** — it reads
+  this same file, and `.wolf/OPENWOLF.md`'s bar is mandatory, not optional. Verify
+  every round, not occasionally: `.wolf/anatomy.md` / `.wolf/memory.md` got updated
+  for what agy touched. If not, do it yourself before calling the round done —
+  delegated work doesn't get a lighter bookkeeping bar than your own.
+- **This is a trial**, not a mandate to defend. If the overhead of spec-writing and
+  review costs more than direct implementation, say so — shipping speed comes first.
 
 ## Workflow
 

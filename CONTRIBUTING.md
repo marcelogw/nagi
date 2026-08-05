@@ -125,13 +125,31 @@ and the copy that drifts is always the one that lets the bad write through. What
 it changes is *when* you find out: at the keystroke instead of on the pull
 request. A skill advises; a hook decides.
 
-Personal overrides go in `.claude/settings.local.json`, which is git-ignored.
+`.claude/skills/nagi-design/` is committed for the same reason: it is the design
+system as a rule set — tokens, brand, the closed coral list, and an index of what
+the design defines — so a session does not have to rediscover it. The rest of
+`.claude/` is personal tooling and stays ignored, as does
+`.claude/settings.local.json`, where personal overrides go.
 
 Each rule's known blind spots are written next to it in
 `scripts/check-patterns.mjs`. The largest: a date built from a string
 *variable*, `push`/`pop`/`fill` on a value read from a store, and a raw ISO
 string or month key rendered straight into JSX. All three need type information
 to catch, so none is claimed to be covered.
+
+## Code conventions
+
+The conventions no linter can check — `type` over `interface`, where logic
+lives, what gets a name instead of a literal — are in
+[`AGENTS.md`](./AGENTS.md), alongside the rest of the rules an agent reads every
+session. They are there rather than here so there is one copy: two would drift,
+and the one that drifts is always the one you happened to read.
+
+The words themselves are in [`docs/glossary.md`](./docs/glossary.md) — one name
+per concept, which is what keeps a single thing from acquiring three. It holds
+no translations: those live in the message catalogues, so a new language never
+touches it. The choices that shape the product — and the ones still open — are
+in [`docs/decisions.md`](./docs/decisions.md).
 
 ## Tests
 
