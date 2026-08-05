@@ -12,7 +12,9 @@
    theme-aware for free. Use the `.nagi-waterline` class rather than retyping the
    three mask layers: the flanking gradients are the still water the curve settles
    into, and dropping them leaves a floating squiggle, which is the symbol, not
-   the motif. Override the colour with `background`, the height with `--wl-h`.
+   the motif. Override the colour with `background`. Do NOT override `--wl-h` in a
+   descendant selector — see the warning below; it has one value and it lives in
+   `:root`.
 
    Decorative by definition — mark it `aria-hidden` wherever it is a divider.
    ============================================================================ */
