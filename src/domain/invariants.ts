@@ -13,10 +13,9 @@ import { isCents } from './money'
 import { diffMonths, isMonth } from './month'
 
 /**
- * The three Phase 1 stores' state, combined into the one shape both the JSON
- * importer and the Tempest importer validate against before committing
- * anything. `Note` has no field here — see the comment on its omission in
- * `entities.ts`.
+ * The three Phase 1 stores' state, combined into the one shape the JSON
+ * importer validates against before committing anything. `Note` has no field
+ * here — see the comment on its omission in `entities.ts`.
  */
 export type DomainState = {
   categories: Category[]

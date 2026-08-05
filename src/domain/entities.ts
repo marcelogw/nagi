@@ -83,10 +83,10 @@ export type RecurrenceException = { skip: true } | { override: Partial<Recurrenc
 
 /**
  * A recurring income or expense rule — the fact stored once, with occurrences
- * derived per month rather than materialised as N rows. `exceptions` is
- * reserved now so the Tempest importer (which has to reconstruct real
- * mid-series edits) doesn't force a schema change later; Phase 1 does not
- * build the UI to create one by hand.
+ * derived per month rather than materialised as N rows. `exceptions` covers a
+ * single month diverging from the rule (a price change, a skipped bill) or
+ * being cancelled outright; Phase 1 does not build the UI to create one by
+ * hand — that lands with Phase 3 (Ledger).
  */
 export type Recurrence = {
   id: Uuid
