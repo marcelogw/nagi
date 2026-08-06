@@ -2,8 +2,9 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { SYSTEM_CATEGORY_ID, type Category, type CreditCard } from '@/domain/entities'
-import { idbStorage } from '@/persistence/db'
+import { indexedDbAdapter } from '@/persistence/db'
 import { migrate } from '@/persistence/migrate'
+import { createAdapterStorage } from '@/persistence/storage-adapter'
 
 export const CATALOG_STORAGE_KEY = 'nagi-catalog'
 
@@ -30,7 +31,7 @@ export const useCatalogStore = create<CatalogState>()(
     })),
     {
       name: CATALOG_STORAGE_KEY,
-      storage: idbStorage,
+      storage: createAdapterStorage(indexedDbAdapter),
       version: 1,
       migrate: (persistedState, version) =>
         migrate({
@@ -39,6 +40,7 @@ export const useCatalogStore = create<CatalogState>()(
           targetVersion: 1,
           state: persistedState as CatalogState,
           now: Date.now,
+          adapter: indexedDbAdapter,
         }),
     },
   ),

@@ -80,6 +80,30 @@ backend, or not at all.
 The authentication and backend technology for hosted sync is **not chosen**.
 That decision needs its own entry here, written when the work starts.
 
+### Local storage sits behind a `StorageAdapter`
+
+_2026-08-06 · supersedes "Local-first on IndexedDB, with no storage abstraction" (2026-07-28)_
+
+Where local state persists is now a formalised contract:
+`src/persistence/storage-adapter.ts` defines `StorageAdapter`, a small
+get/set/remove-plus-backup interface. `indexedDbAdapter`
+(`src/persistence/db.ts`) is the only implementation and the only one wired
+up — there is no registry and no user-facing backend choice.
+`settings-store.ts` stays on `localStorage`, outside the contract: the theme
+has to be read synchronously before React mounts, and IndexedDB is async.
+
+**Why:** the previous entry's reasoning still holds for *sync* — no backend
+is chosen, so a sync interface would be a guess. It does not hold for
+*swapping where local data lives*: this is an open-source project, and adding
+or replacing a local storage backend (OPFS, SQLite-wasm, a Node adapter for a
+self-hosted server variant) should be a contained, one-file change. The seam
+already existed implicitly, through Zustand's `persist({ storage })` option —
+this decision formalises it rather than inventing something new.
+
+Remote sync (Nagi Cloud) remains a separate, still-undesigned `SyncAdapter`
+seam layered above this one. Authentication and backend technology for it
+remain unchosen, unchanged from the superseded entry.
+
 ---
 
 ## Open
