@@ -10,16 +10,25 @@ import {
   requireCategory,
 } from '@/domain/categories'
 import {
+  InvalidCardReassignmentError,
+  reorderCards as reorderCardsDomain,
+  requireCard,
+} from '@/domain/creditCards'
+import {
   SYSTEM_CATEGORY_ID,
   type Category,
+  type CardId,
   type CategoryId,
   type CreditCard,
   type HexColor,
 } from '@/domain/entities'
+import { newId } from '@/domain/ids'
+import type { Cents } from '@/domain/money'
 import { indexedDbAdapter } from '@/persistence/db'
 import { migrate } from '@/persistence/migrate'
 import { createAdapterStorage } from '@/persistence/storage-adapter'
 import { useLedgerStore } from './ledger-store'
+import { usePlanningStore } from './planning-store'
 
 export const CATALOG_STORAGE_KEY = 'nagi-catalog'
 
@@ -37,6 +46,12 @@ export type CatalogState = CatalogData & {
   ) => void
   deleteCategory: (id: CategoryId) => void
   reorderCategories: (orderedIds: CategoryId[]) => void
+
+  createCard: (name: string, options: { color: HexColor; limit: Cents | null }) => CreditCard
+  updateCard: (id: CardId, changes: Partial<Pick<CreditCard, 'name' | 'color' | 'limit'>>) => void
+  /** `reassignToId` must name a different, existing card — deleting the last remaining card is a UI-level block, not a domain no-op. */
+  deleteCard: (id: CardId, reassignToId: CardId) => void
+  reorderCards: (orderedIds: CardId[]) => void
 }
 
 /** Invariant 4 (domain/invariants.ts) requires exactly one system category to
@@ -106,6 +121,58 @@ export const useCatalogStore = create<CatalogState>()(
         const reordered = reorderCategoriesDomain(get().categories, orderedIds)
         set((state) => {
           state.categories = reordered
+        })
+      },
+
+      createCard: (name, options) => {
+        const card: CreditCard = {
+          id: newId() as unknown as CardId,
+          name,
+          color: options.color,
+          limit: options.limit,
+          order: get().creditCards.length,
+        }
+
+        set((state) => {
+          state.creditCards.push(card)
+        })
+
+        return card
+      },
+
+      updateCard: (id, changes) => {
+        requireCard(get().creditCards, id)
+
+        set((state) => {
+          const target = state.creditCards.find((c) => c.id === id)
+          if (target) Object.assign(target, changes)
+        })
+      },
+
+      deleteCard: (id, reassignToId) => {
+        requireCard(get().creditCards, id)
+        requireCard(get().creditCards, reassignToId)
+        if (id === reassignToId) {
+          throw new InvalidCardReassignmentError(id)
+        }
+
+        const survivors = get().creditCards.filter((c) => c.id !== id)
+        const remaining = reorderCardsDomain(
+          survivors,
+          survivors.map((c) => c.id),
+        )
+
+        set((state) => {
+          state.creditCards = remaining
+        })
+
+        usePlanningStore.getState().reassignCard(id, reassignToId)
+      },
+
+      reorderCards: (orderedIds) => {
+        const reordered = reorderCardsDomain(get().creditCards, orderedIds)
+        set((state) => {
+          state.creditCards = reordered
         })
       },
     })),

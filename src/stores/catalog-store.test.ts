@@ -6,12 +6,22 @@ import {
   InvalidCategoryIdError,
   ProtectedCategoryError,
 } from '@/domain/categories'
-import type { CardId, Category, CategoryId, CreditCard, Expense } from '@/domain/entities'
+import { CardNotFoundError, InvalidCardReassignmentError } from '@/domain/creditCards'
+import type {
+  CardId,
+  Category,
+  CategoryId,
+  CreditCard,
+  Expense,
+  Installment,
+} from '@/domain/entities'
 import { SYSTEM_CATEGORY_ID } from '@/domain/entities'
+import type { Uuid } from '@/domain/ids'
 import type { Cents } from '@/domain/money'
 import type { Month } from '@/domain/month'
 import { CATALOG_STORAGE_KEY, useCatalogStore } from './catalog-store'
 import { useLedgerStore } from './ledger-store'
+import { usePlanningStore } from './planning-store'
 
 describe('useCatalogStore', () => {
   beforeEach(async () => {
@@ -245,6 +255,111 @@ describe('useCatalogStore', () => {
         const categories = useCatalogStore.getState().categories
         expect(categories.map((c) => c.id)).toEqual([SYSTEM_CATEGORY_ID, 'health', 'groceries'])
         expect(categories.map((c) => c.order)).toEqual([0, 1, 2])
+      })
+    })
+  })
+
+  describe('credit card CRUD', () => {
+    beforeEach(() => {
+      useCatalogStore.setState({
+        categories: [],
+        creditCards: [
+          {
+            id: 'nubank' as CardId,
+            name: 'Nubank',
+            color: 'oklch(0.55 0.14 300)',
+            limit: 800000 as Cents,
+            order: 0,
+          },
+          {
+            id: 'itau' as CardId,
+            name: 'Itaú',
+            color: 'oklch(0.58 0.11 250)',
+            limit: null,
+            order: 1,
+          },
+        ],
+      })
+      usePlanningStore.setState({ installments: [], goals: [] })
+    })
+
+    describe('createCard', () => {
+      it('adds a new card with a generated id', () => {
+        const created = useCatalogStore
+          .getState()
+          .createCard('Travel Card', { color: 'oklch(0.60 0.10 200)', limit: null })
+
+        expect(created).toMatchObject({
+          name: 'Travel Card',
+          color: 'oklch(0.60 0.10 200)',
+          limit: null,
+          order: 2,
+        })
+        expect(useCatalogStore.getState().creditCards).toContainEqual(created)
+      })
+    })
+
+    describe('updateCard', () => {
+      it('applies changes to an existing card, including a limit of exactly 0', () => {
+        useCatalogStore.getState().updateCard('nubank' as CardId, { limit: 0 as Cents })
+
+        const updated = useCatalogStore.getState().creditCards.find((c) => c.id === 'nubank')
+        expect(updated?.limit).toBe(0)
+      })
+
+      it('throws CardNotFoundError for an unknown id', () => {
+        expect(() =>
+          useCatalogStore.getState().updateCard('ghost' as CardId, { name: 'x' }),
+        ).toThrow(CardNotFoundError)
+      })
+    })
+
+    describe('deleteCard', () => {
+      it('removes the card, closes the order gap, and reassigns installments', () => {
+        const installment: Installment = {
+          id: 'i1' as Uuid,
+          name: 'Laptop',
+          cardId: 'nubank' as CardId,
+          totalInstallments: 6,
+          amountPerInstallment: 50000 as Cents,
+          startMonth: '2026-01' as Month,
+        }
+        usePlanningStore.setState({ installments: [installment], goals: [] })
+
+        useCatalogStore.getState().deleteCard('nubank' as CardId, 'itau' as CardId)
+
+        const cards = useCatalogStore.getState().creditCards
+        expect(cards.map((c) => c.id)).toEqual(['itau'])
+        expect(cards.map((c) => c.order)).toEqual([0])
+        expect(usePlanningStore.getState().installments[0]?.cardId).toBe('itau')
+      })
+
+      it('throws InvalidCardReassignmentError when reassignToId equals id', () => {
+        expect(() =>
+          useCatalogStore.getState().deleteCard('nubank' as CardId, 'nubank' as CardId),
+        ).toThrow(InvalidCardReassignmentError)
+      })
+
+      it('throws CardNotFoundError when the reassignment target does not exist', () => {
+        expect(() =>
+          useCatalogStore.getState().deleteCard('nubank' as CardId, 'ghost' as CardId),
+        ).toThrow(CardNotFoundError)
+      })
+
+      it('throws CardNotFoundError for an unknown id', () => {
+        expect(() =>
+          useCatalogStore.getState().deleteCard('ghost' as CardId, 'itau' as CardId),
+        ).toThrow(CardNotFoundError)
+      })
+    })
+
+    describe('reorderCards', () => {
+      it('reassigns order to match the given id sequence', () => {
+        useCatalogStore.getState().reorderCards(['itau', 'nubank'] as CardId[])
+
+        const cards = useCatalogStore.getState().creditCards
+        expect(cards.map((c) => c.id)).toEqual(['itau', 'nubank'])
+        expect(cards.map((c) => c.order)).toEqual([0, 1])
       })
     })
   })

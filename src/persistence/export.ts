@@ -1,7 +1,7 @@
 import type { DomainState } from '@/domain/invariants'
 import type { CatalogData } from '@/stores/catalog-store'
 import type { LedgerData } from '@/stores/ledger-store'
-import type { PlanningState } from '@/stores/planning-store'
+import type { PlanningData } from '@/stores/planning-store'
 
 export type Snapshot = {
   version: number
@@ -11,7 +11,7 @@ export type Snapshot = {
 export function buildSnapshot(params: {
   ledger: LedgerData
   catalog: CatalogData
-  planning: PlanningState
+  planning: PlanningData
   now: () => number
 }): Snapshot {
   return {
