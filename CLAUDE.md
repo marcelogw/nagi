@@ -44,7 +44,9 @@ Only billing is closed-source. License: AGPL-3.0.
 
 - Vite + React 19 + TypeScript (`strict`)
 - TanStack Router — routes carry navigation state (month/year as URL params, not store state)
-- Tailwind v4 + shadcn/ui (Radix primitives) — restyled per the design system, ported on first use
+- Tailwind v4 + shadcn/ui (Radix primitives) — restyled per the design system, ported on first use.
+  **Tailwind is the styling language for all product code**, not just the vendored primitives — see
+  "Styling" below. This is settled; `docs/decisions.md` holds the reasoning.
 - Zustand + Immer, split by domain — no single mega-store
 - `use-intl` for i18n
 - Money stored as integer cents, never floats
@@ -94,6 +96,35 @@ The reference is `.claude/skills/nagi-design/SKILL.md`, versioned here: the
 tokens, the brand, the closed coral list, and an index of which screens the
 design actually defines — which is what tells "undefined" apart from "I did not
 look". Read it before writing or restyling any UI.
+
+### Styling — Tailwind, and only Tailwind
+
+**Settled, not open.** Every component in `src/` is styled with Tailwind
+utilities over the design tokens. `docs/decisions.md` carries the full
+reasoning, including the three alternatives that were weighed and why each
+lost; do not reopen it, and do not re-argue it from the mockups.
+
+- **Do not create a `.css` file for a component.** Not plain CSS, not BEM, not
+  CSS Modules. Style lives in the `className`, next to the markup.
+- **The one `.css` layer that survives** holds only what Tailwind genuinely
+  cannot express — `@keyframes`, `mask:` on a pseudo-element,
+  `env(safe-area-inset-bottom)`, `color-scheme`. A component style that lands
+  there instead of in a `className` is a defect, not a shortcut.
+- **Only semantic utilities exist.** Tailwind's default palette is cleared, so
+  `bg-gray-100`, `text-slate-500` and friends generate nothing and break
+  visibly. That is deliberate: reach for `bg-surface-muted`,
+  `text-foreground-muted`, `bg-primary-tint`.
+- **Type is named by role, never by size** — `text-body`, `text-title`,
+  `text-display`, matching the roles in `tokens/typography.css`. There is no
+  `text-base`/`text-sm` in this project; a size-named utility would disagree
+  with its own value.
+- **An arbitrary value is a design decision, not a convenience.** `w-[13px]`
+  and `tracking-[-0.01em]` are rejected by `no-arbitrary-tailwind`. If the
+  value is genuinely missing, it gets added to the tokens in the same change —
+  a bracket is never the fix.
+- Layout numbers that are genuinely one-off and not scale values (a rail width,
+  a touch-target floor) still go through a token. "It is only used once" is how
+  the second use gets a different number.
 
 ## Design fidelity — do not invent
 
@@ -165,3 +196,12 @@ changes nothing about how a plain implementation works here.
   hygiene. CI must be green to merge, and the diff is reviewed by a second instance.
 - If something is genuinely blocked, finish everything that is not, then say plainly what is
   outstanding and why. Scaling the scope down is the maintainer's call, not the agent's.
+- **A critical technology choice gets decided before anything is built on it.** Styling
+  approach, state layer, charting strategy, storage backend: raise it, settle it with the
+  maintainer, record it in `docs/decisions.md`, *then* write the code and the checks around
+  it. Never assume one by starting work — the choice gets made silently and survives as if
+  someone had chosen it.
+- **A linter, config or scaffold is never evidence for the choice it was built on.** Rules
+  are downstream of decisions. `no-arbitrary-tailwind` existing does not argue for Tailwind;
+  the mockups being plain CSS does not argue for CSS. If the only support for an approach is
+  something already built around it, the decision was never made — say so and make it.
