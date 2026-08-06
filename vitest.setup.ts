@@ -32,6 +32,21 @@ window.matchMedia ??= (query: string) =>
     dispatchEvent: () => false,
   }) as unknown as MediaQueryList
 
+// jsdom implements no pointer-capture or scroll machinery, and Radix Select
+// (the first Radix primitive in this repo) calls all of these while opening,
+// positioning and closing — without the stubs, every interaction test throws
+// on the first click rather than exercising the component.
+Element.prototype.hasPointerCapture ??= () => false
+Element.prototype.setPointerCapture ??= () => {}
+Element.prototype.releasePointerCapture ??= () => {}
+Element.prototype.scrollIntoView ??= () => {}
+
+globalThis.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
 afterEach(() => {
   cleanup()
 })
