@@ -173,9 +173,11 @@ describe('persistence/import', () => {
       )
     }
 
-    // Verify stores remain completely untouched
+    // Verify stores remain completely untouched. useCatalogStore now carries
+    // CRUD actions alongside its data, so a subset match against the plain
+    // data fixture, not a full equality check.
     expect(useLedgerStore.getState()).toEqual(initialLedger)
-    expect(useCatalogStore.getState()).toEqual(initialCatalog)
+    expect(useCatalogStore.getState()).toMatchObject(initialCatalog)
     expect(usePlanningStore.getState()).toEqual(initialPlanning)
   })
 
@@ -332,8 +334,10 @@ describe('persistence/import', () => {
 
     expect(commitResult.ok).toBe(true)
 
-    // 5. Compare state of the 3 stores AFTER import against state BEFORE wipe — must be deeply equal
-    expect(useCatalogStore.getState()).toEqual(initialCatalog)
+    // 5. Compare state of the 3 stores AFTER import against state BEFORE wipe — must be deeply equal.
+    // useCatalogStore now carries CRUD actions alongside its data, so a subset
+    // match against the plain data fixture, not a full equality check.
+    expect(useCatalogStore.getState()).toMatchObject(initialCatalog)
     expect(usePlanningStore.getState()).toEqual(initialPlanning)
     expect(useLedgerStore.getState()).toEqual(initialLedger)
   })
