@@ -1,4 +1,4 @@
-import type { Category, CategoryId, Expense } from './entities'
+import type { Category, CategoryId, Expense, Recurrence, RecurrenceException } from './entities'
 import { SYSTEM_CATEGORY_ID } from './entities'
 import type { Month } from './month'
 
@@ -141,6 +141,12 @@ export function reorderCategories(
   categories: readonly Category[],
   orderedIds: readonly CategoryId[],
 ): Category[] {
+  if (orderedIds.length !== categories.length) {
+    throw new Error(
+      `reorderCategories: expected ${categories.length} ids, got ${orderedIds.length}`,
+    )
+  }
+
   const byId = new Map(categories.map((c) => [c.id, c]))
   return orderedIds.map((id, index) => {
     const category = byId.get(id)
@@ -162,4 +168,44 @@ export function reassignExpensesCategory(
     )
   }
   return result
+}
+
+/**
+ * Reassigns `fromId` to `toId` inside every recurrence that references it — its
+ * template, and any exception override — used alongside `reassignExpensesCategory`
+ * when a category is deleted. A recurrence's `template.categoryId` and an
+ * exception's `override.categoryId` outlive any already-materialised Expense
+ * rows, so missing this leaves a dangling category id that resurfaces (Invariant
+ * 3 violation) the next time the recurrence expands into a future month.
+ */
+export function reassignRecurrencesCategory(
+  recurrences: readonly Recurrence[],
+  fromId: CategoryId,
+  toId: CategoryId,
+): Recurrence[] {
+  return recurrences.map((recurrence) => {
+    const template =
+      recurrence.template.categoryId === fromId
+        ? { ...recurrence.template, categoryId: toId }
+        : recurrence.template
+
+    const exceptions = Object.fromEntries(
+      Object.entries(recurrence.exceptions).map(([month, exception]) => {
+        const reassigned = reassignExceptionCategory(exception, fromId, toId)
+        return [month, reassigned]
+      }),
+    ) as Record<Month, RecurrenceException>
+
+    return { ...recurrence, template, exceptions }
+  })
+}
+
+function reassignExceptionCategory(
+  exception: RecurrenceException,
+  fromId: CategoryId,
+  toId: CategoryId,
+): RecurrenceException {
+  if ('skip' in exception) return exception
+  if (exception.override.categoryId !== fromId) return exception
+  return { override: { ...exception.override, categoryId: toId } }
 }

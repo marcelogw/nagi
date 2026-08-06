@@ -10,16 +10,37 @@ import {
   normalizeCategoryId,
   ProtectedCategoryError,
   reassignExpensesCategory,
+  reassignRecurrencesCategory,
   reorderCategories,
   requireCategory,
 } from './categories'
-import type { Category, CategoryId, Expense } from './entities'
+import type { Category, CategoryId, Expense, Recurrence } from './entities'
 import { SYSTEM_CATEGORY_ID } from './entities'
 import type { Cents } from './money'
 import type { Month } from './month'
+import type { Uuid } from './ids'
 
 function makeCategory(id: string, order: number, isSystem = false): Category {
   return { id: id as CategoryId, color: 'oklch(0.62 0.10 250)', icon: null, isSystem, order }
+}
+
+function makeRecurrence(
+  id: string,
+  templateCategoryId: string | undefined,
+  exceptions: Recurrence['exceptions'] = {},
+): Recurrence {
+  return {
+    id: id as Uuid,
+    kind: 'expense',
+    startMonth: '2026-01' as Month,
+    endMonth: null,
+    template: {
+      description: 'x',
+      amount: 100 as Cents,
+      categoryId: templateCategoryId as CategoryId,
+    },
+    exceptions,
+  }
 }
 
 function makeExpense(id: string, categoryId: string, month: Month): Expense {
@@ -53,6 +74,12 @@ describe('normalizeCategoryId', () => {
 
   it('throws InvalidCategoryIdError when the name normalises to empty — P-12', () => {
     expect(() => normalizeCategoryId('🎉')).toThrow(InvalidCategoryIdError)
+    try {
+      normalizeCategoryId('🎉')
+    } catch (error) {
+      expect(error).toBeInstanceOf(InvalidCategoryIdError)
+      expect((error as InvalidCategoryIdError).sourceName).toBe('🎉')
+    }
   })
 
   it('throws InvalidCategoryIdError for a blank name', () => {
@@ -99,9 +126,16 @@ describe('reorderCategories', () => {
   })
 
   it('throws when an id in the sequence does not match any given category', () => {
-    const categories = [makeCategory('a', 0)]
+    const categories = [makeCategory('a', 0), makeCategory('b', 1)]
     expect(() => reorderCategories(categories, ['a', 'ghost'] as CategoryId[])).toThrow(
       /unknown category id "ghost"/,
+    )
+  })
+
+  it('throws when orderedIds omits a category, silently dropping it', () => {
+    const categories = [makeCategory('a', 0), makeCategory('b', 1)]
+    expect(() => reorderCategories(categories, ['a'] as CategoryId[])).toThrow(
+      /expected 2 ids, got 1/,
     )
   })
 })
@@ -145,6 +179,91 @@ describe('reassignExpensesCategory', () => {
   })
 })
 
+describe('reassignRecurrencesCategory', () => {
+  it("reassigns a recurrence's template.categoryId when it matches fromId", () => {
+    const recurrences = [makeRecurrence('r1', 'lazer')]
+
+    const result = reassignRecurrencesCategory(
+      recurrences,
+      'lazer' as CategoryId,
+      SYSTEM_CATEGORY_ID,
+    )
+
+    expect(result[0]?.template.categoryId).toBe(SYSTEM_CATEGORY_ID)
+  })
+
+  it("leaves a recurrence's template.categoryId untouched when it does not match fromId", () => {
+    const recurrences = [makeRecurrence('r1', 'health')]
+
+    const result = reassignRecurrencesCategory(
+      recurrences,
+      'lazer' as CategoryId,
+      SYSTEM_CATEGORY_ID,
+    )
+
+    expect(result[0]?.template.categoryId).toBe('health')
+  })
+
+  it('reassigns an override.categoryId inside an exception when it matches fromId', () => {
+    const recurrences = [
+      makeRecurrence('r1', 'health', {
+        ['2026-08' as Month]: { override: { categoryId: 'lazer' as CategoryId } },
+      }),
+    ]
+
+    const result = reassignRecurrencesCategory(
+      recurrences,
+      'lazer' as CategoryId,
+      SYSTEM_CATEGORY_ID,
+    )
+
+    const exception = result[0]?.exceptions['2026-08' as Month]
+    expect(exception && 'override' in exception ? exception.override.categoryId : undefined).toBe(
+      SYSTEM_CATEGORY_ID,
+    )
+  })
+
+  it('leaves a skip exception untouched', () => {
+    const recurrences = [makeRecurrence('r1', 'health', { ['2026-08' as Month]: { skip: true } })]
+
+    const result = reassignRecurrencesCategory(
+      recurrences,
+      'lazer' as CategoryId,
+      SYSTEM_CATEGORY_ID,
+    )
+
+    expect(result[0]?.exceptions['2026-08' as Month]).toEqual({ skip: true })
+  })
+
+  it("leaves an override's categoryId untouched when it does not match fromId", () => {
+    const recurrences = [
+      makeRecurrence('r1', 'health', {
+        ['2026-08' as Month]: { override: { categoryId: 'health' as CategoryId } },
+      }),
+    ]
+
+    const result = reassignRecurrencesCategory(
+      recurrences,
+      'lazer' as CategoryId,
+      SYSTEM_CATEGORY_ID,
+    )
+
+    const exception = result[0]?.exceptions['2026-08' as Month]
+    expect(exception && 'override' in exception ? exception.override.categoryId : undefined).toBe(
+      'health',
+    )
+  })
+
+  it('does not mutate the input', () => {
+    const recurrences = [makeRecurrence('r1', 'lazer')]
+    const snapshot = structuredClone(recurrences)
+
+    reassignRecurrencesCategory(recurrences, 'lazer' as CategoryId, SYSTEM_CATEGORY_ID)
+
+    expect(recurrences).toEqual(snapshot)
+  })
+})
+
 describe('DuplicateCategoryIdError', () => {
   it('carries the colliding id', () => {
     const error = new DuplicateCategoryIdError('groceries' as CategoryId)
@@ -174,10 +293,16 @@ describe('assertCanCreateCategory', () => {
 })
 
 describe('assertMutableCategory', () => {
-  it('throws ProtectedCategoryError for the system category', () => {
+  it('throws ProtectedCategoryError carrying the category id for the system category', () => {
     expect(() => assertMutableCategory(makeCategory(SYSTEM_CATEGORY_ID, 0, true))).toThrow(
       ProtectedCategoryError,
     )
+    try {
+      assertMutableCategory(makeCategory(SYSTEM_CATEGORY_ID, 0, true))
+    } catch (error) {
+      expect(error).toBeInstanceOf(ProtectedCategoryError)
+      expect((error as ProtectedCategoryError).id).toBe(SYSTEM_CATEGORY_ID)
+    }
   })
 
   it('does not throw for a non-system category', () => {
@@ -191,7 +316,13 @@ describe('requireCategory', () => {
     expect(requireCategory([category], 'groceries' as CategoryId)).toBe(category)
   })
 
-  it('throws CategoryNotFoundError when no category matches', () => {
+  it('throws CategoryNotFoundError carrying the missing id when no category matches', () => {
     expect(() => requireCategory([], 'ghost' as CategoryId)).toThrow(CategoryNotFoundError)
+    try {
+      requireCategory([], 'ghost' as CategoryId)
+    } catch (error) {
+      expect(error).toBeInstanceOf(CategoryNotFoundError)
+      expect((error as CategoryNotFoundError).id).toBe('ghost')
+    }
   })
 })
