@@ -1,6 +1,6 @@
 import { del, get, keys, set } from 'idb-keyval'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { idbStorage, listBackups, pruneBackups, wipeAllData, writeBackup } from './db'
+import { indexedDbAdapter } from './db'
 
 describe('persistence/db', () => {
   beforeEach(async () => {
@@ -11,17 +11,24 @@ describe('persistence/db', () => {
     }
   })
 
-  it('re-exports idbStorage', () => {
-    expect(idbStorage).toBeDefined()
-    expect(idbStorage?.getItem).toBeTypeOf('function')
+  it('round-trips a value through setItem, getItem, and removeItem', async () => {
+    await indexedDbAdapter.setItem('nagi-test', 'hello')
+    expect(await indexedDbAdapter.getItem('nagi-test')).toBe('hello')
+
+    await indexedDbAdapter.removeItem('nagi-test')
+    expect(await indexedDbAdapter.getItem('nagi-test')).toBeNull()
   })
 
-  it('wipeAllData removes specified keys from IndexedDB', async () => {
+  it('getItem returns null for a key that was never set', async () => {
+    expect(await indexedDbAdapter.getItem('nagi-missing')).toBeNull()
+  })
+
+  it('wipe removes specified keys from IndexedDB', async () => {
     await set('store-a', { foo: 'bar' })
     await set('store-b', { baz: 123 })
     await set('store-c', { keep: true })
 
-    await wipeAllData(['store-a', 'store-b'])
+    await indexedDbAdapter.wipe(['store-a', 'store-b'])
 
     expect(await get('store-a')).toBeUndefined()
     expect(await get('store-b')).toBeUndefined()
@@ -32,18 +39,18 @@ describe('persistence/db', () => {
     const timestamp = 1700000000000
     const payload = { settings: { theme: 'dark' } }
 
-    await writeBackup('nagi-settings', payload, timestamp)
+    await indexedDbAdapter.writeBackup('nagi-settings', payload, timestamp)
 
     expect(await get('nagi-settings__backup__1700000000000')).toEqual(payload)
   })
 
   it('listBackups lists backup keys for a key ordered most recent first', async () => {
-    await writeBackup('nagi-store', { v: 1 }, 100)
-    await writeBackup('nagi-store', { v: 2 }, 300)
-    await writeBackup('nagi-store', { v: 3 }, 200)
-    await writeBackup('other-store', { v: 1 }, 500)
+    await indexedDbAdapter.writeBackup('nagi-store', { v: 1 }, 100)
+    await indexedDbAdapter.writeBackup('nagi-store', { v: 2 }, 300)
+    await indexedDbAdapter.writeBackup('nagi-store', { v: 3 }, 200)
+    await indexedDbAdapter.writeBackup('other-store', { v: 1 }, 500)
 
-    const backups = await listBackups('nagi-store')
+    const backups = await indexedDbAdapter.listBackups('nagi-store')
 
     expect(backups).toEqual([
       'nagi-store__backup__300',
@@ -53,31 +60,31 @@ describe('persistence/db', () => {
   })
 
   it('pruneBackups keeps only specified number of most recent backups', async () => {
-    await writeBackup('nagi-store', { v: 1 }, 100)
-    await writeBackup('nagi-store', { v: 2 }, 200)
-    await writeBackup('nagi-store', { v: 3 }, 300)
-    await writeBackup('nagi-store', { v: 4 }, 400)
+    await indexedDbAdapter.writeBackup('nagi-store', { v: 1 }, 100)
+    await indexedDbAdapter.writeBackup('nagi-store', { v: 2 }, 200)
+    await indexedDbAdapter.writeBackup('nagi-store', { v: 3 }, 300)
+    await indexedDbAdapter.writeBackup('nagi-store', { v: 4 }, 400)
 
-    await pruneBackups('nagi-store', 2)
+    await indexedDbAdapter.pruneBackups('nagi-store', 2)
 
-    const remaining = await listBackups('nagi-store')
+    const remaining = await indexedDbAdapter.listBackups('nagi-store')
     expect(remaining).toEqual(['nagi-store__backup__400', 'nagi-store__backup__300'])
     expect(await get('nagi-store__backup__100')).toBeUndefined()
     expect(await get('nagi-store__backup__200')).toBeUndefined()
   })
 
   it('pruneBackups handles keep count equal to or larger than existing backups', async () => {
-    await writeBackup('nagi-store', { v: 1 }, 100)
-    await pruneBackups('nagi-store', 5)
+    await indexedDbAdapter.writeBackup('nagi-store', { v: 1 }, 100)
+    await indexedDbAdapter.pruneBackups('nagi-store', 5)
 
-    expect(await listBackups('nagi-store')).toEqual(['nagi-store__backup__100'])
+    expect(await indexedDbAdapter.listBackups('nagi-store')).toEqual(['nagi-store__backup__100'])
   })
 
   it('handles backup keys with invalid/non-numeric timestamps during sorting', async () => {
     await set('nagi-store__backup__invalid', { v: 0 })
-    await writeBackup('nagi-store', { v: 1 }, 100)
+    await indexedDbAdapter.writeBackup('nagi-store', { v: 1 }, 100)
 
-    const backups = await listBackups('nagi-store')
+    const backups = await indexedDbAdapter.listBackups('nagi-store')
     expect(backups).toContain('nagi-store__backup__invalid')
     expect(backups).toContain('nagi-store__backup__100')
   })

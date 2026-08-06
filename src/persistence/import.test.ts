@@ -7,7 +7,7 @@ import type { Month } from '@/domain/month'
 import { CATALOG_STORAGE_KEY, useCatalogStore } from '@/stores/catalog-store'
 import { LEDGER_STORAGE_KEY, useLedgerStore } from '@/stores/ledger-store'
 import { PLANNING_STORAGE_KEY, usePlanningStore } from '@/stores/planning-store'
-import { wipeAllData } from './db'
+import { indexedDbAdapter } from './db'
 import { buildSnapshot, toJson } from './export'
 import { commitSnapshot, parseSnapshot } from './import'
 
@@ -313,7 +313,7 @@ describe('persistence/import', () => {
     if (!parseResult.ok) return
 
     // 3. Wipe all data in IDB and reset store states to empty
-    await wipeAllData([LEDGER_STORAGE_KEY, CATALOG_STORAGE_KEY, PLANNING_STORAGE_KEY])
+    await indexedDbAdapter.wipe([LEDGER_STORAGE_KEY, CATALOG_STORAGE_KEY, PLANNING_STORAGE_KEY])
     useLedgerStore.setState({ incomes: {}, expenses: {}, savingsEntries: {}, recurrences: [] })
     useCatalogStore.setState({ categories: [], creditCards: [] })
     usePlanningStore.setState({ installments: [], goals: [] })
