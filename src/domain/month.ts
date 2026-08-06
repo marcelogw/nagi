@@ -1,3 +1,5 @@
+import type { Branded } from './brand'
+
 /**
  * A calendar month, `YYYY-MM`. The app's primary navigation unit.
  *
@@ -5,8 +7,12 @@
  * that needs one, through `monthToDate`. Never `new Date('2026-07')` or
  * `new Date('2026-07-01')`: those parse as UTC midnight, which is the previous
  * day — and therefore sometimes the previous month — anywhere west of Greenwich.
+ *
+ * Branded rather than a plain string: a `Category.id` and a `Month` are both
+ * strings at runtime, and without the brand the compiler cannot tell one from
+ * the other at a call site expecting the wrong one.
  */
-export type Month = string
+export type Month = Branded<string, 'Month'>
 
 const MONTH_PATTERN = /^(\d{4})-(0[1-9]|1[0-2])$/
 
@@ -37,7 +43,7 @@ function format(year: number, month: number): Month {
   // Both parts are padded. The year matters at the boundary: without it
   // `previousMonth('1000-01')` returns '999-12', which this module's own
   // pattern then rejects.
-  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}`
+  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}` as Month
 }
 
 /**
@@ -77,12 +83,40 @@ export function monthToDate(month: Month): Date {
   return date
 }
 
-export function previousMonth(month: Month): Month {
+/**
+ * The month `n` steps from `month` — negative steps back, positive steps
+ * forward, through a zero-based total-months count so a year boundary falls
+ * out of the arithmetic rather than needing its own branch.
+ */
+export function offset(month: Month, n: number): Month {
   const [year, m] = parse(month)
-  return m === 1 ? format(year - 1, 12) : format(year, m - 1)
+  const totalMonths = year * 12 + (m - 1) + n
+  const newYear = Math.floor(totalMonths / 12)
+  const newMonth = totalMonths - newYear * 12 + 1
+  return format(newYear, newMonth)
+}
+
+export function previousMonth(month: Month): Month {
+  return offset(month, -1)
 }
 
 export function nextMonth(month: Month): Month {
-  const [year, m] = parse(month)
-  return m === 12 ? format(year + 1, 1) : format(year, m + 1)
+  return offset(month, 1)
+}
+
+/** The signed number of months from `a` to `b` — negative when `b` precedes `a`. */
+export function diffMonths(a: Month, b: Month): number {
+  const [ay, am] = parse(a)
+  const [by, bm] = parse(b)
+  return by * 12 + (bm - 1) - (ay * 12 + (am - 1))
+}
+
+/**
+ * Every month from `start` to `end`, inclusive, in chronological order.
+ * Empty when `end` precedes `start` — a reversed range has nothing to yield,
+ * not an error to throw.
+ */
+export function range(start: Month, end: Month): Month[] {
+  const count = diffMonths(start, end)
+  return Array.from({ length: Math.max(count + 1, 0) }, (_, i) => offset(start, i))
 }

@@ -55,13 +55,13 @@ describe('format.month', () => {
     // Paulo: constructing the Date from the month string parses as UTC
     // midnight, which is 21:00 on 30 June here, so a naive implementation
     // prints June. Going through `monthToDate` prints July.
-    render(<MonthName month="2026-07" />)
+    render(<MonthName month={'2026-07' as Month} />)
 
     expect(formatted()).toHaveTextContent('July 2026')
   })
 
   it('translates the month name', () => {
-    render(<MonthName month="2026-07" />, { locale: 'pt-BR' })
+    render(<MonthName month={'2026-07' as Month} />, { locale: 'pt-BR' })
 
     expect(formatted()).toHaveTextContent('julho de 2026')
   })
