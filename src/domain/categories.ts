@@ -93,7 +93,7 @@ const DEFAULT_CATEGORY_COLOR_CYCLE = [
  * colours cycle through the curated 8-swatch palette the colour picker offers.
  */
 const DEFAULT_CATEGORY_SEEDS: readonly [id: string, icon: string][] = [
-  ['housing', 'home'],
+  ['housing', 'house'],
   ['utilities', 'plug-zap'],
   ['education', 'graduation-cap'],
   ['subscriptions', 'credit-card'],
