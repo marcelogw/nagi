@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { listBackups } from './db'
+import { indexedDbAdapter } from './db'
 import { MIGRATIONS, migrate, MissingMigrationError, type Migration } from './migrate'
 
 describe('persistence/migrate', () => {
@@ -25,10 +25,11 @@ describe('persistence/migrate', () => {
       targetVersion: 1,
       state: initialState,
       now: clock,
+      adapter: indexedDbAdapter,
     })
 
     expect(result).toBe(initialState)
-    expect(await listBackups('test-store')).toEqual([])
+    expect(await indexedDbAdapter.listBackups('test-store')).toEqual([])
   })
 
   it('throws MissingMigrationError if a migration step in the chain is missing', async () => {
@@ -42,6 +43,7 @@ describe('persistence/migrate', () => {
         targetVersion: 3,
         state: initialState,
         now: clock,
+        adapter: indexedDbAdapter,
       }),
     ).rejects.toThrow(MissingMigrationError)
 
@@ -52,6 +54,7 @@ describe('persistence/migrate', () => {
         targetVersion: 3,
         state: initialState,
         now: clock,
+        adapter: indexedDbAdapter,
       })
     } catch (err) {
       expect(err).toBeInstanceOf(MissingMigrationError)
@@ -100,6 +103,7 @@ describe('persistence/migrate', () => {
       targetVersion: 3,
       state: inputState,
       now: clock,
+      adapter: indexedDbAdapter,
       migrations: syntheticMigrations,
     })
 
@@ -115,7 +119,7 @@ describe('persistence/migrate', () => {
     })
 
     // Pre-migration backup check
-    const backups = await listBackups('test-chain')
+    const backups = await indexedDbAdapter.listBackups('test-chain')
     expect(backups.length).toBe(1)
     expect(backups[0]).toBe('test-chain__backup__1100')
   })
@@ -132,11 +136,12 @@ describe('persistence/migrate', () => {
         targetVersion: 2,
         state: { run: i },
         now: () => 1000 + i * 10,
+        adapter: indexedDbAdapter,
         migrations: syntheticMigrations,
       })
     }
 
-    const backups = await listBackups('test-prune-chain')
+    const backups = await indexedDbAdapter.listBackups('test-prune-chain')
     expect(backups.length).toBe(3)
     expect(backups).toEqual([
       'test-prune-chain__backup__1040',

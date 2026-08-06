@@ -1,4 +1,4 @@
-import { pruneBackups, writeBackup } from './db'
+import type { StorageAdapter } from './storage-adapter'
 
 export type Migration<From = unknown, To = unknown> = (state: From) => To
 
@@ -21,6 +21,7 @@ export type MigrateParams<T> = {
   targetVersion: number
   state: T
   now: () => number
+  adapter: StorageAdapter
   migrations?: Record<number, Migration<unknown, unknown>>
 }
 
@@ -31,14 +32,14 @@ export type MigrateParams<T> = {
  * and executes migrations sequentially without mutating input state.
  */
 export async function migrate<T>(params: MigrateParams<T>): Promise<T> {
-  const { key, storedVersion, targetVersion, state, now, migrations = MIGRATIONS } = params
+  const { key, storedVersion, targetVersion, state, now, adapter, migrations = MIGRATIONS } = params
 
   if (storedVersion === targetVersion) {
     return state
   }
 
-  await writeBackup(key, state, now())
-  await pruneBackups(key, 3)
+  await adapter.writeBackup(key, state, now())
+  await adapter.pruneBackups(key, 3)
 
   let currentState: unknown = state
 
