@@ -151,4 +151,12 @@ describe('cardUsageRatio', () => {
   it('returns 0 when commitment is zero and a limit is set', () => {
     expect(cardUsageRatio(0 as Cents, 10000 as Cents)).toBe(0)
   })
+
+  it('returns 0 for a zero limit with zero commitment, never NaN', () => {
+    expect(cardUsageRatio(0 as Cents, 0 as Cents)).toBe(0)
+  })
+
+  it('returns 1 for a zero limit with any commitment, never Infinity', () => {
+    expect(cardUsageRatio(500 as Cents, 0 as Cents)).toBe(1)
+  })
 })

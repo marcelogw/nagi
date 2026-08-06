@@ -89,5 +89,6 @@ export function cardMonthlyCommitment(
 /** `commitment / limit`, or `null` when the card has no limit to measure against. */
 export function cardUsageRatio(commitment: Cents, limit: Cents | null): number | null {
   if (limit === null) return null
+  if (limit === 0) return commitment > 0 ? 1 : 0
   return commitment / limit
 }
