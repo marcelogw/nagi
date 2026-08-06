@@ -6,7 +6,6 @@ import {
   assertMutableCategory,
   DEFAULT_CATEGORIES,
   normalizeCategoryId,
-  reassignExpensesCategory,
   reorderCategories as reorderCategoriesDomain,
   requireCategory,
 } from '@/domain/categories'
@@ -100,9 +99,7 @@ export const useCatalogStore = create<CatalogState>()(
           state.categories = remaining
         })
 
-        useLedgerStore.setState((ledgerState) => ({
-          expenses: reassignExpensesCategory(ledgerState.expenses, id, SYSTEM_CATEGORY_ID),
-        }))
+        useLedgerStore.getState().reassignCategory(id, SYSTEM_CATEGORY_ID)
       },
 
       reorderCategories: (orderedIds) => {

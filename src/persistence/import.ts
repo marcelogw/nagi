@@ -1,6 +1,6 @@
 import { validate } from '@/domain/invariants'
 import type { CatalogData } from '@/stores/catalog-store'
-import type { LedgerState } from '@/stores/ledger-store'
+import type { LedgerData } from '@/stores/ledger-store'
 import type { PlanningState } from '@/stores/planning-store'
 import type { Snapshot } from './export'
 
@@ -76,7 +76,7 @@ export function parseSnapshot(
 export function commitSnapshot(
   snapshot: Snapshot,
   stores: {
-    setLedger: (s: LedgerState) => void
+    setLedger: (s: LedgerData) => void
     setCatalog: (s: CatalogData) => void
     setPlanning: (s: PlanningState) => void
   },

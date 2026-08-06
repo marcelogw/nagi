@@ -1,6 +1,6 @@
 import { del, get, keys, set } from 'idb-keyval'
 import { beforeEach, describe, expect, it } from 'vitest'
-import type { Income } from '@/domain/entities'
+import type { CategoryId, Expense, Income, Recurrence } from '@/domain/entities'
 import type { Uuid } from '@/domain/ids'
 import type { Cents } from '@/domain/money'
 import type { Month } from '@/domain/month'
@@ -86,5 +86,43 @@ describe('useLedgerStore', () => {
     await useLedgerStore.persist.rehydrate()
 
     expect(useLedgerStore.getState().incomes['2026-09' as Month]).toEqual([sampleIncome])
+  })
+
+  describe('reassignCategory', () => {
+    it('reassigns matching expenses and recurrence references from fromId to toId', () => {
+      const expense: Expense = {
+        id: 'e1' as never,
+        month: '2026-08' as Month,
+        description: 'Milk',
+        amount: 500 as Cents,
+        categoryId: 'groceries' as CategoryId,
+        kind: 'variable',
+        date: '2026-08-01' as never,
+      }
+      const recurrence: Recurrence = {
+        id: 'r1' as Uuid,
+        kind: 'expense',
+        startMonth: '2026-01' as Month,
+        endMonth: null,
+        template: {
+          description: 'Rent',
+          amount: 100000 as Cents,
+          categoryId: 'groceries' as CategoryId,
+        },
+        exceptions: {},
+      }
+
+      useLedgerStore.setState({
+        incomes: {},
+        expenses: { ['2026-08' as Month]: [expense] },
+        savingsEntries: {},
+        recurrences: [recurrence],
+      })
+
+      useLedgerStore.getState().reassignCategory('groceries' as CategoryId, 'other' as CategoryId)
+
+      expect(useLedgerStore.getState().expenses['2026-08' as Month]?.[0]?.categoryId).toBe('other')
+      expect(useLedgerStore.getState().recurrences[0]?.template.categoryId).toBe('other')
+    })
   })
 })
