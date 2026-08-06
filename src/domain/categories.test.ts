@@ -1,3 +1,4 @@
+import { icons } from 'lucide-react'
 import { describe, expect, it } from 'vitest'
 import {
   assertCanCreateCategory,
@@ -102,6 +103,19 @@ describe('DEFAULT_CATEGORIES / DEFAULT_CATEGORY_IDS', () => {
     expect(DEFAULT_CATEGORY_IDS.has(SYSTEM_CATEGORY_ID)).toBe(true)
     for (const category of DEFAULT_CATEGORIES) {
       expect(DEFAULT_CATEGORY_IDS.has(category.id)).toBe(true)
+    }
+  })
+
+  // A renamed/removed lucide-react icon resolves to nothing and IconPicker
+  // drops it silently — 'housing' shipped with 'home' after lucide-react 1.27
+  // renamed it to 'house', so every default rendered with no icon at all.
+  it('every icon resolves to a real lucide-react icon', () => {
+    for (const category of DEFAULT_CATEGORIES) {
+      const pascalCase = category
+        .icon!.split('-')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join('')
+      expect(icons, `"${category.icon}" (${category.id})`).toHaveProperty(pascalCase)
     }
   })
 })
