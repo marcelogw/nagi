@@ -22,5 +22,18 @@
     // they stay silent — so enabling them would look like coverage while
     // missing the only case they were wanted for. Enforced in
     // scripts/check-patterns.mjs instead, which matches every receiver.
-  }
+  },
+  "overrides": [
+    {
+      // A render test for a generic primitive (Select, AlertDialog, Button —
+      // none of them own an i18n namespace) has to pass some text as children
+      // to prove anything rendered. That text never ships; routing it through
+      // a message catalogue would just make a failing assertion harder to
+      // read for no i18n coverage gained.
+      "files": ["**/*.test.tsx"],
+      "rules": {
+        "react/jsx-no-literals": "off"
+      }
+    }
+  ]
 }

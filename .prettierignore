@@ -8,3 +8,8 @@ package-lock.json
 # Pre-existing docs — out of scope for the app's Prettier config, keep their own style
 *.md
 !src/**/*.md
+
+# shadcn CLI output — generated, never hand-edited (guard-write.mjs refuses
+# the write), and reformatting it here would just be reverted by the next
+# `shadcn add`.
+src/components/ui
