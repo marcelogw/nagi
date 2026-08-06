@@ -3,8 +3,9 @@ import { persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import type { Expense, Income, Recurrence, SavingsEntry } from '@/domain/entities'
 import type { Month } from '@/domain/month'
-import { idbStorage } from '@/persistence/db'
+import { indexedDbAdapter } from '@/persistence/db'
 import { migrate } from '@/persistence/migrate'
+import { createAdapterStorage } from '@/persistence/storage-adapter'
 
 export const LEDGER_STORAGE_KEY = 'nagi-ledger'
 
@@ -25,7 +26,7 @@ export const useLedgerStore = create<LedgerState>()(
     })),
     {
       name: LEDGER_STORAGE_KEY,
-      storage: idbStorage,
+      storage: createAdapterStorage(indexedDbAdapter),
       version: 1,
       migrate: (persistedState, version) =>
         migrate({
@@ -34,6 +35,7 @@ export const useLedgerStore = create<LedgerState>()(
           targetVersion: 1,
           state: persistedState as LedgerState,
           now: Date.now,
+          adapter: indexedDbAdapter,
         }),
     },
   ),
