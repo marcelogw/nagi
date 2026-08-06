@@ -173,12 +173,12 @@ describe('persistence/import', () => {
       )
     }
 
-    // Verify stores remain completely untouched. useCatalogStore/useLedgerStore
-    // now carry CRUD actions alongside their data, so a subset match against
-    // the plain data fixtures, not a full equality check.
+    // Verify stores remain completely untouched. All three stores now carry
+    // CRUD actions alongside their data, so a subset match against the plain
+    // data fixtures, not a full equality check.
     expect(useLedgerStore.getState()).toMatchObject(initialLedger)
     expect(useCatalogStore.getState()).toMatchObject(initialCatalog)
-    expect(usePlanningStore.getState()).toEqual(initialPlanning)
+    expect(usePlanningStore.getState()).toMatchObject(initialPlanning)
   })
 
   it('mandatory round-trip test: export -> wipe -> import -> deep-equal', async () => {
@@ -335,11 +335,10 @@ describe('persistence/import', () => {
     expect(commitResult.ok).toBe(true)
 
     // 5. Compare state of the 3 stores AFTER import against state BEFORE wipe — must be deeply equal.
-    // useCatalogStore/useLedgerStore now carry CRUD actions alongside their
-    // data, so a subset match against the plain data fixtures, not a full
-    // equality check.
+    // All three stores now carry CRUD actions alongside their data, so a
+    // subset match against the plain data fixtures, not a full equality check.
     expect(useCatalogStore.getState()).toMatchObject(initialCatalog)
-    expect(usePlanningStore.getState()).toEqual(initialPlanning)
+    expect(usePlanningStore.getState()).toMatchObject(initialPlanning)
     expect(useLedgerStore.getState()).toMatchObject(initialLedger)
   })
 })

@@ -1,7 +1,7 @@
 import { validate } from '@/domain/invariants'
 import type { CatalogData } from '@/stores/catalog-store'
 import type { LedgerData } from '@/stores/ledger-store'
-import type { PlanningState } from '@/stores/planning-store'
+import type { PlanningData } from '@/stores/planning-store'
 import type { Snapshot } from './export'
 
 export type ImportResult = { ok: true } | { ok: false; errors: string[] }
@@ -78,7 +78,7 @@ export function commitSnapshot(
   stores: {
     setLedger: (s: LedgerData) => void
     setCatalog: (s: CatalogData) => void
-    setPlanning: (s: PlanningState) => void
+    setPlanning: (s: PlanningData) => void
   },
 ): ImportResult {
   const validationResult = validate(snapshot)

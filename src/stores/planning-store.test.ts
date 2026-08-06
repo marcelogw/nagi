@@ -91,4 +91,22 @@ describe('usePlanningStore', () => {
 
     expect(usePlanningStore.getState().goals).toEqual([sampleGoal])
   })
+
+  describe('reassignCard', () => {
+    it('reassigns every installment on fromId to toId', () => {
+      const installment: Installment = {
+        id: '66666666-6666-4666-8666-666666666666' as Uuid,
+        name: 'Laptop',
+        cardId: 'nubank' as CardId,
+        totalInstallments: 6,
+        amountPerInstallment: 50000 as Cents,
+        startMonth: '2026-01' as Month,
+      }
+      usePlanningStore.setState({ installments: [installment], goals: [] })
+
+      usePlanningStore.getState().reassignCard('nubank' as CardId, 'itau' as CardId)
+
+      expect(usePlanningStore.getState().installments[0]?.cardId).toBe('itau')
+    })
+  })
 })

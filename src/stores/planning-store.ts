@@ -1,23 +1,36 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import type { Goal, Installment } from '@/domain/entities'
+import { reassignInstallmentsCard } from '@/domain/creditCards'
+import type { CardId, Goal, Installment } from '@/domain/entities'
 import { indexedDbAdapter } from '@/persistence/db'
 import { migrate } from '@/persistence/migrate'
 import { createAdapterStorage } from '@/persistence/storage-adapter'
 
 export const PLANNING_STORAGE_KEY = 'nagi-planning'
 
-export type PlanningState = {
+/** The persisted/exported shape — no actions. What `persistence/export.ts` and `import.ts` read and write. */
+export type PlanningData = {
   installments: Installment[]
   goals: Goal[]
 }
 
+export type PlanningState = PlanningData & {
+  /** Reassigns every installment on `fromId` to `toId` — used when a credit card is deleted. */
+  reassignCard: (fromId: CardId, toId: CardId) => void
+}
+
 export const usePlanningStore = create<PlanningState>()(
   persist(
-    immer<PlanningState>(() => ({
+    immer<PlanningState>((set) => ({
       installments: [],
       goals: [],
+
+      reassignCard: (fromId, toId) => {
+        set((state) => {
+          state.installments = reassignInstallmentsCard(state.installments, fromId, toId)
+        })
+      },
     })),
     {
       name: PLANNING_STORAGE_KEY,
