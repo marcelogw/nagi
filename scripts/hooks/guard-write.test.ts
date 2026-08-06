@@ -77,6 +77,10 @@ describe('the guard stays out of the way otherwise', () => {
       write('src/domain/month.ts', 'export const x = 1'),
     ],
     [
+      "a shadcn primitive's render test — the CLI never writes one",
+      write('src/components/ui/select.test.tsx', "it('renders', () => {})"),
+    ],
+    [
       'a tool it does not guard',
       { tool_name: 'Read', tool_input: { file_path: 'src/routes/x.tsx' } },
     ],

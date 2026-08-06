@@ -65,6 +65,12 @@ export const RULES = [
     message:
       'Arbitrary Tailwind value. This is how a design system drifts one component at a time — ' +
       'use a scale utility, or add the value to the tokens if it is genuinely missing.',
+    // src/components/ui/ is shadcn/Radix vendor code — guard-write.mjs already
+    // refuses to let anyone hand-edit it, so the anti-drift rationale (someone
+    // picked a magic value instead of reaching for a token) does not apply.
+    // `data-[state=open]` there is Radix's own variant syntax, not a value
+    // anyone chose; matching it just punishes running the CLI.
+    exempt: (file) => file.startsWith('src/components/ui/'),
   },
   {
     id: 'no-date-from-string',
