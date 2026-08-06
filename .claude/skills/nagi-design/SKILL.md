@@ -80,6 +80,19 @@ Scales, same rule — a step or nothing: `--space-*` (4px grid), `--radius-*`,
 `--text-*`, `--weight-*`, `--leading-*`, `--tracking-*`, `--shadow-*`,
 `--icon-*`, `--duration-*`, `--ease-*`.
 
+**How you consume them: Tailwind utilities, always.** Every component in `src/`
+is styled in its `className` — no `.css` file per component, in any form. The
+tokens above are exposed as utilities (`bg-surface-muted`, `text-foreground-muted`,
+`gap-3`, `rounded-lg`, `duration-fast`), and Tailwind's own default palette is
+cleared, so `bg-gray-100` generates nothing and breaks visibly rather than
+shipping an off-system grey. Type is named by **role** — `text-body`,
+`text-title`, `text-display` — never by size. An arbitrary value (`w-[13px]`,
+`tracking-[-0.01em]`) is rejected by the linter: if a step is genuinely missing
+it gets added here, in the same change. The mockups in the design repo are
+written in plain CSS; that is how they were drawn, not how the product is
+built — translate them, do not copy the stylesheet. Settled in
+`docs/decisions.md`; not reopenable from a mockup.
+
 Dark mode is the same system under `.dark`. Only colour tokens change — type,
 icon sizes, spacing and radii are identical in both themes, so a layout that
 needs adjusting for dark is a layout bug.

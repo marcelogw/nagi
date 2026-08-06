@@ -233,6 +233,24 @@ suggestion.
   `--success`, `--danger`, …) — never a raw hex or an arbitrary Tailwind value.
   That is what keeps a rebrand cheap.
 
+### Styling: Tailwind, and only Tailwind
+
+Every component in `src/` is styled with Tailwind utilities over the design
+tokens. This is settled — `docs/decisions.md` records the reasoning and the
+three alternatives (plain CSS, CSS Modules, UnoCSS) that were weighed and lost.
+
+- **Do not add a `.css` file for a component**, in any form. Style goes in the
+  `className`, beside the markup.
+- The one `.css` layer that remains holds only what Tailwind cannot express —
+  `@keyframes`, `mask:` on a pseudo-element, `env(…)`, `color-scheme`.
+- Tailwind's default palette is **cleared on purpose**. `bg-gray-100` generates
+  nothing; use `bg-surface-muted`, `text-foreground-muted`, `bg-primary-tint`.
+- Type utilities are named by **role**, not size: `text-body`, `text-title`,
+  `text-display`. There is no `text-base` here — this design's body is 14px and
+  Tailwind's `text-base` is 16px, so a size-named utility would lie.
+- An arbitrary value (`w-[13px]`) is rejected by the linter. If a value is
+  genuinely missing it goes into the tokens in the same change.
+
 ### When the design does not define what you need
 
 Stop. Do not approximate, do not fill the gap "for now", and do not ship a
