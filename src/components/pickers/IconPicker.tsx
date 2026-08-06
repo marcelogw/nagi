@@ -6,7 +6,7 @@ const GRID_COLUMNS = 8
 
 type IconPickerProps = {
   /** Curated, screen-owned list of kebab-case lucide icon names (e.g. 'shopping-cart'). */
-  icons: string[]
+  iconNames: string[]
   value: string
   onChange: (icon: string) => void
   label: string
@@ -21,12 +21,16 @@ function toPascalCase(kebab: string): string {
     .join('')
 }
 
+function resolveIcon(name: string) {
+  return icons[toPascalCase(name) as keyof typeof icons]
+}
+
 /**
  * ponytail: roving tabindex covers the four arrow keys, not the full APG grid
  * pattern (Home/End, wraparound) — add those when a real user asks for them.
  */
 export function IconPicker({
-  icons: iconNames,
+  iconNames,
   value,
   onChange,
   label,
@@ -36,12 +40,26 @@ export function IconPicker({
   const [query, setQuery] = useState('')
   const gridRef = useRef<HTMLDivElement>(null)
 
+  // Resolved up front, not just filtered by query: a name lucide-react cannot
+  // map to a component (renamed or removed icon) must never count as a match
+  // — it renders nothing, so counting it left the grid open with no buttons
+  // in it, and made the empty state impossible to reach when it was the only
+  // "hit".
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase()
-    return iconNames.filter((name) => name.includes(needle))
+    return iconNames
+      .filter((name) => name.includes(needle))
+      .map((name) => [name, resolveIcon(name)] as const)
+      .filter((entry): entry is [string, NonNullable<(typeof entry)[1]>] => {
+        if (entry[1]) return true
+        if (import.meta.env.DEV) {
+          console.warn(`[IconPicker] "${entry[0]}" is not a lucide-react icon name.`)
+        }
+        return false
+      })
   }, [iconNames, query])
 
-  const rovingTarget = filtered.includes(value) ? value : filtered[0]
+  const rovingTarget = filtered.some(([name]) => name === value) ? value : filtered[0]?.[0]
 
   function handleGridKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     const delta = {
@@ -82,10 +100,7 @@ export function IconPicker({
           aria-label={label}
           onKeyDown={handleGridKeyDown}
         >
-          {filtered.map((name) => {
-            const Icon = icons[toPascalCase(name) as keyof typeof icons]
-            if (!Icon) return null
-
+          {filtered.map(([name, Icon]) => {
             return (
               <button
                 key={name}

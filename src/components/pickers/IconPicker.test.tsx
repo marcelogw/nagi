@@ -9,7 +9,7 @@ function renderPicker(value = 'tag', onChange = vi.fn()) {
     onChange,
     ...render(
       <IconPicker
-        icons={ICONS}
+        iconNames={ICONS}
         value={value}
         onChange={onChange}
         label="Icon"
@@ -59,6 +59,21 @@ describe('IconPicker', () => {
     await user.type(screen.getByRole('textbox', { name: 'Icon' }), 'zzz')
 
     expect(screen.getByText('No icon found.')).toBeInTheDocument()
+  })
+
+  it('drops a name lucide-react cannot resolve instead of rendering an empty slot', () => {
+    render(
+      <IconPicker
+        iconNames={['tag', 'not-a-real-icon']}
+        value="tag"
+        onChange={() => {}}
+        label="Icon"
+        searchPlaceholder="Search icon…"
+        emptyMessage="No icon found."
+      />,
+    )
+
+    expect(screen.getAllByRole('button')).toHaveLength(1)
   })
 
   it('moves focus with the arrow keys', async () => {
