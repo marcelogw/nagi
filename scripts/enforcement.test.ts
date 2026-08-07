@@ -94,6 +94,37 @@ describe('check-patterns rejects what oxlint cannot express', () => {
     },
   )
 
+  // The utilities that survived the theme reset only so src/components/ui/
+  // keeps rendering. They are worth a rule precisely because they still
+  // resolve: unlike `bg-gray-100`, writing one in product code produces no
+  // visible breakage to notice.
+  it.each([
+    'bg-destructive text-white',
+    'fixed inset-0 bg-black/50',
+    'border-white/20',
+    'text-sm font-medium',
+    'text-lg leading-none',
+    'text-xs uppercase',
+  ])('rejects the vendored-compat utility in %s', (className) => {
+    const found = findings(`compat-${className.length}.tsx`, `export const c = '${className}'\n`)
+
+    expect(found.map((f) => f.rule)).toContain('no-vendored-compat-utility')
+  })
+
+  // The regression this rule shipped with: `\b` matches inside a custom
+  // property, so every `var(--text-lg)` in the token layer read as a
+  // violation — the rule firing on the very thing it protects.
+  it.each([
+    '--text-lg: 1rem;',
+    'font-size: var(--text-xs);',
+    '--tw-text-sm: var(--text-base);',
+    '--color-white: var(--white);',
+  ])('leaves the token declaration %s alone', (declaration) => {
+    const found = findings(`token-${declaration.length}.css`, `:root {\n  ${declaration}\n}\n`)
+
+    expect(found.map((f) => f.rule)).not.toContain('no-vendored-compat-utility')
+  })
+
   // Date.parse is the obvious way around a rule that only names the
   // constructor, and it has exactly the same UTC problem.
   it.each([`new Date('2026-07-01')`, `Date.parse('2026-07-01')`])(
@@ -204,6 +235,16 @@ describe('the escape hatches let the legitimate cases through', () => {
     expect(colour.exempt?.('src/styles/tokens/palette.css')).toBe(true)
     expect(colour.exempt?.('src/routes/home.tsx')).toBe(false)
     expect(colour.exempt?.('src/styles/globals.css')).toBe(false)
+  })
+
+  it('exempts the vendored primitives from the compat rule, and nothing else', () => {
+    // guard-write.mjs forbids hand-editing these files, so the rule would ban
+    // a spelling nobody in this repo is allowed to change.
+    const compat = RULES.find((rule) => rule.id === 'no-vendored-compat-utility')!
+
+    expect(compat.exempt?.('src/components/ui/button.tsx')).toBe(true)
+    expect(compat.exempt?.('src/components/shell/TabBar.tsx')).toBe(false)
+    expect(compat.exempt?.('src/styles/globals.css')).toBe(false)
   })
 
   it('exempts the formatters from the locale rule, and nothing else', () => {
@@ -378,6 +419,7 @@ describe('the enforcement covers what it claims to', () => {
       'no-hardcoded-colour',
       'no-locale-blind-format',
       'no-skipped-tests',
+      'no-vendored-compat-utility',
     ])
   })
 })

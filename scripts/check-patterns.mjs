@@ -73,6 +73,42 @@ export const RULES = [
     exempt: (file) => file.startsWith('src/components/ui/'),
   },
   {
+    id: 'no-vendored-compat-utility',
+    // The theme layer clears Tailwind's default palette and type scale, so
+    // `bg-gray-100` and `text-base` generate nothing and break visibly the
+    // moment anyone writes them. That is the enforcement, and it needs no rule.
+    //
+    // This rule covers the handful that survived the reset *only* so that
+    // src/components/ui/ keeps rendering — `text-white` and `bg-black/50` on
+    // the destructive button and the two scrims, and the `text-xs`/`text-sm`/
+    // `text-lg` steps the select and dialog spell literally. guard-write.mjs
+    // forbids hand-editing those files, so the names had to stay reachable.
+    //
+    // They are the dangerous ones precisely because they still work: in product
+    // code they would resolve silently, at a value nobody chose, and there
+    // would be nothing to notice. Everything here has a semantic equivalent,
+    // which is what the message names.
+    //
+    // The leading lookbehind is load-bearing: `\b` alone matches *inside* a
+    // custom property, so `var(--text-lg)` and the `--text-lg` declaration in
+    // tokens/typography.css both read as violations. Requiring that no `-` or
+    // word character precedes the utility keeps the rule on class names and
+    // off the token layer it exists to protect.
+    //
+    // Known limit: matched as bare words, so a string that merely contains one
+    // — an id, a translation key, a CSS class of one's own called
+    // `panel.black` — is a false positive. The directive costs one line, and
+    // narrowing this to real class attributes needs a parser.
+    pattern:
+      /(?<![-\w])(?:bg|text|border|ring|fill|stroke|outline|caret|decoration|divide|accent|from|via|to)-(?:white|black)\b|(?<![-\w])text-(?:xs|sm|lg)\b/g,
+    message:
+      'Vendored-compatibility utility. `white`/`black` and the size-named type steps survive only ' +
+      'so src/components/ui/ keeps rendering — product code has a role for each: a semantic colour ' +
+      'token (--primary-foreground, --danger-foreground, --scrim), and text-caption / text-body / ' +
+      'text-subhead for type.',
+    exempt: (file) => file.startsWith('src/components/ui/'),
+  },
+  {
     id: 'no-date-from-string',
     // `new Date('2026-07-01')` parses as UTC midnight, which is the previous
     // day west of Greenwich. `Date.parse` has exactly the same problem and is
