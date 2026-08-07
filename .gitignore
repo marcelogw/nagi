@@ -17,6 +17,7 @@ blob-report/
 !.vscode/extensions.json
 .idea
 .wolf/
+.agent/
 .kanban
 kanban/
 docs/migration/
