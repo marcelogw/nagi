@@ -31,10 +31,7 @@ export function NavRail({ activeId, resolvedTheme }: NavRailProps) {
           is where a brand asset earns memory. */}
       <div className="waterline-under flex items-center gap-3 px-2 pb-4">
         <NagiMark />
-        {/* leading-normal holds the pre-migration line box. `text-title` pairs
-            snug leading with the size, which would shorten the brand block by
-            5px — a restyle, and this card restyles nothing. */}
-        <NagiWordmark className="text-title leading-normal" />
+        <NagiWordmark className="text-title" />
       </div>
 
       {/* The Label role. It used to pull IBM Plex Mono for this one line — a
