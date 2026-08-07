@@ -32,7 +32,26 @@ const PRODUCT = 'src/**/*.{ts,tsx,css}'
  */
 const SPECS = '{src,scripts,e2e}/**/*.{test,spec}.{ts,tsx}'
 
-/** @typedef {{ id: string, pattern: RegExp, message: string, scope?: string, exempt?: (file: string) => boolean }} Rule */
+/**
+ * The two component stylesheets that predate the Tailwind decision and are
+ * deleted by the cards that migrate their components — shell.css by #132,
+ * pickers.css by #133. Listing them is what lets `no-per-component-stylesheet`
+ * be true *today* rather than after the migration it exists to police; the
+ * epic's order is checks first, precisely so the migrations cannot drift while
+ * they are being written.
+ *
+ * An allowlist is "the rule does not apply here", and it applies for exactly as
+ * long as nobody deletes the line. So the enforcement test asserts each entry
+ * still exists on disk: the moment #132 deletes shell.css, `npm run test` fails
+ * saying the allowlist names a file that is gone. The list reaching empty is the
+ * epic's exit criterion, not a detail someone has to remember.
+ */
+export const LEGACY_COMPONENT_STYLESHEETS = [
+  'src/components/pickers/pickers.css',
+  'src/components/shell/shell.css',
+]
+
+/** @typedef {{ id: string, message: string, pattern?: RegExp, forbidsExistence?: (file: string) => boolean, scope?: string, exempt?: (file: string) => boolean }} Rule */
 
 /** @type {Rule[]} */
 export const RULES = [
@@ -115,6 +134,40 @@ export const RULES = [
       'token (--primary-foreground, --danger-foreground, --scrim), and text-caption / text-body / ' +
       'text-subhead for type.',
     exempt: (file) => file.startsWith('src/components/ui/'),
+  },
+  {
+    id: 'no-per-component-stylesheet',
+    // The one rule here whose violation is the file existing, not a line in it.
+    // Tailwind is the styling language for all product code (docs/decisions.md,
+    // settled), so a component stylesheet is not a smaller version of the right
+    // answer — it is the thing the decision deletes. There is no line to point
+    // at, and pointing at line 1 of a file that should not exist is the honest
+    // report.
+    //
+    // The only stylesheets left are src/styles/tokens/*, src/styles/globals.css,
+    // and the residual layer for what Tailwind genuinely cannot express
+    // (@keyframes, mask: on a pseudo-element, env(safe-area-inset-bottom),
+    // color-scheme). That layer lives in src/styles/, outside this scope, so it
+    // needs no allowlist entry — the scope already says where style may live.
+    //
+    // No raw-value rule guards that residual layer, and that is a decision, not
+    // an omission: `no-hardcoded-colour` already scans src/**/*.{ts,tsx,css} and
+    // exempts only src/styles/tokens/, so any residual stylesheet is covered
+    // against the drift that actually happened before (a pasted hex). The rest
+    // of the layer is short by construction and read in review. If it stops
+    // being short enough to read, that is when it earns a rule.
+    //
+    // The target is named here rather than through `scope`, because `check()`
+    // reads the files it is handed and only `main()` globs — a rule that leaned
+    // on the glob would fire on every file any other caller passed in. The
+    // default PRODUCT glob already includes `.css`, so this stays one statement
+    // of where style may not live, not two that can disagree.
+    forbidsExistence: (file) => /(?:^|\/)src\/components\/.+\.css$/.test(file),
+    message:
+      'Per-component stylesheet. Style lives in the className, next to the markup — Tailwind ' +
+      'utilities over the design tokens. Only src/styles/ may hold CSS, and only for what ' +
+      'Tailwind cannot express (@keyframes, mask:, env(), color-scheme).',
+    exempt: (file) => LEGACY_COMPONENT_STYLESHEETS.includes(file),
   },
   {
     id: 'no-date-from-string',
@@ -235,11 +288,27 @@ export function check(files, rules = RULES) {
   const findings = []
 
   for (const file of files) {
-    const source = readFileSync(file, 'utf8')
-    const lines = blankBlockComments(source).split('\n')
+    // Read lazily: a rule that forbids the file outright never looks inside it,
+    // and the caller may well be handing over a path it expects nobody to open.
+    let lines
 
     for (const rule of rules) {
       if (rule.exempt?.(file)) continue
+
+      if (rule.forbidsExistence) {
+        if (!rule.forbidsExistence(file)) continue
+        findings.push({
+          file,
+          line: 1,
+          column: 1,
+          rule: rule.id,
+          match: file,
+          message: rule.message,
+        })
+        continue
+      }
+
+      lines ??= blankBlockComments(readFileSync(file, 'utf8')).split('\n')
 
       lines.forEach((text, index) => {
         if (index > 0 && lines[index - 1].includes(IGNORE_DIRECTIVE)) return

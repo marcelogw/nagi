@@ -102,11 +102,23 @@ async function main() {
     }
   }
 
+  // A rule whose violation is the path, not a line — there is nothing to scan
+  // for, and scanning would be the wrong question anyway: a perfectly written
+  // component stylesheet is still a component stylesheet. This is where the
+  // hook earns the most, since the file it refuses is one nobody has to
+  // remember to delete later.
+  const forbidden = RULES.find((rule) => rule.forbidsExistence?.(file) && !rule.exempt?.(file))
+  if (forbidden) deny(`${forbidden.id}: ${file}\n\n${forbidden.message}`)
+
   const text = incomingText(tool, input)
   if (!text) process.exit(0)
 
   const applicable = RULES.filter((rule) =>
-    rule.id === 'no-skipped-tests' ? isSpec(file) : isProduct(file) && !rule.exempt?.(file),
+    rule.pattern === undefined
+      ? false
+      : rule.id === 'no-skipped-tests'
+        ? isSpec(file)
+        : isProduct(file) && !rule.exempt?.(file),
   )
 
   // Same blanking the checker does, for the same reason and so the two agree:
