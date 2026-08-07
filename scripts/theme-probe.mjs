@@ -38,6 +38,19 @@ import { compile } from 'tailwindcss'
 
 const GLOBALS = 'src/styles/globals.css'
 
+/**
+ * A custom property being *declared*, as opposed to read.
+ *
+ * Anchored on what can precede a declaration — the start of a line, the `{` that
+ * opens the block, or the `;` that ends the previous one — rather than on the
+ * line start alone. Two declarations sharing a line is legal CSS, and a
+ * line-anchored pattern silently drops the second: the probe would then cover
+ * one utility less while reporting nothing, which is the one way a check is
+ * worse than no check. The same anchor is what keeps `var(--tw-leading-tight)`
+ * out, since a read is always preceded by `(`.
+ */
+const DECLARATION = /(?:^|[;{])\s*(--[a-z][a-z0-9-]*)\s*:/gm
+
 /** Tailwind's own defaults, the source of the negative list. */
 const TAILWIND_THEME = 'node_modules/tailwindcss/theme.css'
 
@@ -106,7 +119,7 @@ export function deriveDeclared(css) {
   const properties = new Map()
   const candidates = new Map()
 
-  for (const [, name] of theme.matchAll(/^\s*(--[a-z][a-z0-9-]*)\s*:/gm)) {
+  for (const [, name] of theme.matchAll(DECLARATION)) {
     const { base, property } = splitPair(name)
 
     if (property) {
@@ -146,7 +159,7 @@ export function deriveDeclared(css) {
  */
 export function deriveNeutralised(css, tailwindTheme) {
   const survives = new Set(
-    [...blockBody(css, '@theme inline').matchAll(/^\s*(--[a-z][a-z0-9-]*)\s*:/gm)].map(
+    [...blockBody(css, '@theme inline').matchAll(DECLARATION)].map(
       ([, name]) => splitPair(name).base,
     ),
   )
