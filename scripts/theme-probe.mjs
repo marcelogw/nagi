@@ -35,7 +35,6 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, relative, resolve } from 'node:path'
 import { compile } from 'tailwindcss'
-import { blankBlockComments } from './check-patterns.mjs'
 
 const GLOBALS = 'src/styles/globals.css'
 
@@ -101,6 +100,31 @@ function bodyAt(source, from) {
   throw new Error(`Unterminated block at index ${from} in the theme.`)
 }
 
+/**
+ * CSS with its comments gone, wherever they opened.
+ *
+ * Not `blankBlockComments` from the checker, which counts only a block opening
+ * its own line. That anchor is right *there* — in TypeScript, matching `/*`
+ * anywhere lets a string containing one swallow real code and hide a violation,
+ * and a silent false negative is the one direction an enforcement tool must not
+ * fail in. Here the same anchor fails in that direction: a comment opened
+ * mid-line and holding a closing brace survives the blanking, that brace closes
+ * the block for `bodyAt`, and every declaration after it is dropped — while
+ * Tailwind, which has a real parser, compiles them into utilities nobody
+ * asserts. Measured on a fixture, not reasoned about.
+ *
+ * The trade that anchor buys does not exist in a theme block. Its values are
+ * colours, lengths, shadows, easings and font stacks — a string literal appears
+ * there (`"Nunito Sans", sans-serif`), but never one holding a comment opener.
+ *
+ * Known limit, shared with `bodyAt`: neither reads string boundaries. A value
+ * containing `/*` would open a comment that swallows real declarations, and one
+ * containing a closing brace would end the block early — both silent, both
+ * covering less. Unreachable in a theme block, whose values are the list above;
+ * the day it is not, the fix is a lexer, not a third regex.
+ */
+const withoutComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, ' ')
+
 /** `@theme` and `@theme inline`, wherever they open. */
 const THEME_BLOCK = /@theme(?:\s+inline)?\s*\{/g
 
@@ -116,7 +140,7 @@ const THEME_BLOCK = /@theme(?:\s+inline)?\s*\{/g
  * caller hands over commentless source. None of the three is visible to the
  * namespace floor, which only notices a namespace vanishing whole.
  *
- * @param {string} source commentless CSS, per `blankBlockComments`
+ * @param {string} source commentless CSS, per `withoutComments`
  */
 function themeBodies(source) {
   return [...source.matchAll(THEME_BLOCK)].map((match) => bodyAt(source, match.index))
@@ -144,8 +168,9 @@ export function deriveDeclared(css) {
   // Commentless, because `DECLARATION` cannot tell a declaration from prose
   // about one, and the comments in globals.css quote both `@theme` and
   // `--text-xs: .75rem`. A phantom candidate fails the build lookup and reports
-  // a regression that is not there.
-  const source = blankBlockComments(css)
+  // a regression that is not there — and a comment holding a brace ends the
+  // block early, which drops every declaration after it in silence.
+  const source = withoutComments(css)
   const theme = themeBodies(source).join('\n')
   const properties = new Map()
   const candidates = new Map()
@@ -190,7 +215,7 @@ export function deriveDeclared(css) {
  */
 export function deriveNeutralised(css, tailwindTheme) {
   const survives = new Set(
-    [...themeBodies(blankBlockComments(css)).join('\n').matchAll(DECLARATION)].map(
+    [...themeBodies(withoutComments(css)).join('\n').matchAll(DECLARATION)].map(
       ([, name]) => splitPair(name).base,
     ),
   )
@@ -205,7 +230,7 @@ export function deriveNeutralised(css, tailwindTheme) {
   ]
 
   const cleared = new Set()
-  for (const [, name] of blankBlockComments(tailwindTheme).matchAll(DECLARATION)) {
+  for (const [, name] of withoutComments(tailwindTheme).matchAll(DECLARATION)) {
     const { base, property } = splitPair(name)
     if (property || survives.has(base)) continue
 
@@ -246,12 +271,12 @@ function assertThemeIsNotSplit(css, base, seen = new Set()) {
   // Relative imports only. `@import 'tailwindcss'` resolves into node_modules,
   // and that file is *made* of `@theme` — following it would make this throw on
   // every run. A bare specifier is a package, not part of this theme.
-  for (const [, id] of blankBlockComments(css).matchAll(/@import\s+['"](\.[^'"]+)['"]/g)) {
+  for (const [, id] of withoutComments(css).matchAll(/@import\s+['"](\.[^'"]+)['"]/g)) {
     const path = resolve(base, id)
     if (seen.has(path)) continue
     seen.add(path)
 
-    const imported = blankBlockComments(readFileSync(path, 'utf8'))
+    const imported = withoutComments(readFileSync(path, 'utf8'))
     if (!/@(?:theme|utility)\b/.test(imported)) {
       // Follow the chain: a theme two hops away is split exactly as well as one
       // hop away, and tokens/ importing tokens/ is the shape that would do it.
