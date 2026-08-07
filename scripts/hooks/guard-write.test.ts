@@ -107,7 +107,7 @@ describe('the guard stays out of the way otherwise', () => {
     ],
     [
       'an edit to a legacy stylesheet the allowlist still excuses',
-      edit('src/components/shell/shell.css', '.shell { display: flex }'),
+      edit('src/components/pickers/pickers.css', '.picker { display: flex }'),
     ],
     ['the residual style layer, which is where CSS may live', write('src/styles/residual.css', '')],
     ['a file outside the repo', write('/etc/hosts', '#ef4444')],

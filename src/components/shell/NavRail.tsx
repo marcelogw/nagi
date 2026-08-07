@@ -21,41 +21,57 @@ export function NavRail({ activeId, resolvedTheme }: NavRailProps) {
   const labels = useDestinationLabels()
 
   return (
-    <nav className="nav-rail" data-testid="nav-rail" aria-label={labels.navigation}>
-      <div className="nav-rail__brand">
+    <nav
+      className="hidden min-h-svh w-52 flex-none flex-col gap-6 border-r border-border bg-surface px-3 py-4 wide:flex"
+      data-testid="nav-rail"
+      aria-label={labels.navigation}
+    >
+      {/* The rule under the wordmark is the water-line, not a plain border: it
+          is the first place on the screen and the one that repeats most, which
+          is where a brand asset earns memory. */}
+      <div className="waterline-under flex items-center gap-3 px-2 pb-4">
         <NagiMark />
-        <NagiWordmark />
+        {/* leading-normal holds the pre-migration line box. `text-title` pairs
+            snug leading with the size, which would shorten the brand block by
+            5px — a restyle, and this card restyles nothing. */}
+        <NagiWordmark className="text-title leading-normal" />
       </div>
 
-      <p className="nav-rail__eyebrow">{labels.navigation}</p>
+      {/* The Label role. It used to pull IBM Plex Mono for this one line — a
+          whole third family downloaded to say "NAVIGATION" in a rail. */}
+      <p className="-mt-3 px-3 text-label font-semibold uppercase tracking-caps text-foreground-subtle">
+        {labels.navigation}
+      </p>
 
-      <ul className="nav-rail__list">
+      <ul className="flex flex-1 flex-col gap-1">
         {DESTINATIONS.map((destination) => (
           <li key={destination.id}>
             <Link
               to={destination.to}
               params={paramsFor(destination)}
-              className="nav-rail__link"
+              className="flex items-center gap-3 rounded-md px-3 py-2 text-body font-medium text-foreground-muted transition-colors duration-fast ease-settle hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none current-page:bg-primary-tint current-page:font-semibold current-page:text-primary-text"
               data-testid={`nav-link-${destination.id}`}
               aria-current={destination.id === activeId ? 'page' : undefined}
             >
-              <destination.icon aria-hidden />
+              <destination.icon aria-hidden className="size-icon-md shrink-0" />
               {labels[destination.id]}
             </Link>
           </li>
         ))}
       </ul>
 
-      <div className="nav-rail__footer">
+      <div className="flex items-center gap-2 border-t border-border p-2">
+        {/* Not text-primary: this link takes --surface-muted on hover (4,16:1)
+            and --primary-tint when active (4,17:1). Both fail AA. */}
         <Link
           to={PROFILE_DESTINATION.to}
-          className="nav-rail__profile"
+          className="min-w-0 flex-1 rounded-sm px-2 py-1 text-body font-medium text-primary-text transition-colors duration-fast ease-settle hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none current-page:bg-primary-tint current-page:font-semibold"
           data-testid="nav-link-profile"
           aria-current={PROFILE_DESTINATION.id === activeId ? 'page' : undefined}
         >
           {labels.profile}
         </Link>
-        <ThemeToggle resolved={resolvedTheme} />
+        <ThemeToggle resolved={resolvedTheme} className="size-7" />
       </div>
     </nav>
   )

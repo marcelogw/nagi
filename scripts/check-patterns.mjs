@@ -46,10 +46,7 @@ const SPECS = '{src,scripts,e2e}/**/*.{test,spec}.{ts,tsx}'
  * saying the allowlist names a file that is gone. The list reaching empty is the
  * epic's exit criterion, not a detail someone has to remember.
  */
-export const LEGACY_COMPONENT_STYLESHEETS = [
-  'src/components/pickers/pickers.css',
-  'src/components/shell/shell.css',
-]
+export const LEGACY_COMPONENT_STYLESHEETS = ['src/components/pickers/pickers.css']
 
 /** @typedef {{ id: string, message: string, pattern?: RegExp, forbidsExistence?: (file: string) => boolean, scope?: string, exempt?: (file: string) => boolean }} Rule */
 

@@ -1,3 +1,5 @@
+import { cn } from '@/lib/utils'
+
 /**
  * The wordmark, as constants rather than JSX literals.
  *
@@ -45,13 +47,22 @@ export function NagiMark() {
  * The wordmark, and the one coral on the screen. Nothing else competes with it.
  *
  * Sized by whichever container it sits in — the rail on desktop, the header
- * below 960px, where the design moves the brand.
+ * below 960px, where the design moves the brand. The size arrives as a class
+ * from the call site rather than being read off an ancestor selector: there is
+ * no ancestor to read once the shell is utilities, and two call sites naming
+ * their own size is what makes a third one an explicit decision.
  */
-export function NagiWordmark() {
+export function NagiWordmark({ className }: { className?: string }) {
   return (
-    <span className="wordmark" data-testid="wordmark">
+    <span
+      className={cn(
+        'inline-flex items-baseline font-heading font-extrabold tracking-tight',
+        className,
+      )}
+      data-testid="wordmark"
+    >
       {WORDMARK}
-      <span className="wordmark__dot" data-testid="wordmark-dot">
+      <span className="text-accent-coral" data-testid="wordmark-dot">
         {WORDMARK_DOT}
       </span>
     </span>
