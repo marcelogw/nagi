@@ -63,6 +63,15 @@ const TAILWIND_THEME = 'node_modules/tailwindcss/theme.css'
  *
  * Longest first, so `--font-weight-semibold` is not read as the `--font-*`
  * namespace with a name of `weight-semibold`.
+ *
+ * A token whose namespace is not listed here is dropped in silence, so "not
+ * listed" has to mean "covered elsewhere" rather than "not thought about".
+ * `--breakpoint-*` is the one such absence today: a breakpoint feeds a *variant*
+ * (`wide:hidden`), not a utility prefix, so there is no `wide` rule to look for
+ * and the model does not fit it at all. It needs no probe either — losing
+ * `--breakpoint-wide` makes every `wide:` utility generate nothing, collapsing
+ * the shell to a single layout, and e2e already asserts both sides of that
+ * switch. Loud failures are the ones the probe does not have to see.
  */
 const NAMESPACES = [
   ['--font-weight-', 'font-'],
@@ -75,6 +84,7 @@ const NAMESPACES = [
   ['--text-', 'text-'],
   ['--size-', 'size-'],
   ['--ease-', 'ease-'],
+  ['--animate-', 'animate-'],
 ]
 
 /**

@@ -17,6 +17,12 @@
    token in .dark whenever the two disagree. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* The active navigation destination. Tailwind ships `aria-checked`, `aria-expanded`
+   and six more, but not `aria-current` — and the alternative is `aria-[current=page]:`
+   on every nav link, which is an arbitrary variant repeated seven times. Named once,
+   it stays a single place to change if the design ever marks "current" differently. */
+@custom-variant current-page (&[aria-current='page']);
+
 /* ============================================================================
    THE BRIDGE — token names that collide with a Tailwind theme namespace.
 
@@ -272,6 +278,29 @@
   --size-icon-tile: var(--icon-tile);
 
   --ease-settle: var(--tw-ease-settle);
+
+  /* The design system's one breakpoint: below it the rail becomes a tab bar and
+     the columns stack. Named rather than borrowed from Tailwind's own scale,
+     because 960 is not on it — `lg` is 1024 — and rounding a design to the
+     nearest stock step is how a layout quietly stops matching its artefact.
+     Read it as "wide enough for the rail". */
+  --breakpoint-wide: 60rem;
+
+  /* "A casa fica, o mês muda": the shell never animates, only the content
+     region, keyed on the route so it replays on every navigation. Tailwind can
+     name an animation and honour prefers-reduced-motion; it cannot draw the
+     keyframe, which is below. */
+  --animate-content-enter: content-enter var(--duration-base) var(--ease-settle);
+}
+
+/* The one keyframe of the shell. `@keyframes` has no utility form — this is the
+   residual layer doing exactly the job it exists for. The rise is --space-2
+   rather than a bare 8px so it tracks the grid like every other offset. */
+@keyframes content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2));
+  }
 }
 
 /* ============================================================================
@@ -306,6 +335,45 @@
 @utility duration-slower {
   --tw-duration: var(--duration-slower);
   transition-duration: var(--duration-slower);
+}
+
+/* ============================================================================
+   THE TWO SHAPES A className CANNOT HOLD.
+
+   Both are here rather than in a component stylesheet because they are the
+   exception the styling decision names — not a component's look, but a
+   construct with no utility form. Everything else about the shell is in its
+   markup.
+   ============================================================================ */
+
+/* The water-line under the wordmark. It is a MASK over `background`, which is
+   what makes dark mode free — see tokens/brand.css, and never retype the three
+   mask layers. A pseudo-element because the divider is not a node of its own
+   and there is nowhere to hang a class; `position: relative` is folded in so
+   the call site is one word, not two that can be separated.
+
+   --wl-h governs amplitude, not just size: this block once overrode it to 14px
+   and got a 14px band with the curve still drawn at 11. It does not override it. */
+@utility waterline-under {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(var(--wl-h) / -2);
+    height: var(--wl-h);
+    background: var(--border);
+    mask: var(--waterline-mask);
+  }
+}
+
+/* The phone's home indicator. `env()` is not a value a spacing utility can
+   carry, and the fallback is the load-bearing half: without it, every device
+   with no safe area gets an empty string rather than zero. */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
 body {
