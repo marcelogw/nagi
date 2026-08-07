@@ -1,10 +1,11 @@
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, join } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { RULES, check } from './check-patterns.mjs'
+import { LEGACY_COMPONENT_STYLESHEETS, RULES, check } from './check-patterns.mjs'
 import { check as checkMessages } from './check-messages.mjs'
+import { compileTheme, probeTheme, ruleFor } from './theme-probe.mjs'
 
 /**
  * Proof that the enforcement fires.
@@ -85,14 +86,35 @@ describe('check-patterns rejects what oxlint cannot express', () => {
     },
   )
 
-  it.each(['rounded bg-[#ef4444] p-4', 'bg-primary/[.15]', 'w-[13px]'])(
-    'rejects the arbitrary Tailwind value in %s',
-    (className) => {
-      const found = findings(`tw-${className.length}.tsx`, `export const c = '${className}'\n`)
+  it.each([
+    'rounded bg-[#ef4444] p-4',
+    'bg-primary/[.15]',
+    'w-[13px]',
+    // The arbitrary *property*, which carries no utility prefix and so escaped
+    // the rule entirely until it was attacked rather than tested. All three
+    // were verified to emit real CSS against the project's own globals.css —
+    // they are `w-[13px]` in a different spelling.
+    '[--sidebar-width:13rem]',
+    '[margin-top:13px]',
+    '[color:#ef4444]',
+  ])('rejects the arbitrary Tailwind value in %s', (className) => {
+    const found = findings(`tw-${className.length}.tsx`, `export const c = '${className}'\n`)
 
-      expect(found.map((f) => f.rule)).toContain('no-arbitrary-tailwind')
-    },
-  )
+    expect(found.map((f) => f.rule)).toContain('no-arbitrary-tailwind')
+  })
+
+  // The arbitrary-property alternative is one space away from a TypeScript
+  // index signature. Prettier writes the space and `format:check` is part of
+  // `npm run quality`, so the shape that trips it cannot survive a green run —
+  // but the shape that does not trip it has to keep not tripping it.
+  it('leaves a formatted index signature and a named tuple alone', () => {
+    const found = findings(
+      'signature.ts',
+      `type A = { [key: string]: number }\nexport type B = [year: number, month: number]\n`,
+    )
+
+    expect(found).toEqual([])
+  })
 
   // The utilities that survived the theme reset only so src/components/ui/
   // keeps rendering. They are worth a rule precisely because they still
@@ -417,6 +439,188 @@ describe('message catalogues (P-08)', () => {
   })
 })
 
+describe('style lives in the className, not in a stylesheet', () => {
+  /**
+   * Runs the real `check-patterns.mjs` against a throwaway tree.
+   *
+   * The other rules are proven through `check()` directly, which is enough when
+   * the violation is a line of source. This one's violation is a *path*, so the
+   * glob is half the rule: a scope that never matches would leave every test
+   * below green while the checker saw nothing. Driving the script end to end,
+   * with its own globbing, is the only proof that reaches that.
+   */
+  function run(root: string): { ok: boolean; output: string } {
+    try {
+      const output = execFileSync('node', [resolve('scripts/check-patterns.mjs')], {
+        cwd: root,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      })
+      return { ok: true, output }
+    } catch (error) {
+      const failure = error as { stdout?: string; stderr?: string }
+      return { ok: false, output: `${failure.stdout ?? ''}${failure.stderr ?? ''}` }
+    }
+  }
+
+  function tree(name: string, files: Record<string, string>): string {
+    for (const [path, source] of Object.entries(files)) fixture(`${name}/${path}`, source)
+    return join(workspace, name)
+  }
+
+  // Exit criterion (a) of the card, proven rather than tried by hand.
+  it('rejects a .css file added under src/components/', () => {
+    const { ok, output } = run(
+      tree('stylesheet', { 'src/components/card/card.css': '.card {\n  display: flex;\n}\n' }),
+    )
+
+    expect(ok).toBe(false)
+    expect(output).toContain('no-per-component-stylesheet')
+    expect(output).toContain('src/components/card/card.css')
+  })
+
+  // Exit criterion (b). No product component has been migrated yet, so there is
+  // no real violation in `src/` for the rule to catch — which is exactly the
+  // gap the card names when it says the rule has never had a product-code
+  // violation to prove itself against.
+  it('rejects an arbitrary value written in a product component', () => {
+    const { ok, output } = run(
+      tree('arbitrary', {
+        'src/components/card/Card.tsx': `export const c = 'w-[13px]'\n`,
+      }),
+    )
+
+    expect(ok).toBe(false)
+    expect(output).toContain('no-arbitrary-tailwind')
+  })
+
+  it('leaves the residual style layer in src/styles/ alone', () => {
+    // The scope is where style may live, so the residual layer needs no
+    // allowlist entry — only what Tailwind cannot express belongs there.
+    const { ok } = run(
+      tree('residual', {
+        'src/styles/residual.css': '@keyframes pulse {\n  to {\n    opacity: 1;\n  }\n}\n',
+      }),
+    )
+
+    expect(ok).toBe(true)
+  })
+
+  it('exempts the two legacy stylesheets, and nothing else', () => {
+    const rule = RULES.find((r) => r.id === 'no-per-component-stylesheet')!
+
+    expect(LEGACY_COMPONENT_STYLESHEETS.every((file) => rule.exempt?.(file))).toBe(true)
+    expect(rule.exempt?.('src/components/categories/categories.css')).toBe(false)
+    expect(rule.exempt?.('src/components/ui/select.css')).toBe(false)
+  })
+
+  // The allowlist is "this rule does not apply here", and it applies for as long
+  // as nobody deletes the line. This is what makes forgetting impossible rather
+  // than unlikely: the moment #132 deletes shell.css, this fails saying the
+  // allowlist names a file that is gone. The list reaching empty is the epic's
+  // exit criterion.
+  it.each(LEGACY_COMPONENT_STYLESHEETS)('still has a %s to excuse', (file) => {
+    expect(existsSync(file), `${file} is gone — delete it from LEGACY_COMPONENT_STYLESHEETS`).toBe(
+      true,
+    )
+  })
+})
+
+/**
+ * The blind spot nothing else covers: a utility that stopped generating.
+ *
+ * BUG-001 shipped `text-lg` with no line-height past a green lint and 519 green
+ * tests, because no check reads the compiled theme. These do — and, following
+ * BUG-003, they prove what the probe *catches* and not only that it passes.
+ */
+describe('the theme still generates what it declares (BUG-001)', () => {
+  it('generates a rule for every utility the theme declares', async () => {
+    const { declared, generated } = await probeTheme()
+
+    // A sanity anchor first: if compile() ever degrades, this names the cause
+    // instead of leaving ninety identical failures to read through.
+    expect(ruleFor(generated, 'bg-primary')).toBeDefined()
+
+    const missing = declared.filter((d) => ruleFor(generated, d.candidate) === undefined)
+
+    expect(missing.map((d) => d.candidate)).toEqual([])
+  })
+
+  it('generates every property the tokens promised, not just the rule', async () => {
+    const { declared, generated } = await probeTheme()
+
+    // `--text-hero--line-height` promises `line-height` on `.text-hero`: the
+    // token suffix IS the CSS property, so this generalises past the one pair
+    // that caused BUG-001 to whatever anyone declares next.
+    const incomplete = declared.flatMap((d) =>
+      d.properties
+        .filter((property) => !(ruleFor(generated, d.candidate) ?? '').includes(`${property}:`))
+        .map((property) => `${d.candidate} is missing ${property}`),
+    )
+
+    expect(incomplete).toEqual([])
+  })
+
+  it('generates nothing for the defaults the reset cleared', async () => {
+    const { neutralised, generated } = await probeTheme()
+
+    const survivors = neutralised.filter((candidate) => ruleFor(generated, candidate) !== undefined)
+
+    expect(survivors).toEqual([])
+    expect(neutralised).toContain('bg-gray-100')
+    expect(neutralised).toContain('text-base')
+  })
+
+  // The floor that keeps the probe from silently testing nothing. Not a count —
+  // a number goes stale and gets looser with every token added. Every namespace
+  // in the hand-maintained table has to yield at least one candidate, so a
+  // `@theme inline` the extractor stops understanding names itself.
+  it('derives candidates for every namespace it claims to cover', async () => {
+    const { declared, namespaces } = await probeTheme()
+
+    const empty = namespaces.filter((ns) => !declared.some((d) => d.namespace === ns))
+
+    expect(empty).toEqual([])
+    expect(declared.some((d) => d.namespace === '@utility')).toBe(true)
+  })
+
+  describe('and the probe fails when the theme breaks', () => {
+    /** A theme small enough to break on purpose, compiled the same way. */
+    async function compileFixture(name: string, theme: string) {
+      const path = fixture(`theme-${name}/theme.css`, `@import 'tailwindcss';\n${theme}`)
+      const compiler = await compileTheme(path)
+      return compiler.build(['text-body', 'bg-brand'])
+    }
+
+    const healthy = `@theme {\n  --color-*: initial;\n  --text-*: initial;\n}\n@theme inline {\n  --color-brand: #123456;\n  --text-body: 14px;\n  --text-body--line-height: 1.5;\n}\n`
+
+    it('sees a healthy theme as healthy', async () => {
+      const css = await compileFixture('healthy', healthy)
+
+      expect(ruleFor(css, 'text-body')).toContain('line-height')
+      expect(ruleFor(css, 'bg-brand')).toBeDefined()
+    })
+
+    // BUG-001 in miniature: the pair goes, the utility still generates, and only
+    // the property assertion notices.
+    it('catches the line-height pair going missing', async () => {
+      const css = await compileFixture(
+        'unpaired',
+        healthy.replace(/\s*--text-body--line-height.*/, ''),
+      )
+
+      expect(ruleFor(css, 'text-body')).toBeDefined()
+      expect(ruleFor(css, 'text-body')).not.toContain('line-height')
+    })
+
+    it('catches a token dropping out of the theme entirely', async () => {
+      const css = await compileFixture('dropped', healthy.replace(/\s*--color-brand.*/, ''))
+
+      expect(ruleFor(css, 'bg-brand')).toBeUndefined()
+    })
+  })
+})
+
 describe('the enforcement covers what it claims to', () => {
   it('runs every rule the checker defines', () => {
     // A rule added without a proof above should fail here rather than ship as
@@ -427,6 +631,7 @@ describe('the enforcement covers what it claims to', () => {
       'no-date-from-string',
       'no-hardcoded-colour',
       'no-locale-blind-format',
+      'no-per-component-stylesheet',
       'no-skipped-tests',
       'no-vendored-compat-utility',
     ])
