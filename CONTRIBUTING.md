@@ -70,7 +70,7 @@ thing people mean to follow.
 | `toLocaleDateString()`, `toLocaleTimeString()`, `toLocaleString()` | They render in the *browser's* locale, not the app's, so they look correct on the machine that wrote them | `useFormatters()` from `src/i18n` |
 | `.sort()`, `.reverse()`, `.splice()` | A value read from a store selector **is** the store's state, so sorting it sorts the store | `toSorted()`, `toReversed()`, `toSpliced()` |
 | `.skip` or `.only` in a committed spec | A skipped suite looks exactly like coverage from the outside; `.only` quietly stops running everything else in the file | Delete it, or fix it |
-| A `.css` file under `src/components/` | Tailwind is the styling language for all product code; a component stylesheet is not a smaller version of the right answer | The `className`, next to the markup |
+| A `.css` file anywhere under `src/` but `src/styles/` | Tailwind is the styling language for all product code; a component stylesheet is not a smaller version of the right answer | The `className`, next to the markup |
 | `text-white`, `bg-black/50`, `text-xs`/`text-sm`/`text-lg` outside `src/components/ui/` | They survive the theme reset only so the vendored primitives keep rendering, so in product code they resolve silently at a value nobody chose | A semantic colour token; `text-caption` / `text-body` / `text-subhead` |
 
 Three more checks run alongside them, all inside `npm run quality`:
@@ -126,8 +126,8 @@ configuration nobody has seen reject anything is not enforcement.
 `scripts/hooks/guard-write.mjs` before every Write and Edit. It refuses:
 
 - a write that introduces one of the patterns above
-- a `.css` file under `src/components/`. Nothing in the contents could make that
-  file acceptable, so it is refused rather than written and found later
+- a `.css` file under `src/` outside `src/styles/`. Nothing in the contents could
+  make that file acceptable, so it is refused rather than written and found later
 - a hand-written file in `src/components/ui/` — those come from the shadcn CLI,
   and a hand-edited one is either overwritten by the next `shadcn add` or, worse,
   quietly diverges from it

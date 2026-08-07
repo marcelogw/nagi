@@ -506,6 +506,20 @@ describe('style lives in the className, not in a stylesheet', () => {
     expect(ok).toBe(true)
   })
 
+  // Naming src/components/ would leave every sibling directory free to hold a
+  // stylesheet, which is the same defect with a different path — and src/routes/
+  // and src/lib/ both exist here. The rule is stated as "under src/, outside
+  // src/styles/" so there is one place style may live rather than a list of
+  // places it may not.
+  it.each(['src/routes/dashboard.css', 'src/lib/toast.css', 'src/components/card/card.css'])(
+    'rejects %s, not just the components directory',
+    (file) => {
+      const rule = RULES.find((r) => r.id === 'no-per-component-stylesheet')!
+
+      expect(rule.forbidsExistence?.(file)).toBe(true)
+    },
+  )
+
   it('exempts the two legacy stylesheets, and nothing else', () => {
     const rule = RULES.find((r) => r.id === 'no-per-component-stylesheet')!
 
