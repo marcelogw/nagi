@@ -74,13 +74,34 @@ export const RULES = [
   },
   {
     id: 'no-arbitrary-tailwind',
-    // Two shapes: `utility-[value]` (bg-[#ef4444], w-[13px]) and the arbitrary
-    // modifier `utility/[value]` (bg-primary/[.15]).
+    // Three shapes: `utility-[value]` (bg-[#ef4444], w-[13px]), the arbitrary
+    // modifier `utility/[value]` (bg-primary/[.15]), and the *arbitrary
+    // property* — `[margin-top:13px]`, `[color:#ef4444]`, `[--gap:2px]` — which
+    // carries no utility prefix at all.
     //
-    // Known limit: a regex or string of the same shape — `/month-[0-9]+/` — is
-    // a false positive. `[prop:value]` is deliberately not matched, because it
-    // collides with TypeScript index signatures.
-    pattern: /\b[a-z][a-z0-9]*(?:-[a-z0-9]+)*[-/]\[[^\]\s]+\]/g,
+    // That third shape was found by attacking the rule rather than testing it:
+    // the first two alternatives anchor on a utility name before the `[`, so
+    // they never see it. All three were verified to compile against the real
+    // globals.css (4.3.3) — an arbitrary property emits real CSS, which makes it
+    // `w-[13px]` wearing a different hat and exactly what this rule is for.
+    //
+    // Arbitrary *variants* — `[&>*]:mt-4`, `[&_svg]:size-4` — escape too, and
+    // stay out deliberately. They are selectors, not values: no scale decision
+    // leaks through one, and the directory that writes them (src/components/ui/)
+    // is exempt anyway. Left uncovered on purpose, not by oversight.
+    //
+    // Known limits, all costing one directive line:
+    //  - a regex or string of the same shape (`/month-[0-9]+/`) is a false
+    //    positive;
+    //  - a TypeScript index signature written without a space (`[key:string]`)
+    //    matches the third alternative. Prettier writes `[key: string]` and
+    //    `format:check` is part of `npm run quality`, so the spelling that trips
+    //    it cannot survive a green run — the space is what tells the two apart;
+    //  - an arbitrary variant whose selector starts with a letter and contains a
+    //    colon (`[svg:not(…)]:size-8`, which shadcn writes) matches the third
+    //    alternative for the same reason. It lives in the exempt directory.
+    pattern:
+      /\b[a-z][a-z0-9]*(?:-[a-z0-9]+)*[-/]\[[^\]\s]+\]|(?<![-\w])\[(?:--)?[a-z][a-z0-9-]*:[^\]\s]+\]/g,
     message:
       'Arbitrary Tailwind value. This is how a design system drifts one component at a time — ' +
       'use a scale utility, or add the value to the tokens if it is genuinely missing.',
