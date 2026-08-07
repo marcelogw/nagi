@@ -78,22 +78,35 @@ const NAMESPACES = [
 ]
 
 /**
- * The braced body of an at-rule, from the opening `{` to its matching `}`.
+ * The braced body that follows `source[from]`, up to its matching `}`.
  *
  * Counted rather than matched with a regex: `[^}]*` stops at the first nested
- * close and would silently truncate the block, which in a probe means testing
- * fewer utilities than it reports.
+ * close and would silently truncate, which in a probe means covering less than
+ * it reports. Every extraction here goes through this, so there is one answer to
+ * "where does this block end" rather than a careful one and a convenient one.
  */
-function blockBody(source, opener) {
-  const start = source.indexOf(opener)
-  if (start === -1) return ''
-
+function bodyAt(source, from) {
   let depth = 0
-  for (let i = source.indexOf('{', start); i < source.length; i++) {
+  for (let i = source.indexOf('{', from); i < source.length; i++) {
     if (source[i] === '{') depth++
-    else if (source[i] === '}' && --depth === 0) return source.slice(start, i)
+    else if (source[i] === '}' && --depth === 0) return source.slice(from, i)
   }
-  throw new Error(`Unterminated block for "${opener}" in the theme.`)
+  throw new Error(`Unterminated block at index ${from} in the theme.`)
+}
+
+/**
+ * Every body of an at-rule, not just the first.
+ *
+ * A second `@theme inline` block is legal and would be invisible to a single
+ * `indexOf` — and invisible in the direction that matters, since the namespace
+ * floor only notices a namespace disappearing entirely, never a block of them.
+ */
+function blockBodies(source, opener) {
+  const bodies = []
+  for (let at = source.indexOf(opener); at !== -1; at = source.indexOf(opener, at + 1)) {
+    bodies.push(bodyAt(source, at))
+  }
+  return bodies
 }
 
 /** `--text-hero--line-height` → the base name and the property it promises. */
@@ -115,7 +128,7 @@ function splitPair(name) {
  * @returns {{ candidate: string, namespace: string, properties: string[] }[]}
  */
 export function deriveDeclared(css) {
-  const theme = blockBody(css, '@theme inline')
+  const theme = blockBodies(css, '@theme inline').join('\n')
   const properties = new Map()
   const candidates = new Map()
 
@@ -159,7 +172,7 @@ export function deriveDeclared(css) {
  */
 export function deriveNeutralised(css, tailwindTheme) {
   const survives = new Set(
-    [...blockBody(css, '@theme inline').matchAll(DECLARATION)].map(
+    [...blockBodies(css, '@theme inline').join('\n').matchAll(DECLARATION)].map(
       ([, name]) => splitPair(name).base,
     ),
   )
@@ -179,10 +192,42 @@ export function deriveNeutralised(css, tailwindTheme) {
   )) {
     const { base, property } = splitPair(name)
     if (property || survives.has(base)) continue
-    cleared.add(base.startsWith('--color-') ? `bg-${base.slice(8)}` : `text-${base.slice(7)}`)
+    const [namespace, prefix] = base.startsWith('--color-')
+      ? ['--color-', 'bg-']
+      : ['--text-', 'text-']
+    cleared.add(prefix + base.slice(namespace.length))
   }
 
   return [...cleared]
+}
+
+/**
+ * Refuses to run if any part of the theme surface moved into an imported file.
+ *
+ * The derivation reads the entry stylesheet as text; the compiler resolves
+ * `@import`. Move a `@theme inline` block into `tokens/` and those two stop
+ * describing the same theme — the compiler would still generate the utilities
+ * while the probe stopped asking about them. Nothing would go red, and the
+ * namespace floor cannot see it either: it only notices a namespace vanishing
+ * whole, not one that still has a token left behind here.
+ *
+ * So the split is refused rather than handled. Resolving imports in the
+ * extractor would be the general fix, and there is nothing to be general about
+ * yet — this repo keeps every `@theme` in one file on purpose, and the day that
+ * changes, this error says exactly what to extend.
+ */
+function assertThemeIsNotSplit(css, base) {
+  for (const [, id] of css.matchAll(/@import\s+['"](\.[^'"]+)['"]/g)) {
+    const path = resolve(base, id)
+    if (!/@(?:theme|utility)\b/.test(readFileSync(path, 'utf8'))) continue
+
+    throw new Error(
+      `Theme probe cannot run: ${id} declares @theme or @utility. The probe derives its ` +
+        `candidates from the entry stylesheet only, so utilities declared here would be compiled ` +
+        `but never asserted. Keep the theme surface in one file, or teach deriveDeclared() to ` +
+        `resolve @import.`,
+    )
+  }
 }
 
 /** Compiles the real theme, resolving `@import` the way the Vite plugin does. */
@@ -212,7 +257,15 @@ export async function compileTheme(entry = GLOBALS) {
  */
 export function ruleFor(css, candidate) {
   const selector = candidate.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')
-  return css.match(new RegExp(`\\.${selector}\\s*\\{([^}]*)\\}`))?.[1]
+  const at = css.search(new RegExp(`\\.${selector}\\s*\\{`))
+  if (at === -1) return undefined
+
+  // Same brace counting as every other extraction here. No rule Tailwind emits
+  // for these candidates nests today (measured across all 92), but a `[^}]*`
+  // that quietly truncates the day one does is the failure this whole file is
+  // about — and there is no reason to keep two answers to one question.
+  const body = bodyAt(css, at)
+  return body.slice(body.indexOf('{') + 1)
 }
 
 /**
@@ -223,6 +276,7 @@ export function ruleFor(css, candidate) {
  */
 export async function probeTheme(entry = GLOBALS) {
   const css = readFileSync(entry, 'utf8')
+  assertThemeIsNotSplit(css, dirname(entry))
   const declared = deriveDeclared(css)
   const neutralised = deriveNeutralised(css, readFileSync(TAILWIND_THEME, 'utf8'))
   const compiler = await compileTheme(entry)

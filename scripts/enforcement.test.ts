@@ -5,7 +5,7 @@ import { dirname, join, resolve } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { LEGACY_COMPONENT_STYLESHEETS, RULES, check } from './check-patterns.mjs'
 import { check as checkMessages } from './check-messages.mjs'
-import { compileTheme, probeTheme, ruleFor } from './theme-probe.mjs'
+import { compileTheme, deriveDeclared, probeTheme, ruleFor } from './theme-probe.mjs'
 
 /**
  * Proof that the enforcement fires.
@@ -611,6 +611,24 @@ describe('the theme still generates what it declares (BUG-001)', () => {
 
       expect(ruleFor(css, 'text-body')).toBeDefined()
       expect(ruleFor(css, 'text-body')).not.toContain('line-height')
+    })
+
+    // Both ways the extractor can quietly cover less than it reports, and
+    // neither is visible to the namespace floor: it only notices a namespace
+    // disappearing whole, never a block or a file's worth of names.
+    it('reads every @theme inline block, not just the first', () => {
+      const declared = deriveDeclared(
+        `@theme inline {\n  --color-a: red;\n}\n@theme inline {\n  --color-b: blue;\n}\n`,
+      )
+
+      expect(declared.map((d) => d.candidate)).toEqual(['bg-a', 'bg-b'])
+    })
+
+    it('refuses to run when part of the theme moved into an imported file', async () => {
+      fixture('theme-split/tokens.css', '@theme inline {\n  --color-brand: red;\n}\n')
+      const entry = fixture('theme-split/theme.css', `@import './tokens.css';\n`)
+
+      await expect(probeTheme(entry)).rejects.toThrow(/declares @theme/)
     })
 
     it('catches a token dropping out of the theme entirely', async () => {
