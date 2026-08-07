@@ -168,8 +168,11 @@ export const RULES = [
     // The only stylesheets left are src/styles/tokens/*, src/styles/globals.css,
     // and the residual layer for what Tailwind genuinely cannot express
     // (@keyframes, mask: on a pseudo-element, env(safe-area-inset-bottom),
-    // color-scheme). That layer lives in src/styles/, outside this scope, so it
-    // needs no allowlist entry — the scope already says where style may live.
+    // color-scheme). So the target is stated that way round — anywhere under
+    // src/ that is not src/styles/ — rather than as src/components/ alone.
+    // Naming one directory would leave src/routes/ and src/lib/ free to hold a
+    // stylesheet each, which is the same defect with a different path, and this
+    // repo already has both directories.
     //
     // No raw-value rule guards that residual layer, and that is a decision, not
     // an omission: `no-hardcoded-colour` already scans src/**/*.{ts,tsx,css} and
@@ -183,9 +186,9 @@ export const RULES = [
     // on the glob would fire on every file any other caller passed in. The
     // default PRODUCT glob already includes `.css`, so this stays one statement
     // of where style may not live, not two that can disagree.
-    forbidsExistence: (file) => /(?:^|\/)src\/components\/.+\.css$/.test(file),
+    forbidsExistence: (file) => /^src\/(?!styles\/).+\.css$/.test(file),
     message:
-      'Per-component stylesheet. Style lives in the className, next to the markup — Tailwind ' +
+      'Stylesheet outside src/styles/. Style lives in the className, next to the markup — Tailwind ' +
       'utilities over the design tokens. Only src/styles/ may hold CSS, and only for what ' +
       'Tailwind cannot express (@keyframes, mask:, env(), color-scheme).',
     exempt: (file) => LEGACY_COMPONENT_STYLESHEETS.includes(file),
