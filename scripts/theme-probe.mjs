@@ -24,7 +24,7 @@
  * two-file synchronisation the Tailwind decision exists to delete: add
  * `--color-info` to the theme, forget the probe, and it stays green while
  * covering less than it appears to. The positives are derived from the
- * `@theme inline` block itself; the negatives from Tailwind's own theme.css
+ * `@theme` blocks themselves; the negatives from Tailwind's own theme.css
  * minus what we re-declare.
  *
  * The one hand-maintained thing is NAMESPACES below, and it grows with
@@ -33,8 +33,9 @@
  * cannot go stale, unlike a number.
  */
 import { existsSync, readFileSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
+import { dirname, relative, resolve } from 'node:path'
 import { compile } from 'tailwindcss'
+import { blankBlockComments } from './check-patterns.mjs'
 
 const GLOBALS = 'src/styles/globals.css'
 
@@ -86,27 +87,39 @@ const NAMESPACES = [
  * "where does this block end" rather than a careful one and a convenient one.
  */
 function bodyAt(source, from) {
+  const open = source.indexOf('{', from)
+  // Loud rather than lenient: `indexOf` returning -1 would start the scan at
+  // index -1 and read the whole file from the top, which is a wrong answer
+  // wearing the shape of a right one.
+  if (open === -1) throw new Error(`No block opens after index ${from} in the theme.`)
+
   let depth = 0
-  for (let i = source.indexOf('{', from); i < source.length; i++) {
+  for (let i = open; i < source.length; i++) {
     if (source[i] === '{') depth++
     else if (source[i] === '}' && --depth === 0) return source.slice(from, i)
   }
   throw new Error(`Unterminated block at index ${from} in the theme.`)
 }
 
+/** `@theme` and `@theme inline`, wherever they open. */
+const THEME_BLOCK = /@theme(?:\s+inline)?\s*\{/g
+
 /**
- * Every body of an at-rule, not just the first.
+ * Every `@theme` body in the stylesheet — every block, and `inline` or not.
  *
- * A second `@theme inline` block is legal and would be invisible to a single
- * `indexOf` — and invisible in the direction that matters, since the namespace
- * floor only notices a namespace disappearing entirely, never a block of them.
+ * Three ways this can quietly cover less than it reports, all closed here:
+ * a second block is legal and invisible to a single `indexOf`; `inline` is a
+ * resolution mode, not a different at-rule, so a token declared in a plain
+ * `@theme` generates a utility exactly like one declared inline — and this
+ * file already carries both blocks, the plain one holding the reset; and the
+ * word `@theme` appears in prose in the comments above them, which is why the
+ * caller hands over commentless source. None of the three is visible to the
+ * namespace floor, which only notices a namespace vanishing whole.
+ *
+ * @param {string} source commentless CSS, per `blankBlockComments`
  */
-function blockBodies(source, opener) {
-  const bodies = []
-  for (let at = source.indexOf(opener); at !== -1; at = source.indexOf(opener, at + 1)) {
-    bodies.push(bodyAt(source, at))
-  }
-  return bodies
+function themeBodies(source) {
+  return [...source.matchAll(THEME_BLOCK)].map((match) => bodyAt(source, match.index))
 }
 
 /** `--text-hero--line-height` → the base name and the property it promises. */
@@ -128,7 +141,12 @@ function splitPair(name) {
  * @returns {{ candidate: string, namespace: string, properties: string[] }[]}
  */
 export function deriveDeclared(css) {
-  const theme = blockBodies(css, '@theme inline').join('\n')
+  // Commentless, because `DECLARATION` cannot tell a declaration from prose
+  // about one, and the comments in globals.css quote both `@theme` and
+  // `--text-xs: .75rem`. A phantom candidate fails the build lookup and reports
+  // a regression that is not there.
+  const source = blankBlockComments(css)
+  const theme = themeBodies(source).join('\n')
   const properties = new Map()
   const candidates = new Map()
 
@@ -152,7 +170,7 @@ export function deriveDeclared(css) {
 
   // Custom utilities are named in full — `duration-*` has no theme namespace at
   // all (verified against 4.3.3), which is why they are `@utility` blocks.
-  for (const [, name] of css.matchAll(/^@utility\s+([a-z][a-z0-9-]*)\s*\{/gm)) {
+  for (const [, name] of source.matchAll(/^@utility\s+([a-z][a-z0-9-]*)\s*\{/gm)) {
     declared.push({ candidate: name, namespace: '@utility', properties: [] })
   }
 
@@ -172,30 +190,38 @@ export function deriveDeclared(css) {
  */
 export function deriveNeutralised(css, tailwindTheme) {
   const survives = new Set(
-    [...blockBodies(css, '@theme inline').join('\n').matchAll(DECLARATION)].map(
+    [...themeBodies(blankBlockComments(css)).join('\n').matchAll(DECLARATION)].map(
       ([, name]) => splitPair(name).base,
     ),
   )
 
-  // `--text-shadow-*` is excluded because it is a *different namespace*, not a
-  // step of the type scale: `--text-*: initial` does not reach it, and
-  // `text-shadow-md` still generates a shadow nothing in this design system
-  // names. It is not alone — 61 off-system utilities survive the reset across
-  // --shadow-*, --blur-*, --animate-*, --container-* and others (measured).
-  // Which namespaces the design system closes is a theme decision, tracked
-  // separately; this probe reports what the reset it can see actually cleared,
-  // and calling text-shadow a regression here would be blaming the probe's own
-  // reading for a gap somewhere else.
+  // The same `DECLARATION` the positive side reads, rather than a second,
+  // line-anchored pattern of its own. Tailwind's theme.css puts one declaration
+  // per line today, so the two agree today — and keeping two answers to one
+  // question is how the careful one stops being used.
+  const RESET = [
+    ['--color-', 'bg-'],
+    ['--text-', 'text-'],
+  ]
+
   const cleared = new Set()
-  for (const [, name] of tailwindTheme.matchAll(
-    /^\s*(--(?:color|text)-(?!shadow-)[a-z0-9-]*)\s*:/gm,
-  )) {
+  for (const [, name] of blankBlockComments(tailwindTheme).matchAll(DECLARATION)) {
     const { base, property } = splitPair(name)
     if (property || survives.has(base)) continue
-    const [namespace, prefix] = base.startsWith('--color-')
-      ? ['--color-', 'bg-']
-      : ['--text-', 'text-']
-    cleared.add(prefix + base.slice(namespace.length))
+
+    // `--text-shadow-*` is excluded because it is a *different namespace*, not
+    // a step of the type scale: `--text-*: initial` does not reach it, and
+    // `text-shadow-md` still generates a shadow nothing in this design system
+    // names. It is not alone — 61 off-system utilities survive the reset across
+    // --shadow-*, --blur-*, --animate-*, --container-* and others (measured).
+    // Which namespaces the design system closes is a theme decision, tracked
+    // separately; this probe reports what the reset it can see actually
+    // cleared, and calling text-shadow a regression here would be blaming the
+    // probe's own reading for a gap somewhere else.
+    if (base.startsWith('--text-shadow-')) continue
+
+    const entry = RESET.find(([namespace]) => base.startsWith(namespace))
+    if (entry) cleared.add(entry[1] + base.slice(entry[0].length))
   }
 
   return [...cleared]
@@ -216,13 +242,25 @@ export function deriveNeutralised(css, tailwindTheme) {
  * yet — this repo keeps every `@theme` in one file on purpose, and the day that
  * changes, this error says exactly what to extend.
  */
-function assertThemeIsNotSplit(css, base) {
-  for (const [, id] of css.matchAll(/@import\s+['"](\.[^'"]+)['"]/g)) {
+function assertThemeIsNotSplit(css, base, seen = new Set()) {
+  // Relative imports only. `@import 'tailwindcss'` resolves into node_modules,
+  // and that file is *made* of `@theme` — following it would make this throw on
+  // every run. A bare specifier is a package, not part of this theme.
+  for (const [, id] of blankBlockComments(css).matchAll(/@import\s+['"](\.[^'"]+)['"]/g)) {
     const path = resolve(base, id)
-    if (!/@(?:theme|utility)\b/.test(readFileSync(path, 'utf8'))) continue
+    if (seen.has(path)) continue
+    seen.add(path)
+
+    const imported = blankBlockComments(readFileSync(path, 'utf8'))
+    if (!/@(?:theme|utility)\b/.test(imported)) {
+      // Follow the chain: a theme two hops away is split exactly as well as one
+      // hop away, and tokens/ importing tokens/ is the shape that would do it.
+      assertThemeIsNotSplit(imported, dirname(path), seen)
+      continue
+    }
 
     throw new Error(
-      `Theme probe cannot run: ${id} declares @theme or @utility. The probe derives its ` +
+      `Theme probe cannot run: ${relative(process.cwd(), path)} declares @theme or @utility. The probe derives its ` +
         `candidates from the entry stylesheet only, so utilities declared here would be compiled ` +
         `but never asserted. Keep the theme surface in one file, or teach deriveDeclared() to ` +
         `resolve @import.`,

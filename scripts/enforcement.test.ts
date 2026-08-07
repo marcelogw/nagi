@@ -638,9 +638,43 @@ describe('the theme still generates what it declares (BUG-001)', () => {
       expect(declared.map((d) => d.candidate)).toEqual(['bg-a', 'bg-b'])
     })
 
+    // `inline` is a resolution mode, not a different at-rule: a token declared
+    // in a plain `@theme` generates a utility exactly like one declared inline,
+    // and globals.css carries both blocks — the plain one holding the reset.
+    // Reading only the inline one covers less while staying green, and the
+    // namespace floor cannot see it for the same reason as the other two.
+    it('reads a plain @theme block, not only the inline one', () => {
+      const declared = deriveDeclared(
+        `@theme {\n  --color-a: red;\n}\n@theme inline {\n  --color-b: blue;\n}\n`,
+      )
+
+      expect(declared.map((d) => d.candidate)).toEqual(['bg-a', 'bg-b'])
+    })
+
+    // A commented-out declaration is not a declaration. The candidate would be
+    // asked for, never generated, and reported as a regression that is not
+    // there — the probe crying wolf is how it stops being believed.
+    it('reads declarations, not prose about them', () => {
+      const declared = deriveDeclared(
+        `@theme inline {\n  /* Was:\n  --color-ghost: red;\n  */\n  --color-real: blue;\n}\n`,
+      )
+
+      expect(declared.map((d) => d.candidate)).toEqual(['bg-real'])
+    })
+
     it('refuses to run when part of the theme moved into an imported file', async () => {
       fixture('theme-split/tokens.css', '@theme inline {\n  --color-brand: red;\n}\n')
       const entry = fixture('theme-split/theme.css', `@import './tokens.css';\n`)
+
+      await expect(probeTheme(entry)).rejects.toThrow(/declares @theme/)
+    })
+
+    // A theme two hops away is split exactly as well as one hop away, and
+    // tokens/ importing tokens/ is the shape that would do it.
+    it('follows the import chain rather than only its first hop', async () => {
+      fixture('theme-deep/tokens/type.css', '@theme inline {\n  --color-brand: red;\n}\n')
+      fixture('theme-deep/tokens/index.css', `@import './type.css';\n`)
+      const entry = fixture('theme-deep/theme.css', `@import './tokens/index.css';\n`)
 
       await expect(probeTheme(entry)).rejects.toThrow(/declares @theme/)
     })
