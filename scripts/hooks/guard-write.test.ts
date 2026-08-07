@@ -63,6 +63,17 @@ describe('the guard refuses the write', () => {
     expect(decision?.permissionDecision).toBe('deny')
     expect(decision?.permissionDecisionReason).toContain('src/domain/goal.test.ts does not exist')
   })
+
+  // The rule whose violation is the path. Nothing in the content could make
+  // this file acceptable, which is why the guard is worth more here than
+  // anywhere else: the stylesheet is refused instead of written and then having
+  // to be found and deleted.
+  it('rejects a per-component stylesheet, however clean its contents', () => {
+    const decision = guard(write('src/components/card/card.css', '.card {\n  display: flex;\n}\n'))
+
+    expect(decision?.permissionDecision).toBe('deny')
+    expect(decision?.permissionDecisionReason).toContain('no-per-component-stylesheet')
+  })
 })
 
 describe('the guard stays out of the way otherwise', () => {
@@ -84,6 +95,11 @@ describe('the guard stays out of the way otherwise', () => {
       'a tool it does not guard',
       { tool_name: 'Read', tool_input: { file_path: 'src/routes/x.tsx' } },
     ],
+    [
+      'an edit to a legacy stylesheet the allowlist still excuses',
+      edit('src/components/shell/shell.css', '.shell { display: flex }'),
+    ],
+    ['the residual style layer, which is where CSS may live', write('src/styles/residual.css', '')],
     ['a file outside the repo', write('/etc/hosts', '#ef4444')],
   ])('allows %s', (_label, payload) => {
     expect(guard(payload)).toBeNull()
