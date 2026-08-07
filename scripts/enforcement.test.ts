@@ -105,6 +105,15 @@ describe('check-patterns rejects what oxlint cannot express', () => {
     'text-sm font-medium',
     'text-lg leading-none',
     'text-xs uppercase',
+    // The directional and prefixed forms. A rule anchored on `border-`/`ring-`
+    // alone misses every one of these, because the `-` in front of the colour
+    // trips the same lookbehind that keeps the rule off the token layer.
+    'border-t-white',
+    'divide-y-black',
+    'ring-offset-white',
+    'shadow-black/40',
+    'drop-shadow-white',
+    'inset-shadow-black',
   ])('rejects the vendored-compat utility in %s', (className) => {
     const found = findings(`compat-${className.length}.tsx`, `export const c = '${className}'\n`)
 

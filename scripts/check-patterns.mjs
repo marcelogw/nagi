@@ -95,12 +95,20 @@ export const RULES = [
     // word character precedes the utility keeps the rule on class names and
     // off the token layer it exists to protect.
     //
+    // That same lookbehind is why the families carry their own sub-segments
+    // rather than relying on a loose prefix: `border-t-white` and
+    // `ring-offset-black` put a `-` in front of the colour, so a rule anchored
+    // on `border-`/`ring-` alone never sees them. Each family therefore spells
+    // the segment it can take — the directional edges, `offset`, and the two
+    // `shadow` prefixes — because a family that colours a surface is exactly as
+    // dangerous through its directional variant as through its base.
+    //
     // Known limit: matched as bare words, so a string that merely contains one
     // — an id, a translation key, a CSS class of one's own called
     // `panel.black` — is a false positive. The directive costs one line, and
     // narrowing this to real class attributes needs a parser.
     pattern:
-      /(?<![-\w])(?:bg|text|border|ring|fill|stroke|outline|caret|decoration|divide|accent|from|via|to)-(?:white|black)\b|(?<![-\w])text-(?:xs|sm|lg)\b/g,
+      /(?<![-\w])(?:drop-|inset-)?(?:bg|text|border|ring|fill|stroke|outline|caret|decoration|divide|accent|shadow|from|via|to)(?:-(?:t|r|b|l|x|y|s|e|offset))?-(?:white|black)\b|(?<![-\w])text-(?:xs|sm|lg)\b/g,
     message:
       'Vendored-compatibility utility. `white`/`black` and the size-named type steps survive only ' +
       'so src/components/ui/ keeps rendering — product code has a role for each: a semantic colour ' +
