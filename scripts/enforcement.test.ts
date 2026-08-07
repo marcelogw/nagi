@@ -662,6 +662,18 @@ describe('the theme still generates what it declares (BUG-001)', () => {
       expect(declared.map((d) => d.candidate)).toEqual(['bg-real'])
     })
 
+    // The same blindness in the direction that stays green: a brace inside a
+    // comment ends the block for a brace counter, so every declaration after it
+    // is dropped while Tailwind — which parses rather than counts — compiles
+    // them into utilities nobody asserts. Found by attacking the fix.
+    it('is not ended early by a brace inside a comment', () => {
+      const declared = deriveDeclared(
+        `@theme inline {\n  --color-real: red; /* } */\n  --color-valid: green;\n}\n`,
+      )
+
+      expect(declared.map((d) => d.candidate)).toEqual(['bg-real', 'bg-valid'])
+    })
+
     it('refuses to run when part of the theme moved into an imported file', async () => {
       fixture('theme-split/tokens.css', '@theme inline {\n  --color-brand: red;\n}\n')
       const entry = fixture('theme-split/theme.css', `@import './tokens.css';\n`)
