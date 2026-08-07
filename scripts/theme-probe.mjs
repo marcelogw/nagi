@@ -63,15 +63,6 @@ const TAILWIND_THEME = 'node_modules/tailwindcss/theme.css'
  *
  * Longest first, so `--font-weight-semibold` is not read as the `--font-*`
  * namespace with a name of `weight-semibold`.
- *
- * A token whose namespace is not listed here is dropped in silence, so "not
- * listed" has to mean "covered elsewhere" rather than "not thought about".
- * `--breakpoint-*` is the one such absence today: a breakpoint feeds a *variant*
- * (`wide:hidden`), not a utility prefix, so there is no `wide` rule to look for
- * and the model does not fit it at all. It needs no probe either — losing
- * `--breakpoint-wide` makes every `wide:` utility generate nothing, collapsing
- * the shell to a single layout, and e2e already asserts both sides of that
- * switch. Loud failures are the ones the probe does not have to see.
  */
 const NAMESPACES = [
   ['--font-weight-', 'font-'],
@@ -86,6 +77,20 @@ const NAMESPACES = [
   ['--ease-', 'ease-'],
   ['--animate-', 'animate-'],
 ]
+
+/**
+ * The namespaces that are deliberately outside the probe, and why each one is.
+ * A token belonging to neither list throws — "not listed" has to mean "covered
+ * elsewhere", never "not thought about", and silence cannot tell the two apart.
+ *
+ * `--breakpoint-*` is the one entry today: a breakpoint feeds a *variant*
+ * (`wide:hidden`), not a utility prefix, so there is no `wide` rule to look for
+ * and the model does not fit it at all. It needs no probe either — losing
+ * `--breakpoint-wide` makes every `wide:` utility generate nothing, collapsing
+ * the shell to a single layout, and e2e already asserts both sides of that
+ * switch. Loud failures are the ones the probe does not have to see.
+ */
+const UNPROBED = ['--breakpoint-']
 
 /**
  * The braced body that follows `source[from]`, up to its matching `}`.
@@ -194,7 +199,20 @@ export function deriveDeclared(css) {
     }
 
     const entry = NAMESPACES.find(([namespace]) => base.startsWith(namespace))
-    if (entry) candidates.set(base, entry)
+    if (entry) {
+      candidates.set(base, entry)
+      continue
+    }
+
+    // The probe's own blind spot, closed. Dropping an unclaimed token left a
+    // typo — `--clor-primary` — declaring nothing, generating nothing, and
+    // reported as covered. A namespace it genuinely need not probe goes in
+    // UNPROBED with its reason; everything else is a mistake, and says so.
+    if (!UNPROBED.some((namespace) => base.startsWith(namespace)))
+      throw new Error(
+        `${base} is declared in @theme but no namespace claims it. Add its namespace to ` +
+          `NAMESPACES, or to UNPROBED with the reason it needs no probe.`,
+      )
   }
 
   const declared = [...candidates].map(([token, [namespace, prefix]]) => ({
