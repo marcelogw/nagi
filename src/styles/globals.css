@@ -42,11 +42,20 @@
    design repo symlinks src/styles/tokens/ and the approved mockups read
    --text-base, --radius-md and friends directly.
 
-   The rule is uniform, so there is nothing to remember: any token colliding
-   with a Tailwind v4 theme namespace goes through a --tw-* hop here. Names
-   that do not collide skip it — --weight-* → --font-weight-*, --icon-* →
-   --size-icon-*, and every colour token, which map to a different name
-   already.
+   The test for whether a token needs the hop is narrower than "does the name
+   collide", and worth stating exactly, because the bridge is otherwise easy to
+   grow indirections nobody needs. A hop is required only where @theme
+   re-declares the token's own name, because only then is the alias a
+   self-reference. Measured in the built CSS: @theme emits `--text-xs:
+   var(--tw-text-xs)` into @layer theme, next to typography.css's unlayered
+   `--text-xs: .75rem` — two declarations of one name, which is the cycle
+   waiting to happen. --text-xl, --text-2xl and --text-3xl are never
+   re-declared, so they appear exactly once and cannot cycle; the role tokens
+   below reference them directly, and adding a hop would protect nothing.
+
+   Names that do not collide at all skip it for the same reason — --weight-* →
+   --font-weight-*, --icon-* → --size-icon-*, and every colour token, which map
+   to a different name already.
    ============================================================================ */
 :root {
   --tw-radius-xs: var(--radius-xs);
