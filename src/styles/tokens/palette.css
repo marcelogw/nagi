@@ -81,6 +81,25 @@
   --slate-900: oklch(0.18 0.02 216);
   --slate-950: oklch(0.14 0.018 215);
 
+  /* --- Achromatic absolutes ---
+     Deliberately outside the slate ramp: these are not neutrals the design
+     picked, they are pure white and pure black, and the ramp above exists
+     precisely because the surfaces a user looks at should never be either.
+     Nothing in the design system references them.
+
+     They exist for two vendored primitives that spell the colour literally and
+     that guard-write.mjs forbids editing — `text-white` on button.tsx's
+     destructive variant, and `bg-black/50` on the dialog and alert-dialog
+     scrims. globals.css maps them into Tailwind's palette so those two keep
+     working after the default palette is cleared; check-patterns.mjs keeps the
+     utilities out of product code.
+
+     Written in oklch like everything else here, and exactly equal to the #fff
+     and #000 Tailwind shipped before the reset — L=1 and L=0 at chroma zero
+     are those two colours, so nothing moves by a pixel. */
+  --white: oklch(1 0 0);
+  --black: oklch(0 0 0);
+
   /* --- Data-viz: the categorical ramp ---
      Eight hues in a fixed order. The order IS the safety mechanism: slots are
      assigned in sequence and never cycled, so only neighbours ever touch, and

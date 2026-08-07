@@ -19,6 +19,14 @@
 
   /* Radius (base --radius = 12px) */
   --radius: 0.75rem;
+  /* The scale steps by 2px around the anchor, so `xs` is the next one down
+     rather than a new number: 6 · 8 · 10 · 12 · 16 · 22. It exists because a
+     vendored primitive asks for it — the dialog close button (dialog.tsx) —
+     and Tailwind's own `rounded-xs` (2px) stops existing once the default
+     scale is replaced. 6px is deliberately not 2px: a step that ignored the
+     anchor would stop tracking a rebrand, and the only surface affected is
+     that button's focus ring. */
+  --radius-xs: calc(var(--radius) - 6px); /* 6  — close buttons, micro elements */
   --radius-sm: calc(var(--radius) - 4px); /* 8  — chips, icon tiles */
   --radius-md: calc(var(--radius) - 2px); /* 10 — buttons, inputs */
   --radius-lg: var(--radius); /* 12 — cards */
