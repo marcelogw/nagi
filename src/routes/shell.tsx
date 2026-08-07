@@ -34,16 +34,20 @@ export function ShellRoute() {
               breakpoint decides which is shown — a width read in JavaScript can
               show the wrong one for a frame, a media query cannot. */}
           <span className="inline-flex wide:hidden">
-            <NagiWordmark className="text-subhead leading-normal" />
+            <NagiWordmark className="text-subhead" />
           </span>
 
           {/* The phone header carries the brand, not the screen name — the tab
               bar already says which screen you are on. Hidden rather than
               dropped: a page with no h1 is a page a screen reader cannot
-              summarise. leading-normal for the same reason as the rail's
-              wordmark: text-title's snug leading would shorten the header. */}
+              summarise.
+
+              font-bold, not font-extrabold: 800 belongs to the hero balance and
+              the wordmark, nowhere else. Spelled out rather than left off — the
+              reset hands h1 an inherited weight, so dropping the class lands on
+              the body's 400, which is a third value nobody chose. */}
           <h1
-            className="sr-only font-heading text-title font-extrabold leading-normal tracking-tight wide:not-sr-only"
+            className="sr-only font-heading text-title font-bold tracking-tight wide:not-sr-only"
             data-testid="app-header-title"
           >
             {activeId ? labels[activeId] : null}
