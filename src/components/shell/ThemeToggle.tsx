@@ -1,6 +1,7 @@
 import { Moon, Sun } from 'lucide-react'
 import { useTranslations } from 'use-intl'
 import type { ResolvedTheme } from '@/lib/theme'
+import { cn } from '@/lib/utils'
 import { useSettingsStore } from '@/stores/settings-store'
 
 /**
@@ -21,9 +22,11 @@ import { useSettingsStore } from '@/stores/settings-store'
  */
 export function ThemeToggle({
   resolved,
+  className,
   testId = 'theme-toggle',
 }: {
   resolved: ResolvedTheme
+  className?: string
   testId?: string
 }) {
   const t = useTranslations('theme')
@@ -34,17 +37,21 @@ export function ThemeToggle({
   return (
     <button
       type="button"
-      className="theme-toggle"
+      className={cn(
+        'flex flex-none cursor-pointer items-center justify-center rounded-sm border border-border bg-surface text-foreground-subtle transition-colors duration-fast ease-settle hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none',
+        className,
+      )}
       data-testid={testId}
       aria-label={t('toggle')}
       onClick={() => {
         setTheme(next)
       }}
     >
-      {/* Sized by the stylesheet from --icon-sm: an SVG width attribute cannot
-          hold a custom property, so the token would have to be duplicated as a
-          number here to be used at all. */}
-      <Icon aria-hidden />
+      {/* Lucide writes width/height as SVG attributes and an attribute cannot
+          hold a custom property — but a class on the element can, and a class
+          beats a presentational attribute. That is what retires the stylesheet
+          rule this used to need. */}
+      <Icon aria-hidden className="size-icon-sm" />
     </button>
   )
 }

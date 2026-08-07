@@ -16,18 +16,23 @@ export function TabBar({ activeId }: { activeId: string | undefined }) {
   const labels = useDestinationLabels()
 
   return (
-    <nav className="tab-bar" data-testid="tab-bar" aria-label={labels.navigation}>
+    <nav
+      className="fixed inset-x-0 bottom-0 z-20 flex border-t border-border bg-surface pb-safe wide:hidden"
+      data-testid="tab-bar"
+      aria-label={labels.navigation}
+    >
+      {/* min-h-14 is the touch-target floor. Anything under 44px is a miss on a phone. */}
       {DESTINATIONS.map((destination) => (
         <Link
           key={destination.id}
           to={destination.to}
           params={paramsFor(destination)}
-          className="tab-bar__link"
+          className="flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 text-label font-medium text-foreground-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring current-page:font-semibold current-page:text-primary"
           data-testid={`nav-link-${destination.id}`}
           aria-current={destination.id === activeId ? 'page' : undefined}
         >
-          <destination.icon aria-hidden />
-          <span className="tab-bar__label">
+          <destination.icon aria-hidden className="size-icon-md shrink-0" />
+          <span className="max-w-full truncate">
             {destination.id === 'months' ? labels.monthsShort : labels[destination.id]}
           </span>
         </Link>
