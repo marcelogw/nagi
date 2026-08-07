@@ -57,9 +57,10 @@ a TODO-flagged edge case are each enough to hold a PR open.
 
 ## What the linters refuse
 
-Six patterns are rejected outright, because each one is a defect the app Nagi
-replaces actually shipped. They are errors, not conventions, because a
-convention is a thing people mean to follow.
+Eight patterns are rejected outright, because each one is a defect the app Nagi
+replaces actually shipped — or, for the two styling rules, one this project
+shipped itself. They are errors, not conventions, because a convention is a
+thing people mean to follow.
 
 | Rejected | Why | Instead |
 | --- | --- | --- |
@@ -69,6 +70,8 @@ convention is a thing people mean to follow.
 | `toLocaleDateString()`, `toLocaleTimeString()`, `toLocaleString()` | They render in the *browser's* locale, not the app's, so they look correct on the machine that wrote them | `useFormatters()` from `src/i18n` |
 | `.sort()`, `.reverse()`, `.splice()` | A value read from a store selector **is** the store's state, so sorting it sorts the store | `toSorted()`, `toReversed()`, `toSpliced()` |
 | `.skip` or `.only` in a committed spec | A skipped suite looks exactly like coverage from the outside; `.only` quietly stops running everything else in the file | Delete it, or fix it |
+| A `.css` file under `src/components/` | Tailwind is the styling language for all product code; a component stylesheet is not a smaller version of the right answer | The `className`, next to the markup |
+| `text-white`, `bg-black/50`, `text-xs`/`text-sm`/`text-lg` outside `src/components/ui/` | They survive the theme reset only so the vendored primitives keep rendering, so in product code they resolve silently at a value nobody chose | A semantic colour token; `text-caption` / `text-body` / `text-subhead` |
 
 Three more checks run alongside them, all inside `npm run quality`:
 
@@ -83,6 +86,17 @@ Three more checks run alongside them, all inside `npm run quality`:
   same rules addressed to three agents, and they had already drifted into
   contradicting each other. `AGENTS.md` is the source:
   `cp AGENTS.md CLAUDE.md && cp AGENTS.md GEMINI.md`.
+
+One more check lives in `npm run test` rather than in `quality`, because it is
+an assertion about compiled output rather than a pattern in source: the **theme
+probe** (`scripts/theme-probe.mjs`) compiles the real `src/styles/globals.css`
+with the real Tailwind and asserts that every utility the theme declares still
+generates a rule — carrying every property its tokens promised — and that every
+default the reset cleared still generates nothing. It exists because `text-lg`
+once shipped with its `line-height` silently gone, past a green lint and a green
+suite. Neither list of utilities is maintained by hand: they are derived from
+the theme itself and from Tailwind's own defaults, so adding a token cannot
+leave the probe testing less than it appears to.
 
 `npm run check:bundle` runs after the build and holds gzipped output to a
 budget. It is a tripwire for a dependency that arrived by accident, not a
@@ -112,6 +126,8 @@ configuration nobody has seen reject anything is not enforcement.
 `scripts/hooks/guard-write.mjs` before every Write and Edit. It refuses:
 
 - a write that introduces one of the patterns above
+- a `.css` file under `src/components/`. Nothing in the contents could make that
+  file acceptable, so it is refused rather than written and found later
 - a hand-written file in `src/components/ui/` — those come from the shadcn CLI,
   and a hand-edited one is either overwritten by the next `shadcn add` or, worse,
   quietly diverges from it
