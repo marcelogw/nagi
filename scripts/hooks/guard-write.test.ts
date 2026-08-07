@@ -48,6 +48,16 @@ describe('the guard refuses the write', () => {
     expect(decision?.permissionDecisionReason).toContain('no-skipped-tests')
   })
 
+  // The checker reads `{test,spec}` because P-23 was an end-to-end suite that
+  // sat skipped. A guard that reads only `.test.` lets the exact case through.
+  it('rejects a .only introduced into an end-to-end spec', () => {
+    // check-patterns-ignore-next-line: the payload has to contain the banned form
+    const decision = guard(edit('e2e/smoke.spec.ts', `it.only('boots', () => {})`))
+
+    expect(decision?.permissionDecision).toBe('deny')
+    expect(decision?.permissionDecisionReason).toContain('no-skipped-tests')
+  })
+
   it('rejects a hand-written shadcn primitive', () => {
     const decision = guard(
       write('src/components/ui/button.tsx', 'export const Button = () => null'),

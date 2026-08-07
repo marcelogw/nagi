@@ -60,7 +60,12 @@ function repoRelative(filePath) {
   return normalize(isAbsolute(filePath) ? relative(process.cwd(), filePath) : filePath)
 }
 
-const isSpec = (file) => /\.test\.[cm]?[jt]sx?$/.test(file)
+// `.spec.` as well as `.test.`, matching the checker's SPECS glob. A narrower
+// regex here means `it.only` in e2e/smoke.spec.ts sails past the hook and is
+// caught only by CI — and P-23, the pitfall the skipped-test rule exists for,
+// was an end-to-end suite. The guard has to agree with the checker or it teaches
+// people that the hook is the lenient one.
+const isSpec = (file) => /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(file)
 const isProduct = (file) => file.startsWith('src/') && /\.(ts|tsx|css)$/.test(file)
 
 async function main() {
