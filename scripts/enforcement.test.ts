@@ -651,6 +651,21 @@ describe('the theme still generates what it declares (BUG-001)', () => {
       expect(declared.map((d) => d.candidate)).toEqual(['bg-a', 'bg-b'])
     })
 
+    // The namespace floor above sees a namespace vanish whole; it cannot see a
+    // token nobody claims, because an unclaimed token was simply dropped. A typo
+    // in a declaration is exactly that shape — it generates nothing and reads as
+    // covered — so the drop is a throw now, and UNPROBED is where a namespace
+    // that genuinely needs no probe is named out loud instead.
+    it('refuses a token no namespace claims', () => {
+      expect(() => deriveDeclared(`@theme inline {\n  --clor-primary: red;\n}\n`)).toThrow(
+        /--clor-primary/,
+      )
+    })
+
+    it('accepts the namespaces it declares it does not probe', () => {
+      expect(deriveDeclared(`@theme inline {\n  --breakpoint-wide: 60rem;\n}\n`)).toEqual([])
+    })
+
     // A commented-out declaration is not a declaration. The candidate would be
     // asked for, never generated, and reported as a regression that is not
     // there — the probe crying wolf is how it stops being believed.
