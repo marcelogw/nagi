@@ -23,6 +23,12 @@ export default defineConfig({
     baseURL,
     trace: 'on-first-retry',
   },
+  // 2% tolerance absorbs sub-pixel antialiasing noise between runs without
+  // hiding a real layout shift — a masked/moved element changes far more
+  // than 2% of the shot.
+  expect: {
+    toHaveScreenshot: { maxDiffPixelRatio: 0.02 },
+  },
   projects: [
     {
       name: 'chromium',

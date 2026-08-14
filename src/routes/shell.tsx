@@ -28,7 +28,10 @@ export function ShellRoute() {
       <NavRail activeId={activeId} resolvedTheme={resolvedTheme} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-4 border-b border-border bg-surface px-6 py-4">
+        <header
+          className="flex items-center gap-4 border-b border-border bg-surface px-6 py-4"
+          data-testid="app-header"
+        >
           {/* Below the breakpoint the brand moves here, because the rail it
               normally sits in is gone. Both are always in the DOM; the
               breakpoint decides which is shown — a width read in JavaScript can
