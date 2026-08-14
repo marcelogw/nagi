@@ -276,8 +276,14 @@
   --size-icon-lg: var(--icon-lg);
   --size-icon-xl: var(--icon-xl);
   --size-icon-tile: var(--icon-tile);
+  --size-swatch: var(--swatch);
 
   --ease-settle: var(--tw-ease-settle);
+
+  /* The ColorPicker swatch's hover grow, and the mockup's exact value — not a
+     step on Tailwind's default scale (95/100/105/110/125), which is why it
+     needs naming here rather than an arbitrary `scale-[1.12]`. */
+  --scale-112: 1.12;
 
   /* The design system's one breakpoint: below it the rail becomes a tab bar and
      the columns stack. Named rather than borrowed from Tailwind's own scale,

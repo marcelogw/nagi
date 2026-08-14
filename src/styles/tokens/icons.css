@@ -20,4 +20,9 @@
   /* Category tile (the rounded colored square behind a row icon) */
   --icon-tile: 36px;
   --icon-tile-radius: var(--radius-sm);
+
+  /* Colour swatch (ColorPicker). Not on the spacing or icon scale — the
+     categories/cards mockups use this exact 26px control consistently, so it
+     gets its own token rather than rounding to the nearest step. */
+  --swatch: 26px;
 }

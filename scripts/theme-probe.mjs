@@ -74,6 +74,7 @@ const NAMESPACES = [
   ['--font-', 'font-'],
   ['--text-', 'text-'],
   ['--size-', 'size-'],
+  ['--scale-', 'scale-'],
   ['--ease-', 'ease-'],
   ['--animate-', 'animate-'],
 ]
