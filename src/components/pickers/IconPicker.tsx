@@ -1,6 +1,5 @@
 import { useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { Search, icons } from 'lucide-react'
-import './pickers.css'
 
 const GRID_COLUMNS = 8
 
@@ -79,12 +78,15 @@ export function IconPicker({
   }
 
   return (
-    <div className="icon-picker">
-      <div className="icon-picker__search">
-        <Search aria-hidden className="icon-picker__search-icon" />
+    <div className="flex flex-col gap-2">
+      <div className="relative">
+        <Search
+          aria-hidden
+          className="pointer-events-none absolute left-2 top-1/2 size-icon-xs -translate-y-1/2 text-foreground-subtle"
+        />
         <input
           type="text"
-          className="icon-picker__search-input"
+          className="w-full rounded-md border border-border-strong bg-surface py-2 pr-3 pl-8 text-body text-foreground transition-colors duration-fast ease-settle focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring motion-reduce:transition-none"
           aria-label={label}
           placeholder={searchPlaceholder}
           value={query}
@@ -95,7 +97,7 @@ export function IconPicker({
       {filtered.length > 0 ? (
         <div
           ref={gridRef}
-          className="icon-picker__grid"
+          className="grid max-h-30 grid-cols-8 gap-1 overflow-y-auto p-1"
           role="group"
           aria-label={label}
           onKeyDown={handleGridKeyDown}
@@ -105,20 +107,20 @@ export function IconPicker({
               <button
                 key={name}
                 type="button"
-                className="icon-picker__item"
+                className="flex aspect-square cursor-pointer items-center justify-center rounded-sm border border-border bg-surface text-foreground-muted transition-colors duration-fast ease-settle hover:border-border-strong hover:bg-surface-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring motion-reduce:transition-none data-selected:border-primary data-selected:bg-primary-tint data-selected:text-primary-text"
                 data-selected={name === value || undefined}
                 aria-label={name}
                 aria-pressed={name === value}
                 tabIndex={name === rovingTarget ? 0 : -1}
                 onClick={() => onChange(name)}
               >
-                <Icon aria-hidden />
+                <Icon aria-hidden className="size-icon-sm" />
               </button>
             )
           })}
         </div>
       ) : (
-        <p className="icon-picker__empty">{emptyMessage}</p>
+        <p className="m-0 p-1 text-caption text-foreground-subtle">{emptyMessage}</p>
       )}
     </div>
   )

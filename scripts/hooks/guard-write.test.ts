@@ -105,10 +105,6 @@ describe('the guard stays out of the way otherwise', () => {
       'a tool it does not guard',
       { tool_name: 'Read', tool_input: { file_path: 'src/routes/x.tsx' } },
     ],
-    [
-      'an edit to a legacy stylesheet the allowlist still excuses',
-      edit('src/components/pickers/pickers.css', '.picker { display: flex }'),
-    ],
     ['the residual style layer, which is where CSS may live', write('src/styles/residual.css', '')],
     ['a file outside the repo', write('/etc/hosts', '#ef4444')],
   ])('allows %s', (_label, payload) => {
