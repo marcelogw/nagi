@@ -1,4 +1,6 @@
+import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
+import { arbitraryLocalIsoDate } from './testing/arbitraries'
 import { InvalidIsoDateError, isIsoDate, isTimestamp, now, parseIsoDate } from './date'
 
 describe('parseIsoDate', () => {
@@ -89,5 +91,33 @@ describe('isTimestamp', () => {
 
   it.each([null, undefined, 42, {}, Symbol('ts')])('rejects non-string %o', (value) => {
     expect(isTimestamp(value)).toBe(false)
+  })
+})
+
+// Property-based coverage (fast-check), attacking calendar arithmetic across
+// the arbitrary's full year range — including leap years — rather than the
+// hand-picked dates above. Every arbitrary comes from
+// src/domain/testing/arbitraries.ts.
+describe('properties', () => {
+  it('every generated calendar date round-trips through parseIsoDate unchanged', () => {
+    fc.assert(
+      fc.property(arbitraryLocalIsoDate(), (date) => {
+        expect(parseIsoDate(date)).toBe(date)
+        expect(isIsoDate(date)).toBe(true)
+      }),
+    )
+  })
+
+  it('accepts Feb 29 exactly on leap years, by an oracle independent of Date', () => {
+    // The Gregorian leap-year rule, spelled out directly rather than asked of
+    // `Date` — the point is to catch a mistake in date.ts's own leap-year
+    // handling, not to restate it with the same tool that could share its bug.
+    fc.assert(
+      fc.property(fc.integer({ min: 100, max: 9900 }), (year) => {
+        const isLeapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)
+        const feb29 = `${String(year).padStart(4, '0')}-02-29`
+        expect(isIsoDate(feb29)).toBe(isLeapYear)
+      }),
+    )
   })
 })

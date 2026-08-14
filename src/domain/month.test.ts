@@ -1,4 +1,6 @@
+import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
+import { arbitraryLocalMonth } from './testing/arbitraries'
 import {
   currentMonth,
   currentYear,
@@ -198,5 +200,51 @@ describe('currentYear', () => {
 
   it('defaults to the real clock when not given one', () => {
     expect(currentYear()).toBe(new Date().getFullYear())
+  })
+})
+
+// Property-based coverage (fast-check), attacking month-rollover arithmetic
+// across the arbitrary's full year range rather than the hand-picked years
+// above. Every arbitrary comes from src/domain/testing/arbitraries.ts.
+describe('properties', () => {
+  it('offset(month, 0) is a no-op for any month', () => {
+    fc.assert(
+      fc.property(arbitraryLocalMonth(), (month) => {
+        expect(offset(month, 0)).toBe(month)
+      }),
+    )
+  })
+
+  it('diffMonths is the exact inverse of offset, across year boundaries', () => {
+    fc.assert(
+      fc.property(arbitraryLocalMonth(), fc.integer({ min: -200, max: 200 }), (month, n) => {
+        expect(diffMonths(month, offset(month, n))).toBe(n)
+      }),
+    )
+  })
+
+  it('previousMonth and nextMonth undo each other, across any rollover', () => {
+    fc.assert(
+      fc.property(arbitraryLocalMonth(), (month) => {
+        expect(previousMonth(nextMonth(month))).toBe(month)
+        expect(nextMonth(previousMonth(month))).toBe(month)
+      }),
+    )
+  })
+
+  it('range(month, month) is always the single-element list', () => {
+    fc.assert(
+      fc.property(arbitraryLocalMonth(), (month) => {
+        expect(range(month, month)).toEqual([month])
+      }),
+    )
+  })
+
+  it('every generated month round-trips through isMonth as well-formed', () => {
+    fc.assert(
+      fc.property(arbitraryLocalMonth(), (month) => {
+        expect(isMonth(month)).toBe(true)
+      }),
+    )
   })
 })
