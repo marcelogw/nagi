@@ -48,11 +48,15 @@ test('the rail navigates, and back/forward retrace it', async ({ page }) => {
 })
 
 test('a deep link lands on the screen, and a reload stays on it', async ({ page }) => {
-  await page.goto('/categories')
-  await expectRoute(page, 'categories')
+  // /goals: the one destination still a RoutePlaceholder (#126/#127 built
+  // /categories and /cards into real screens; see the route tree in
+  // src/router.tsx). This test only cares that the router settles on the
+  // requested route across a fresh load and a reload, not what's on it.
+  await page.goto('/goals')
+  await expectRoute(page, 'goals')
 
   await page.reload()
-  await expectRoute(page, 'categories')
+  await expectRoute(page, 'goals')
   await expect(page.getByTestId('app-shell')).toBeVisible()
 })
 
@@ -69,8 +73,9 @@ test('the rail gives way to the tab bar below 960px', async ({ page }) => {
   await expect(page.getByTestId('nav-rail')).toBeHidden()
 
   // The tab bar is navigation, not decoration — it gets driven, not just seen.
-  await tabBar.getByTestId('nav-link-cards').click()
-  await expectRoute(page, 'cards')
+  // /goals rather than /cards: still a RoutePlaceholder, see the comment above.
+  await tabBar.getByTestId('nav-link-goals').click()
+  await expectRoute(page, 'goals')
 })
 
 test('the theme stays reachable when the rail goes', async ({ page }) => {

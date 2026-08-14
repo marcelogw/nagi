@@ -1,4 +1,50 @@
 {
+  "categories": {
+    "housing": "Housing",
+    "utilities": "Utilities",
+    "education": "Education",
+    "subscriptions": "Subscriptions",
+    "groceries": "Groceries",
+    "food": "Food",
+    "transport": "Transport",
+    "health": "Health",
+    "leisure": "Leisure",
+    "electronics": "Electronics",
+    "courses": "Courses",
+    "other": "Other",
+    "screen": {
+      "title": "Categories",
+      "subtitle": "{count, plural, one {# category} other {# categories}}",
+      "new": "New category"
+    },
+    "row": {
+      "edit": "Edit {name}",
+      "delete": "Delete {name}",
+      "reorder": "Reorder {name}"
+    },
+    "form": {
+      "createTitle": "New category",
+      "editTitle": "Edit category",
+      "description": "Pick a name, a colour and an icon.",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. Market",
+      "nameInvalid": "Name must contain at least one letter or digit.",
+      "nameTaken": "A category with this name already exists.",
+      "colorLabel": "Colour",
+      "iconLabel": "Icon",
+      "iconSearchPlaceholder": "Search icon…",
+      "iconEmpty": "No icon found.",
+      "cancel": "Cancel",
+      "create": "Create category",
+      "save": "Save"
+    },
+    "delete": {
+      "title": "Delete this category?",
+      "body": "{name} will be removed. Expenses using it move to Other.",
+      "cancel": "Keep it",
+      "confirm": "Delete"
+    }
+  },
   "nav": {
     "label": "Navigation",
     "dashboard": "Dashboard",
