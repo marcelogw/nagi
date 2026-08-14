@@ -83,6 +83,22 @@ describe('CategoriesScreen', () => {
     expect(screen.getByTestId('category-row-groceries')).toHaveTextContent('Supermarket')
   })
 
+  // Regression: CategoryFormDialog used to be keyed by the edit target's
+  // id, which forced React to unmount and remount the whole Dialog the
+  // instant it closed (the key falls back to 'new' as soon as formTarget
+  // goes null) — Radix's exit animation never got a chance to run, and its
+  // default close-focus restore lost track of the trigger. The dialog
+  // needs no key at all: its own useEffect already re-seeds from
+  // initialValues on every open transition.
+  it('cancelling an edit restores focus to the edit trigger (default Radix behaviour)', async () => {
+    const { user } = render(<CategoriesScreen />)
+
+    await user.click(screen.getByTestId('category-edit-groceries'))
+    await user.click(screen.getByTestId('category-form-cancel'))
+
+    await waitFor(() => expect(screen.getByTestId('category-edit-groceries')).toHaveFocus())
+  })
+
   it('deletes a category through the confirm dialog, reassigning its expenses to Other', async () => {
     useLedgerStore.setState({
       incomes: {},

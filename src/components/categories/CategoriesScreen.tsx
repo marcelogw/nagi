@@ -46,6 +46,19 @@ export function CategoriesScreen() {
   const [nameErrorKind, setNameErrorKind] = useState<CategoryNameErrorKind>()
   const newCategoryButtonRef = useRef<HTMLButtonElement>(null)
 
+  // Radix's own default close-focus restore turned out not to fire
+  // reliably for this Dialog even in a real browser (verified: cancelling
+  // an edit left focus on <body>, not the "Edit" button that opened it) —
+  // captured explicitly instead, at the moment the dialog opens, and
+  // restored on every close path (cancel, Escape, outside click, and a
+  // successful submit, none of which go through the same code path).
+  const formTriggerRef = useRef<HTMLElement | null>(null)
+  function closeForm() {
+    setFormTarget(null)
+    const trigger = formTriggerRef.current
+    setTimeout(() => trigger?.focus(), 0)
+  }
+
   // Deleting a category unmounts its row synchronously — the same click that
   // confirms the AlertDialog removes the trigger button Radix would otherwise
   // restore focus to on close, so focus silently falls back to <body>. Kept
@@ -62,11 +75,13 @@ export function CategoriesScreen() {
   const drag = useDragReorder<CategoryId>(ids, reorderCategories)
 
   function openCreate() {
+    formTriggerRef.current = document.activeElement as HTMLElement
     setNameErrorKind(undefined)
     setFormTarget('new')
   }
 
   function openEdit(category: Category) {
+    formTriggerRef.current = document.activeElement as HTMLElement
     setNameErrorKind(undefined)
     setFormTarget(category)
   }
@@ -82,7 +97,7 @@ export function CategoriesScreen() {
           icon: values.icon,
         })
       }
-      setFormTarget(null)
+      closeForm()
     } catch (error) {
       if (error instanceof DuplicateCategoryIdError) setNameErrorKind('taken')
       else if (error instanceof InvalidCategoryIdError) setNameErrorKind('invalid')
@@ -149,10 +164,9 @@ export function CategoriesScreen() {
       </div>
 
       <CategoryFormDialog
-        key={formTarget === 'new' || formTarget === null ? 'new' : formTarget.id}
         open={formTarget !== null}
         onOpenChange={(open) => {
-          if (!open) setFormTarget(null)
+          if (!open) closeForm()
         }}
         mode={formTarget === 'new' || formTarget === null ? 'create' : 'edit'}
         initialValues={
