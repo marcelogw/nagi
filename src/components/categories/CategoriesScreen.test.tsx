@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { render, screen, within } from '@/test/render'
+import { render, screen, waitFor, within } from '@/test/render'
 import { DEFAULT_CATEGORIES } from '@/domain/categories'
 import { SYSTEM_CATEGORY_ID, type Category } from '@/domain/entities'
 import { useCatalogStore } from '@/stores/catalog-store'
@@ -117,6 +117,31 @@ describe('CategoriesScreen', () => {
     expect(useLedgerStore.getState().expenses['2026-08' as never]?.[0]?.categoryId).toBe(
       SYSTEM_CATEGORY_ID,
     )
+  })
+
+  // Regression: deleting a category unmounts its row (and the button that
+  // opened the dialog) before Radix tries to restore focus to it on close,
+  // which otherwise silently drops focus to <body>.
+  it('moves focus to New category after a delete, since the trigger row is gone', async () => {
+    const { user } = render(<CategoriesScreen />)
+
+    await user.click(screen.getByTestId('category-delete-groceries'))
+    await user.click(screen.getByTestId('delete-category-confirm'))
+
+    await waitFor(() => expect(screen.getByTestId('category-new')).toHaveFocus())
+  })
+
+  // Regression: deleteTarget went null the instant confirm fired, well
+  // before the AlertDialog's own close animation finishes — the dialog's
+  // text would blank out mid-exit rather than keep naming what was deleted.
+  it('keeps the deleted name in the dialog through the close, not blank', async () => {
+    const { user } = render(<CategoriesScreen />)
+
+    await user.click(screen.getByTestId('category-delete-groceries'))
+    await user.click(screen.getByTestId('delete-category-confirm'))
+
+    const dialog = screen.queryByRole('alertdialog')
+    if (dialog) expect(dialog).toHaveAccessibleDescription(/Groceries/)
   })
 
   it('reorders a category with the keyboard grip handle', async () => {

@@ -111,6 +111,11 @@ describe('parseAmount', () => {
     ['-1234.56', -123456],
     ['R$ 5000', 500000],
     ['  1000,5  ', 100050],
+    // Regression: the sign check used to look only at the very first
+    // character, so a currency prefix ahead of the minus sign was missed
+    // and the digit strip below silently dropped the sign entirely.
+    ['R$ -50', -5000],
+    [' -50', -5000],
   ])('parses free-typed input %o to %i cents', (input, expected) => {
     expect(parseAmount(input)).toBe(expected)
   })

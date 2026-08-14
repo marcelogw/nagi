@@ -90,7 +90,10 @@ export function parseAmount(input: string): Cents {
   const trimmed = input.trim()
   if (trimmed === '') return ZERO_CENTS
 
-  const negative = trimmed.startsWith('-')
+  // `.includes`, not `.startsWith`: a currency prefix ("R$ -50") puts the
+  // sign after other characters, and the digit-and-separator strip below
+  // would otherwise drop it unnoticed, silently returning a positive value.
+  const negative = trimmed.includes('-')
   const kept = trimmed.replace(/[^0-9.,]/g, '')
   const lastSeparator = Math.max(kept.lastIndexOf(','), kept.lastIndexOf('.'))
 

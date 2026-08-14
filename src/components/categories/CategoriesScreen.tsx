@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslations } from 'use-intl'
 import { Button } from '@/components/ui/button'
 import { DuplicateCategoryIdError, InvalidCategoryIdError } from '@/domain/categories'
@@ -44,6 +44,17 @@ export function CategoriesScreen() {
   const [formTarget, setFormTarget] = useState<Category | 'new' | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null)
   const [nameErrorKind, setNameErrorKind] = useState<CategoryNameErrorKind>()
+  const newCategoryButtonRef = useRef<HTMLButtonElement>(null)
+
+  // Deleting a category unmounts its row synchronously — the same click that
+  // confirms the AlertDialog removes the trigger button Radix would otherwise
+  // restore focus to on close, so focus silently falls back to <body>. Kept
+  // across the close so the dialog's own text does not go blank mid-exit-
+  // animation either (deleteTarget itself goes null the instant confirm
+  // fires, well before the ~200ms close transition finishes).
+  const lastDeleteTargetRef = useRef<Category | null>(null)
+  if (deleteTarget) lastDeleteTargetRef.current = deleteTarget
+  const deleteTargetForDisplay = deleteTarget ?? lastDeleteTargetRef.current
 
   // Already in visual order (`order` field), never re-sorted here — P-09:
   // sorting a value read straight from a store selector sorts the store.
@@ -83,6 +94,13 @@ export function CategoriesScreen() {
     if (!deleteTarget) return
     deleteCategory(deleteTarget.id)
     setDeleteTarget(null)
+    // The row (and its edit/delete buttons) that triggered this dialog is
+    // already gone by the time Radix's own close-focus handling runs, so its
+    // default restore-to-trigger silently drops to <body> — DeleteCategoryDialog
+    // prevents that default, but Radix's FocusScope teardown still blurs
+    // whatever is focused as part of unmounting the dialog, in the same tick.
+    // Deferred one macrotask so this call is the one that lands last.
+    setTimeout(() => newCategoryButtonRef.current?.focus(), 0)
   }
 
   return (
@@ -97,7 +115,13 @@ export function CategoriesScreen() {
           </p>
         </div>
 
-        <Button type="button" size="default" data-testid="category-new" onClick={openCreate}>
+        <Button
+          ref={newCategoryButtonRef}
+          type="button"
+          size="default"
+          data-testid="category-new"
+          onClick={openCreate}
+        >
           <Plus aria-hidden className="size-icon-sm" />
           {t('new')}
         </Button>
@@ -145,7 +169,7 @@ export function CategoriesScreen() {
       />
 
       <DeleteCategoryDialog
-        categoryName={deleteTarget ? categoryLabel(deleteTarget, defaults) : ''}
+        categoryName={deleteTargetForDisplay ? categoryLabel(deleteTargetForDisplay, defaults) : ''}
         open={deleteTarget !== null}
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null)
