@@ -70,6 +70,45 @@ export function parseCents(input: string): Cents {
 }
 
 /**
+ * Parses free-typed input into Cents, tolerant of either decimal convention
+ * (`1234.56` or `1234,56`) — unlike `parseCents`, which exists for a
+ * machine round-trip and rejects anything that isn't its own canonical
+ * shape. The *last* comma or dot found is treated as the decimal separator
+ * and everything after it kept to two digits; every other one is dropped as
+ * a thousands grouping. Empty or unparseable input is ZERO_CENTS rather
+ * than a throw — a field mid-keystroke should not throw on every partial
+ * value typed into it, and the caller decides what "nothing typed" means.
+ *
+ * ponytail: a fixed "last separator wins" heuristic, not a locale-aware
+ * parse — `"1.234"` reads as 1 real + 23 cents rather than the pt-BR
+ * thousands grouping for 1234. Fine for the common case (digits, at most one
+ * separator) a card's optional limit field actually sees; upgrade to a real
+ * locale-driven parser (`useSettingsStore`'s locale) if a field that takes
+ * grouped input shows up.
+ */
+export function parseAmount(input: string): Cents {
+  const trimmed = input.trim()
+  if (trimmed === '') return ZERO_CENTS
+
+  const negative = trimmed.startsWith('-')
+  const kept = trimmed.replace(/[^0-9.,]/g, '')
+  const lastSeparator = Math.max(kept.lastIndexOf(','), kept.lastIndexOf('.'))
+
+  const wholePart = (lastSeparator === -1 ? kept : kept.slice(0, lastSeparator)).replace(
+    /[.,]/g,
+    '',
+  )
+  const fractionPart = (lastSeparator === -1 ? '' : kept.slice(lastSeparator + 1))
+    .replace(/[.,]/g, '')
+    .slice(0, 2)
+    .padEnd(2, '0')
+
+  const cents = Number.parseInt(wholePart || '0', 10) * 100 + Number.parseInt(fractionPart, 10)
+  if (!Number.isFinite(cents)) return ZERO_CENTS
+  return (negative ? -cents : cents) as Cents
+}
+
+/**
  * Formats Cents into a canonical 2-decimal neutral string (`1234.56` or `-50.25`).
  *
  * This is a machine representation suitable for serialization or round-tripping.

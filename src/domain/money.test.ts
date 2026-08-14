@@ -7,6 +7,7 @@ import {
   formatCents,
   InvalidCentsError,
   isCents,
+  parseAmount,
   parseCents,
   subtract,
   sum,
@@ -97,6 +98,29 @@ describe('parseCents', () => {
     expect(error.name).toBe('InvalidCentsError')
     expect(error.value).toBe('bad-input')
     expect(error.message).toBe('Invalid cents: bad-input')
+  })
+})
+
+describe('parseAmount', () => {
+  it.each([
+    ['1234.56', 123456],
+    ['1234,56', 123456],
+    ['1234', 123400],
+    ['0', 0],
+    ['0.05', 5],
+    ['-1234.56', -123456],
+    ['R$ 5000', 500000],
+    ['  1000,5  ', 100050],
+  ])('parses free-typed input %o to %i cents', (input, expected) => {
+    expect(parseAmount(input)).toBe(expected)
+  })
+
+  it.each(['', '   '])('treats blank input %o as ZERO_CENTS', (input) => {
+    expect(parseAmount(input)).toBe(ZERO_CENTS)
+  })
+
+  it('treats unparseable input as ZERO_CENTS instead of throwing', () => {
+    expect(parseAmount('abc')).toBe(ZERO_CENTS)
   })
 })
 
