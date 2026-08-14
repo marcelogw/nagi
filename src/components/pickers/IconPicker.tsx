@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState, type KeyboardEvent } from 'react'
-import { Search, icons } from 'lucide-react'
+import { Search } from 'lucide-react'
+import { resolveIcon } from '@/lib/resolve-icon'
 
 const GRID_COLUMNS = 8
 
@@ -11,17 +12,6 @@ type IconPickerProps = {
   label: string
   searchPlaceholder: string
   emptyMessage: string
-}
-
-function toPascalCase(kebab: string): string {
-  return kebab
-    .split('-')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join('')
-}
-
-function resolveIcon(name: string) {
-  return icons[toPascalCase(name) as keyof typeof icons]
 }
 
 /**
@@ -39,10 +29,11 @@ export function IconPicker({
   const [query, setQuery] = useState('')
   const gridRef = useRef<HTMLDivElement>(null)
 
-  // Resolved up front, not just filtered by query: a name lucide-react cannot
-  // map to a component (renamed or removed icon) must never count as a match
-  // — it renders nothing, so counting it left the grid open with no buttons
-  // in it, and made the empty state impossible to reach when it was the only
+  // Resolved up front, not just filtered by query: a name `resolveIcon`
+  // cannot map to a component (not in the static registry — renamed,
+  // removed, or simply never added) must never count as a match — it
+  // renders nothing, so counting it left the grid open with no buttons in
+  // it, and made the empty state impossible to reach when it was the only
   // "hit".
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -52,7 +43,9 @@ export function IconPicker({
       .filter((entry): entry is [string, NonNullable<(typeof entry)[1]>] => {
         if (entry[1]) return true
         if (import.meta.env.DEV) {
-          console.warn(`[IconPicker] "${entry[0]}" is not a lucide-react icon name.`)
+          console.warn(
+            `[IconPicker] "${entry[0]}" is not in the icon registry (src/lib/resolve-icon.ts).`,
+          )
         }
         return false
       })

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@/test/render'
 import { IconPicker } from './IconPicker'
 
-const ICONS = ['tag', 'shopping-cart', 'wallet']
+const ICONS = ['tag', 'shopping-cart', 'car']
 
 function renderPicker(value = 'tag', onChange = vi.fn()) {
   return {
@@ -39,9 +39,9 @@ describe('IconPicker', () => {
   it('reports the clicked icon', async () => {
     const { onChange, user } = renderPicker()
 
-    await user.click(screen.getByRole('button', { name: 'wallet' }))
+    await user.click(screen.getByRole('button', { name: 'car' }))
 
-    expect(onChange).toHaveBeenCalledWith('wallet')
+    expect(onChange).toHaveBeenCalledWith('car')
   })
 
   it('filters by the search query', async () => {
@@ -50,7 +50,7 @@ describe('IconPicker', () => {
     await user.type(screen.getByRole('textbox', { name: 'Icon' }), 'cart')
 
     expect(screen.getByRole('button', { name: 'shopping-cart' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'wallet' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'car' })).not.toBeInTheDocument()
   })
 
   it('shows the empty message when nothing matches', async () => {
