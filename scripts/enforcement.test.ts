@@ -520,19 +520,36 @@ describe('style lives in the className, not in a stylesheet', () => {
     },
   )
 
-  it('exempts the two legacy stylesheets, and nothing else', () => {
+  it('exempts nothing today — LEGACY_COMPONENT_STYLESHEETS is empty', () => {
     const rule = RULES.find((r) => r.id === 'no-per-component-stylesheet')!
 
-    expect(LEGACY_COMPONENT_STYLESHEETS.every((file) => rule.exempt?.(file))).toBe(true)
+    expect(LEGACY_COMPONENT_STYLESHEETS).toEqual([])
     expect(rule.exempt?.('src/components/categories/categories.css')).toBe(false)
     expect(rule.exempt?.('src/components/ui/select.css')).toBe(false)
   })
 
+  // The array is empty, not deleted, so the branch that reads it still needs
+  // proof it works — otherwise the day a new legacy stylesheet is genuinely
+  // added back, its exemption is untested until someone notices by hand.
+  // Pushed and popped rather than a fixture on disk: nothing about the
+  // allowlist mechanism needs a real file, only a string it recognises.
+  it('exempts whatever the allowlist names, once it names something', () => {
+    const rule = RULES.find((r) => r.id === 'no-per-component-stylesheet')!
+    const fake = 'src/components/fake/fake.css'
+
+    LEGACY_COMPONENT_STYLESHEETS.push(fake)
+    try {
+      expect(rule.exempt?.(fake)).toBe(true)
+    } finally {
+      LEGACY_COMPONENT_STYLESHEETS.pop()
+    }
+  })
+
   // The allowlist is "this rule does not apply here", and it applies for as long
   // as nobody deletes the line. This is what makes forgetting impossible rather
-  // than unlikely: the moment #132 deletes shell.css, this fails saying the
-  // allowlist names a file that is gone. The list reaching empty is the epic's
-  // exit criterion.
+  // than unlikely: the moment a card deletes its legacy stylesheet, this fails
+  // saying the allowlist names a file that is gone. Currently empty — every
+  // migration that needed it is done.
   it.each(LEGACY_COMPONENT_STYLESHEETS)('still has a %s to excuse', (file) => {
     expect(existsSync(file), `${file} is gone — delete it from LEGACY_COMPONENT_STYLESHEETS`).toBe(
       true,
