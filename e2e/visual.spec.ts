@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 import { expect, test, type Page } from '@playwright/test'
 
 /**
@@ -26,9 +27,11 @@ const VIEWPORTS = [
 async function waitForFontsReady(page: Page) {
   // `font-display: swap` means the first paint can land on the fallback
   // face; without this, whichever run wins the race against the webfont
-  // decides the baseline. A string expression, not a closure: `document`
-  // is a DOM global the Node-side tsconfig covering `e2e/` doesn't carry.
-  await page.evaluate('document.fonts.ready')
+  // decides the baseline. The triple-slash directive above brings in DOM
+  // types for this file alone — the shared Node-side tsconfig covering
+  // `e2e/` doesn't carry them, and `document` here runs in the browser, not
+  // in this file's own Node context.
+  await page.evaluate(() => document.fonts.ready)
 }
 
 for (const viewport of VIEWPORTS) {
