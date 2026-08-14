@@ -23,11 +23,15 @@ export default defineConfig({
     baseURL,
     trace: 'on-first-retry',
   },
-  // 2% tolerance absorbs sub-pixel antialiasing noise between runs without
-  // hiding a real layout shift — a masked/moved element changes far more
-  // than 2% of the shot.
+  // An absolute pixel count, not a ratio: a ratio scales with the target's
+  // size, so the same tolerance that absorbs antialiasing noise on a small
+  // element also hides a disappeared icon on a large one (2% of the nav
+  // rail's ~166k px is over 3k px — several icons' worth). 100px is real
+  // slack for font-hinting drift between the Docker image the baselines were
+  // shot in and CI's Ubuntu runner, and still fails on anything a person
+  // would call a visible change.
   expect: {
-    toHaveScreenshot: { maxDiffPixelRatio: 0.02 },
+    toHaveScreenshot: { maxDiffPixels: 100 },
   },
   projects: [
     {
