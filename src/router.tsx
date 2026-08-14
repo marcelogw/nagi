@@ -5,6 +5,7 @@ import {
   Navigate,
   redirect,
 } from '@tanstack/react-router'
+import { CategoriesScreen } from './components/categories/CategoriesScreen'
 import { currentMonth, isMonth } from './domain/month'
 import { RoutePlaceholder } from './routes/placeholder'
 import { ShellRoute } from './routes/shell'
@@ -69,7 +70,7 @@ const monthRoute = createRoute({
 const categoriesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/categories',
-  component: () => <RoutePlaceholder route="categories" />,
+  component: CategoriesScreen,
 })
 
 const cardsRoute = createRoute({

@@ -1,4 +1,50 @@
 {
+  "categories": {
+    "housing": "Moradia",
+    "utilities": "Contas",
+    "education": "Educação",
+    "subscriptions": "Assinaturas",
+    "groceries": "Mercado",
+    "food": "Alimentação",
+    "transport": "Transporte",
+    "health": "Saúde",
+    "leisure": "Lazer",
+    "electronics": "Eletrônicos",
+    "courses": "Cursos",
+    "other": "Outros",
+    "screen": {
+      "title": "Categorias",
+      "subtitle": "{count, plural, one {# categoria} other {# categorias}}",
+      "new": "Nova categoria"
+    },
+    "row": {
+      "edit": "Editar {name}",
+      "delete": "Excluir {name}",
+      "reorder": "Reordenar {name}"
+    },
+    "form": {
+      "createTitle": "Nova categoria",
+      "editTitle": "Editar categoria",
+      "description": "Escolha um nome, uma cor e um ícone.",
+      "nameLabel": "Nome",
+      "namePlaceholder": "ex.: Mercado",
+      "nameInvalid": "O nome precisa ter ao menos uma letra ou dígito.",
+      "nameTaken": "Já existe uma categoria com este nome.",
+      "colorLabel": "Cor",
+      "iconLabel": "Ícone",
+      "iconSearchPlaceholder": "Buscar ícone…",
+      "iconEmpty": "Nenhum ícone encontrado.",
+      "cancel": "Cancelar",
+      "create": "Criar categoria",
+      "save": "Salvar"
+    },
+    "delete": {
+      "title": "Excluir esta categoria?",
+      "body": "{name} será removida. Os gastos que a usam passam para Outros.",
+      "cancel": "Manter",
+      "confirm": "Excluir"
+    }
+  },
   "nav": {
     "label": "Navegação",
     "dashboard": "Painel",
