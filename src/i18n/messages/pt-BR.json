@@ -1,4 +1,52 @@
 {
+  "cards": {
+    "screen": {
+      "title": "Cartões",
+      "subtitle": "{count, plural, one {# cartão} other {# cartões}}",
+      "activeInstallments": "{count, plural, one {# parcelamento ativo} other {# parcelamentos ativos}}",
+      "new": "Novo cartão"
+    },
+    "row": {
+      "edit": "Editar {name}",
+      "delete": "Excluir {name}",
+      "detail": "Detalhes de {name}",
+      "reorder": "Reordenar {name}"
+    },
+    "usage": {
+      "noLimit": "Sem limite",
+      "used": "{used} / {limit}"
+    },
+    "form": {
+      "createTitle": "Novo cartão",
+      "editTitle": "Editar cartão",
+      "description": "Escolha um nome e uma cor. O limite é opcional.",
+      "nameLabel": "Nome",
+      "namePlaceholder": "ex.: Nubank",
+      "colorLabel": "Cor de identificação",
+      "limitLabel": "Limite",
+      "limitOptionalHint": "opcional",
+      "limitPlaceholder": "Sem limite",
+      "cancel": "Cancelar",
+      "create": "Criar cartão",
+      "save": "Salvar"
+    },
+    "delete": {
+      "title": "Excluir {name}?",
+      "body": "{count, plural, =0 {Este cartão não tem parcelamentos ativos.} one {# parcelamento ativo será movido para o cartão escolhido.} other {# parcelamentos ativos serão movidos para o cartão escolhido.}}",
+      "reassignLabel": "Mover parcelamentos para",
+      "reassignPlaceholder": "Escolha um cartão",
+      "onlyCard": "Adicione outro cartão antes — não há para onde mover os parcelamentos de {name}.",
+      "cancel": "Manter",
+      "confirm": "Excluir"
+    },
+    "detail": {
+      "thisMonth": "Este mês",
+      "activeInstallments": "Parcelamentos ativos",
+      "noActiveInstallments": "Nenhum parcelamento ativo.",
+      "completedInstallments": "Parcelamentos quitados",
+      "endsOn": "Termina em {month}"
+    }
+  },
   "categories": {
     "housing": "Moradia",
     "utilities": "Contas",

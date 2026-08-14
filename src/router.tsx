@@ -5,6 +5,7 @@ import {
   Navigate,
   redirect,
 } from '@tanstack/react-router'
+import { CardsScreen } from './components/cards/CardsScreen'
 import { CategoriesScreen } from './components/categories/CategoriesScreen'
 import { currentMonth, isMonth } from './domain/month'
 import { RoutePlaceholder } from './routes/placeholder'
@@ -76,7 +77,7 @@ const categoriesRoute = createRoute({
 const cardsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/cards',
-  component: () => <RoutePlaceholder route="cards" />,
+  component: CardsScreen,
 })
 
 const goalsRoute = createRoute({
