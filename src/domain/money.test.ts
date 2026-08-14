@@ -1,4 +1,6 @@
+import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
+import { arbitraryLocalCents } from './testing/arbitraries'
 import {
   add,
   type Cents,
@@ -114,5 +116,43 @@ describe('formatCents', () => {
 describe('round-trip parse and format', () => {
   it.each(['1234.56', '0.00', '0.50', '-1234.56'])('round-trips %o cleanly', (canonical) => {
     expect(formatCents(parseCents(canonical))).toBe(canonical)
+  })
+})
+
+// Property-based coverage (fast-check). Hand-written examples above pin known
+// shapes; these attack the space between them. Every arbitrary comes from
+// src/domain/testing/arbitraries.ts — see that file for why an inline
+// fc.integer() here would be the wrong move.
+describe('properties', () => {
+  it('round-trips any Cents through formatCents/parseCents unchanged', () => {
+    fc.assert(
+      fc.property(arbitraryLocalCents(), (cents) => {
+        expect(parseCents(formatCents(cents))).toBe(cents)
+      }),
+    )
+  })
+
+  it('add is commutative', () => {
+    fc.assert(
+      fc.property(arbitraryLocalCents(), arbitraryLocalCents(), (a, b) => {
+        expect(add(a, b)).toBe(add(b, a))
+      }),
+    )
+  })
+
+  it('subtract undoes add', () => {
+    fc.assert(
+      fc.property(arbitraryLocalCents(), arbitraryLocalCents(), (a, b) => {
+        expect(subtract(add(a, b), b)).toBe(a)
+      }),
+    )
+  })
+
+  it('sum agrees with a manual reduce over add, for any list', () => {
+    fc.assert(
+      fc.property(fc.array(arbitraryLocalCents()), (values) => {
+        expect(sum(values)).toBe(values.reduce((acc, v) => add(acc, v), ZERO_CENTS))
+      }),
+    )
   })
 })
