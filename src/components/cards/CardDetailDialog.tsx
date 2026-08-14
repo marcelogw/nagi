@@ -74,6 +74,11 @@ export function CardDetailDialog({
             <p className="m-0 text-body text-foreground-subtle">{t('noActiveInstallments')}</p>
           ) : (
             <ul
+              // `list-none` drops the list role in WebKit's accessibility
+              // tree (a documented Safari/VoiceOver quirk) — role="list"
+              // restores it for a container that is a real list of records,
+              // not decoration.
+              role="list"
               className="m-0 flex list-none flex-col gap-3 p-0"
               data-testid="card-detail-active-list"
             >
@@ -106,6 +111,7 @@ export function CardDetailDialog({
               {t('completedInstallments')}
             </p>
             <ul
+              role="list"
               className="m-0 flex list-none flex-col gap-3 p-0"
               data-testid="card-detail-completed-list"
             >

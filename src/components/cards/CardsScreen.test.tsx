@@ -65,6 +65,22 @@ describe('CardsScreen', () => {
     expect(screen.getByTestId('card-tile-nubank')).toHaveTextContent('Nubank Platinum')
   })
 
+  // Regression: CardFormDialog used to be keyed by the edit target's id,
+  // which forced React to unmount and remount the whole Dialog the instant
+  // it closed (the key falls back to 'new' as soon as formTarget goes
+  // null) — Radix's exit animation never got a chance to run, and its
+  // default close-focus restore lost track of the trigger. The dialog
+  // needs no key at all: its own useEffect already re-seeds from
+  // initialValues on every open transition.
+  it('cancelling an edit restores focus to the edit trigger (default Radix behaviour)', async () => {
+    const { user } = render(<CardsScreen />)
+
+    await user.click(screen.getByTestId('card-edit-nubank'))
+    await user.click(screen.getByTestId('card-form-cancel'))
+
+    await waitFor(() => expect(screen.getByTestId('card-edit-nubank')).toHaveFocus())
+  })
+
   it('deletes a card through the confirm dialog, reassigning installments to the chosen card', async () => {
     const installment: Installment = {
       id: 'i1' as Uuid,

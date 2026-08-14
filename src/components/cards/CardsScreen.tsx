@@ -45,6 +45,19 @@ export function CardsScreen() {
   const [detailTarget, setDetailTarget] = useState<CreditCard | null>(null)
   const newCardButtonRef = useRef<HTMLButtonElement>(null)
 
+  // Radix's own default close-focus restore turned out not to fire
+  // reliably for this Dialog even in a real browser (verified: cancelling
+  // an edit left focus on <body>, not the "Edit" button that opened it) —
+  // captured explicitly instead, at the moment the dialog opens, and
+  // restored on every close path (cancel, Escape, outside click, and a
+  // successful submit, none of which go through the same code path).
+  const formTriggerRef = useRef<HTMLElement | null>(null)
+  function closeForm() {
+    setFormTarget(null)
+    const trigger = formTriggerRef.current
+    setTimeout(() => trigger?.focus(), 0)
+  }
+
   const lastDeleteTargetRef = useRef<CreditCard | null>(null)
   if (deleteTarget) lastDeleteTargetRef.current = deleteTarget
   const deleteTargetForDisplay = deleteTarget ?? lastDeleteTargetRef.current
@@ -53,10 +66,12 @@ export function CardsScreen() {
   const drag = useDragReorder<CardId>(ids, reorderCards)
 
   function openCreate() {
+    formTriggerRef.current = document.activeElement as HTMLElement
     setFormTarget('new')
   }
 
   function openEdit(card: CreditCard) {
+    formTriggerRef.current = document.activeElement as HTMLElement
     setFormTarget(card)
   }
 
@@ -66,7 +81,7 @@ export function CardsScreen() {
     } else if (formTarget) {
       updateCard(formTarget.id, { name: values.name, color: values.color, limit: values.limit })
     }
-    setFormTarget(null)
+    closeForm()
   }
 
   function handleDeleteConfirm(reassignToId: CardId) {
@@ -132,10 +147,9 @@ export function CardsScreen() {
       </div>
 
       <CardFormDialog
-        key={formTarget === 'new' || formTarget === null ? 'new' : formTarget.id}
         open={formTarget !== null}
         onOpenChange={(open) => {
-          if (!open) setFormTarget(null)
+          if (!open) closeForm()
         }}
         mode={formTarget === 'new' || formTarget === null ? 'create' : 'edit'}
         initialValues={
