@@ -1,4 +1,52 @@
 {
+  "cards": {
+    "screen": {
+      "title": "Cards",
+      "subtitle": "{count, plural, one {# card} other {# cards}}",
+      "activeInstallments": "{count, plural, one {# active installment} other {# active installments}}",
+      "new": "New card"
+    },
+    "row": {
+      "edit": "Edit {name}",
+      "delete": "Delete {name}",
+      "detail": "Details of {name}",
+      "reorder": "Reorder {name}"
+    },
+    "usage": {
+      "noLimit": "No limit",
+      "used": "{used} / {limit}"
+    },
+    "form": {
+      "createTitle": "New card",
+      "editTitle": "Edit card",
+      "description": "Pick a name and a colour. A spending limit is optional.",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. Nubank",
+      "colorLabel": "Identifying colour",
+      "limitLabel": "Limit",
+      "limitOptionalHint": "optional",
+      "limitPlaceholder": "No limit",
+      "cancel": "Cancel",
+      "create": "Create card",
+      "save": "Save"
+    },
+    "delete": {
+      "title": "Delete {name}?",
+      "body": "{count, plural, =0 {This card has no active installments.} one {# active installment moves to the card you choose.} other {# active installments move to the card you choose.}}",
+      "reassignLabel": "Move installments to",
+      "reassignPlaceholder": "Choose a card",
+      "onlyCard": "Add another card first — there is nowhere to move {name}'s installments.",
+      "cancel": "Keep it",
+      "confirm": "Delete"
+    },
+    "detail": {
+      "thisMonth": "This month",
+      "activeInstallments": "Active installments",
+      "noActiveInstallments": "No active installments.",
+      "completedInstallments": "Completed installments",
+      "endsOn": "Ends {month}"
+    }
+  },
   "categories": {
     "housing": "Housing",
     "utilities": "Utilities",
