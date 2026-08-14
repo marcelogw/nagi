@@ -19,7 +19,8 @@
     "quality": "npm run lint && npm run lint:patterns && npm run lint:messages && npm run lint:docs && npm run typecheck && npm run format:check",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:mutation": "stryker run"
   },
   "dependencies": {
     "@tanstack/react-router": "^1.170.18",
@@ -37,6 +38,8 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.62.0",
+    "@stryker-mutator/core": "^9.6.1",
+    "@stryker-mutator/vitest-runner": "^9.6.1",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",

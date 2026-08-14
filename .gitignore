@@ -8,6 +8,8 @@ test-results/
 playwright-report/
 blob-report/
 .playwright/
+.stryker-tmp/
+reports/mutation/
 .env
 .env.*
 !.env.example
