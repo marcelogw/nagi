@@ -116,6 +116,39 @@
    our `base` is 14px, Tailwind's is 16px, and nothing in the codebase would
    say which one a `text-base` meant.
 
+   Card #135 measured 61 default utilities still compiling after the two resets
+   above, across --container-*, --font-weight-*, --tracking-*, --leading-*,
+   --radius-*, --shadow-*, --inset-shadow-*, --drop-shadow-*, --text-shadow-*,
+   --ease-*, --animate-*, --blur-*, --perspective-* and --aspect-*. Two kinds,
+   decided per namespace rather than as one block:
+
+   OFF-SCALE — the same axis as a token this system already has, at a step the
+   scale deliberately does not name (font-thin next to our regular/medium/
+   semibold/bold/extrabold, rounded-4xl next to our xs..2xl/full). Reset below,
+   same shape as colour and type: --font-weight-*, --tracking-*, --leading-*,
+   --radius-*, --shadow-*, --ease-*. Every step this codebase actually uses is
+   already re-declared in the @theme inline block that follows — confirmed by
+   grepping every consumer before clearing (`font-normal` was one: real usage
+   in CardFormDialog.tsx, routed through Tailwind's own default rather than
+   --weight-regular; fixed to `font-regular` in the same change that adds this
+   reset, so nothing silently broke).
+
+   UNDEFINED CAPABILITY — an axis the design system has no opinion on at all,
+   not a value drifting off an existing scale: --inset-shadow-*, --drop-shadow-*,
+   --text-shadow-* (shadow *families* distinct from --shadow-*, which the reset
+   above does close), --animate-* (`animate-spin` on a pending state is
+   plausibly a real future need, not a violation), --blur-*, --perspective-*,
+   --aspect-*. Left open on purpose — closing an axis nobody has designed for
+   yet would be inventing a "no" the design system never voted on. Revisit when
+   a screen actually reaches for one.
+
+   --container-* is off-scale by the same logic as the first group, but stays
+   open: `max-w-lg`/`max-w-xs` in src/components/ui/{dialog,alert-dialog}.tsx
+   depend on it, and neither has a Nagi width token to fall back to yet — same
+   reason --color-white and the three size-named --text-* steps survive below.
+   Closing it is real work (a container/width scale the design system does not
+   have today), not a reset.
+
    Spacing is deliberately NOT reset. Tailwind v4 computes the whole scale from
    a single --spacing: 0.25rem, which is exactly our 4px grid (`p-4` =
    calc(0.25rem * 4) = --space-4, verified). Resetting it would also kill the
@@ -125,6 +158,12 @@
 @theme {
   --color-*: initial;
   --text-*: initial;
+  --font-weight-*: initial;
+  --tracking-*: initial;
+  --leading-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --ease-*: initial;
 }
 
 @theme inline {

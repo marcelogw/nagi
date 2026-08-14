@@ -118,7 +118,7 @@ export function CardFormDialog({
               htmlFor="card-limit"
             >
               {t('limitLabel')}{' '}
-              <span className="font-normal text-foreground-subtle">
+              <span className="font-regular text-foreground-subtle">
                 {`(${t('limitOptionalHint')})`}
               </span>
             </label>

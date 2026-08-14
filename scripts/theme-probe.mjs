@@ -253,9 +253,20 @@ export function deriveNeutralised(css, tailwindTheme) {
   // line-anchored pattern of its own. Tailwind's theme.css puts one declaration
   // per line today, so the two agree today — and keeping two answers to one
   // question is how the careful one stops being used.
+  //
+  // Six more joined --color-/--text- in #135: every namespace the reset above
+  // now clears, same prefix each already carries in NAMESPACES — reused rather
+  // than repeated, so a namespace cannot drift between what it means for the
+  // positive side and what it means for the negative one.
   const RESET = [
     ['--color-', 'bg-'],
     ['--text-', 'text-'],
+    ['--font-weight-', 'font-'],
+    ['--tracking-', 'tracking-'],
+    ['--leading-', 'leading-'],
+    ['--radius-', 'rounded-'],
+    ['--shadow-', 'shadow-'],
+    ['--ease-', 'ease-'],
   ]
 
   const cleared = new Set()
@@ -266,12 +277,16 @@ export function deriveNeutralised(css, tailwindTheme) {
     // `--text-shadow-*` is excluded because it is a *different namespace*, not
     // a step of the type scale: `--text-*: initial` does not reach it, and
     // `text-shadow-md` still generates a shadow nothing in this design system
-    // names. It is not alone — 61 off-system utilities survive the reset across
-    // --shadow-*, --blur-*, --animate-*, --container-* and others (measured).
-    // Which namespaces the design system closes is a theme decision, tracked
-    // separately; this probe reports what the reset it can see actually
-    // cleared, and calling text-shadow a regression here would be blaming the
-    // probe's own reading for a gap somewhere else.
+    // names. Card #135 measured 61 such off-system utilities the day it ran;
+    // six of the namespaces it found — --font-weight-*, --tracking-*,
+    // --leading-*, --radius-*, --shadow-* and --ease-* — are closed above and
+    // covered by RESET now. What is left open (--inset-shadow-*,
+    // --drop-shadow-*, --text-shadow-*, --animate-*, --blur-*, --perspective-*,
+    // --aspect-*, --container-*) is a deliberate decision recorded in
+    // globals.css's reset comment, not a gap this probe missed — it reports
+    // what the reset it can see actually cleared, and calling text-shadow a
+    // regression here would be blaming the probe's own reading for a decision
+    // made somewhere else.
     if (base.startsWith('--text-shadow-')) continue
 
     const entry = RESET.find(([namespace]) => base.startsWith(namespace))
