@@ -33,20 +33,21 @@ const PRODUCT = 'src/**/*.{ts,tsx,css}'
 const SPECS = '{src,scripts,e2e}/**/*.{test,spec}.{ts,tsx}'
 
 /**
- * The two component stylesheets that predate the Tailwind decision and are
- * deleted by the cards that migrate their components — shell.css by #132,
- * pickers.css by #133. Listing them is what lets `no-per-component-stylesheet`
- * be true *today* rather than after the migration it exists to police; the
- * epic's order is checks first, precisely so the migrations cannot drift while
- * they are being written.
+ * The component stylesheets that predated the Tailwind decision, one entry per
+ * card that migrated it — shell.css by #132, pickers.css by #133. Listing them
+ * let `no-per-component-stylesheet` be true *while the migration was still in
+ * progress* rather than only after it finished; the epic's order was checks
+ * first, precisely so the migrations could not drift while they were being
+ * written.
  *
  * An allowlist is "the rule does not apply here", and it applies for exactly as
  * long as nobody deletes the line. So the enforcement test asserts each entry
- * still exists on disk: the moment #132 deletes shell.css, `npm run test` fails
- * saying the allowlist names a file that is gone. The list reaching empty is the
- * epic's exit criterion, not a detail someone has to remember.
+ * still exists on disk — each deletion made `npm run test` fail until the line
+ * was dropped in the same commit. Empty now: EPIC-013's exit criterion, kept as
+ * an empty array rather than deleted so a future stylesheet reintroduces itself
+ * here first, not by widening the rule.
  */
-export const LEGACY_COMPONENT_STYLESHEETS = ['src/components/pickers/pickers.css']
+export const LEGACY_COMPONENT_STYLESHEETS = []
 
 /** @typedef {{ id: string, message: string, pattern?: RegExp, forbidsExistence?: (file: string) => boolean, scope?: string, exempt?: (file: string) => boolean }} Rule */
 
