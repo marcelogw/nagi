@@ -344,6 +344,19 @@
 }
 
 /* ============================================================================
+   NUMERIC — tabular figures for money and every other column of digits.
+
+   No Tailwind theme namespace maps to font-feature-settings, and Tailwind's
+   own `tabular-nums` is a different CSS property (font-variant-numeric) that
+   only asks for tabular width — not the lining figures --numeric-features
+   also sets (see tokens/typography.css). One property, one token, one
+   utility, same shape as the DURATIONS block above.
+   ============================================================================ */
+@utility numeric {
+  font-feature-settings: var(--numeric-features);
+}
+
+/* ============================================================================
    THE TWO SHAPES A className CANNOT HOLD.
 
    Both are here rather than in a component stylesheet because they are the
