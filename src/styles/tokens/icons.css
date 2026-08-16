@@ -7,6 +7,9 @@
 
 :root {
   /* Sizes — pair with the type scale so icons align to their label */
+  --icon-2xs: 12px; /* row markers (recurrence, installment) — deliberately
+                       below the scale: a marker repeating on many rows must
+                       read as texture, never compete with the row label */
   --icon-xs: 14px; /* inline with --text-xs, dense chips */
   --icon-sm: 16px; /* inline with body, buttons */
   --icon-md: 18px; /* list rows, default UI */
