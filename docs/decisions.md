@@ -581,9 +581,11 @@ the id resolves. Three targets let the reassignment pick by the deleted
 category's own bucket.
 
 Two things follow, and neither is optional. `reassignCategory` in `ledger-store`
-never touches `incomes` today. And the v1→v2 migration has to map the existing
-`other` onto `other-expense` and seed the other two, or every install that
-already has data fails invariant 4 on load.
+today rewrites expenses and recurrences and nothing else — incomes and savings
+entries both need it the moment they carry a category, or deleting a category
+leaves them pointing at an id that no longer resolves. And the v1→v2 migration
+has to map the existing `other` onto `other-expense` and seed the other two, or
+every install that already has data fails invariant 4 on load.
 
 ### A card expense needs no installment plan
 
