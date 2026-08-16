@@ -270,6 +270,7 @@
   /* Icon sizes pair with the type scale so an icon aligns to its label. They
      are a separate scale from spacing on purpose: --icon-md is 18px, which is
      not on the 4px grid and has no `size-*` equivalent. */
+  --size-icon-2xs: var(--icon-2xs);
   --size-icon-xs: var(--icon-xs);
   --size-icon-sm: var(--icon-sm);
   --size-icon-md: var(--icon-md);
