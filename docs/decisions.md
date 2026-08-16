@@ -390,6 +390,44 @@ becoming `RowAction[]`. The set is still closed and still fixed in order; an
 array's only new capability is letting a caller reorder or substitute, which is
 precisely what closing it prevented.
 
+### `ListRow` has a `dense` variant; density is vertical only
+
+_2026-08-16_
+
+The design system described the same `ListRow` twice, and nothing said which
+one had authority. The approved Visão Mensal anchor drew it at `8px 9px`
+padding, `10px` gap and a `--text-xs` meta line; the component showcase drew it
+at `--space-3` padding, `--space-3` gap and a `--text-base` meta line. Neither
+artefact cited the other, so "follow the anchor" and "follow the showcase" were
+both defensible readings of the same contract.
+
+`dense` names the difference instead of picking a winner. The Visão Mensal is
+denser than the showcase on purpose — it stacks a whole grouped month, where
+the showcase stacks three rows inside a card — so the divergence was a real
+distinction that had never been given a name. Migrating either one onto the
+other loses something true: the anchor is the proof of the whole system and
+would lose its density, and the showcase would have to import four off-grid
+pixel values into the component contract.
+
+**The variant changes the block padding (`--space-2` instead of `--space-3`)
+and the meta size (`--text-xs` instead of `--text-base`), and nothing else.**
+The gap, the icon tile and the title are identical in both, so the text axis
+and the money axis land on the same x either way. That is the constraint that
+keeps this one component rather than two: shared axes are what let two lists
+sit on one screen without disagreeing, so a density knob may buy vertical room
+and may not move a column.
+
+The four off-grid values are gone with it — `9px` and `10px` and the two inner
+gaps snap to `--space-2` / `--space-3` / `--space-1`, and the `1px` gap between
+the title and meta lines is deleted rather than tokenised, because two lines
+with their own line-heights do not need one. The largest change any row sees is
+two pixels.
+
+One consequence worth stating: the anchor artefact already used the word
+`dense` for an unshipped exploration toggle in its own control panel, tighter
+than either variant. That knob is now `compact`, matching the Portuguese label
+it already showed, so the vocabulary means one thing.
+
 ---
 
 ## Open
