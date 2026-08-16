@@ -334,11 +334,15 @@ _2026-08-16_
 
 Tags are read in the entry's info panel. The row shows no tag glyph.
 
-The specification originally put one there, reasoning from the `↻` precedent.
-The precedent argues the other way once read closely: `↻` and `3/12` mark what
-an entry *is*, and the marker is the whole fact. A tag is a membership — one
-glyph cannot say which tag or how many, so it raises a question instead of
-answering one, on a title line that already truncates around two markers.
+The specification originally put one there, reasoning from the `↻` precedent —
+and put it in the `meta` line while claiming to follow a marker that lives on
+the *title* line, so the placement was never coherently specified either way.
+
+Both spots lose, but the placement is the smaller half. The precedent argues
+against the marker at either one: `↻` and `3/12` mark what an entry *is*, and
+the marker is the whole fact. A tag is a membership — one glyph cannot say
+which tag or how many, so wherever it sits it raises a question instead of
+answering one.
 
 The cost is accepted and named: an entry's tags are invisible until the panel
 is opened, and a month cannot be scanned for tagged entries. That scan is the

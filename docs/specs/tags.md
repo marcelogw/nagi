@@ -182,12 +182,20 @@ one links to its analysis view. The row keeps its two title-line markers — the
 recurring `↻` and the installment `3/12` — and gains nothing.
 
 An earlier draft of this spec put a lucide `Tag` glyph on the row, reasoning
-from the `↻` precedent. It was dropped on 2026-08-16. The precedent argues the
-opposite once read closely: `↻` and `3/12` are markers of what an entry *is* —
-its shape does not change, and the marker is the whole fact. A tag is a
-*membership*, and one glyph cannot say which tag or how many, so it buys a
-question rather than an answer. Three markers on a title line that already
-truncates is a real cost paid for that question.
+from the `↻` precedent. It was dropped on 2026-08-16.
+
+That draft was also internally inconsistent: it placed the glyph in the `meta`
+line while claiming to follow `↻` exactly, and `↻` sits on the *title* line. So
+neither placement was ever coherently specified, and both lose on inspection —
+in the `meta` line a glyph is orphaned between `date · category` and the author
+avatar; on the title line it is a third marker on a line that already truncates
+around two.
+
+The placement is the smaller half of it. The precedent argues against the
+marker at either spot once read closely: `↻` and `3/12` are markers of what an
+entry *is* — its shape does not change, and the marker is the whole fact. A tag
+is a *membership*, and one glyph cannot say which tag or how many, so wherever
+it sits it buys a question rather than an answer.
 
 The consequence is accepted, not overlooked: **an entry's tags are invisible
 until the panel is opened.** Scanning a month for tagged entries is not
