@@ -25,8 +25,8 @@ a new catalogue plus a registry entry and changes nothing in this file.
 | recurrence | `recurrence`, `Recurrence` — the rule, stored once |
 | occurrence | one month's row derived from a recurrence. Derived on read, never written ahead |
 | exception | `RecurrenceException` — one month diverging from the rule, or skipped. Pointwise: it says nothing about the next month |
-| close | `closeAt` — set `endMonth`, ending a rule from a month on |
-| split | `splitAt` — close the rule at M−1 and open a new one at M. How "this and future" is stored; history is never rewritten |
+| close | `closeAt(rule, month)` in `domain/recurrence.ts` — sets `endMonth`. An operation, not a field: the stored fact is `endMonth`, and the `At` here reads "at a month", unlike `createdAt`/`completedAt`, which are timestamps |
+| split | `splitAt(rule, month)` — closes the rule at M−1 and opens a new one at M. How "this and future" is stored; history is never rewritten |
 | horizon | `horizon` — the last month the app derives and navigates to |
 | name | `name` — what an entry is. Required on every entry |
 | description | `description` — optional detail on an entry, read in its info panel and by search |
