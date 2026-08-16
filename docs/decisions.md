@@ -598,11 +598,18 @@ part of an installment plan. Without the field that row is unrepresentable, and
 the only way to draw it is to invent a one-month plan — which would then show up
 in every installment total.
 
+It is a reference, so it gets the invariant a reference gets: `cardId`, when
+present, resolves to an existing card. `Installment.cardId` already has exactly
+that check (invariant 6), and an optional field is where a dangling id survives
+an import unnoticed.
+
 ### The horizon is ledger state, not a setting
 
 _2026-08-16 · refines "The future is bounded by a stored horizon"_
 
-The stored horizon lives in `ledger-store` and travels in the snapshot.
+The stored horizon lives in `ledger-store` and travels in the snapshot. **It is
+in no store today** — Phase 3 is where the field first appears, so this decides
+where it is born, not where it moves from.
 
 `settings-store` persists to localStorage and is absent from `buildSnapshot`,
 which reads ledger, catalog and planning. The horizon bounds recurrence
