@@ -126,19 +126,25 @@
    scale deliberately does not name (font-thin next to our regular/medium/
    semibold/bold/extrabold, rounded-4xl next to our xs..2xl/full). Reset below,
    same shape as colour and type: --font-weight-*, --tracking-*, --leading-*,
-   --radius-*, --shadow-*, --ease-*. Every step this codebase actually uses is
-   already re-declared in the @theme inline block that follows — confirmed by
-   grepping every consumer before clearing (`font-normal` was one: real usage
-   in CardFormDialog.tsx, routed through Tailwind's own default rather than
-   --weight-regular; fixed to `font-regular` in the same change that adds this
-   reset, so nothing silently broke).
+   --radius-*, --shadow-*, --ease-*, --animate-*. Every step this codebase
+   actually uses is already re-declared in the @theme inline block that follows
+   — confirmed by grepping every consumer before clearing (`font-normal` was
+   one: real usage in CardFormDialog.tsx, routed through Tailwind's own default
+   rather than --weight-regular; fixed to `font-regular` in the same change that
+   adds this reset, so nothing silently broke).
+
+   --animate-* is in this group and not the next one because the design system
+   does have an opinion on the axis: --animate-content-enter is declared below,
+   and motion.css owns the durations and the curve it is built from. That makes
+   `animate-spin` a step off an axis this system already named — the same
+   relation `ease-in` has to --ease-settle, which is reset one line up. "It
+   might be needed later" is not what separates the two groups; if it were, no
+   namespace would ever close.
 
    UNDEFINED CAPABILITY — an axis the design system has no opinion on at all,
    not a value drifting off an existing scale: --inset-shadow-*, --drop-shadow-*,
    --text-shadow-* (shadow *families* distinct from --shadow-*, which the reset
-   above does close), --animate-* (`animate-spin` on a pending state is
-   plausibly a real future need, not a violation), --blur-*, --perspective-*,
-   --aspect-*. Left open on purpose — closing an axis nobody has designed for
+   above does close), --blur-*, --perspective-*, --aspect-*. Left open on purpose — closing an axis nobody has designed for
    yet would be inventing a "no" the design system never voted on. Revisit when
    a screen actually reaches for one.
 
@@ -164,6 +170,7 @@
   --radius-*: initial;
   --shadow-*: initial;
   --ease-*: initial;
+  --animate-*: initial;
 }
 
 @theme inline {
