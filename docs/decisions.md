@@ -409,13 +409,16 @@ other loses something true: the anchor is the proof of the whole system and
 would lose its density, and the showcase would have to import four off-grid
 pixel values into the component contract.
 
-**The variant changes the block padding (`--space-2` instead of `--space-3`)
-and the meta size (`--text-xs` instead of `--text-base`), and nothing else.**
-The gap, the icon tile and the title are identical in both, so the text axis
-and the money axis land on the same x either way. That is the constraint that
-keeps this one component rather than two: shared axes are what let two lists
-sit on one screen without disagreeing, so a density knob may buy vertical room
-and may not move a column.
+**The two differ in rhythm and inset, never in proportion.** `dense` drops the
+block padding to `--space-2`, the meta line to `--text-xs`, and insets the row
+on all sides so its rounded hover fill has room to sit; the default keeps
+`--space-3` vertically, sits flush to its container, and is separated by a rule
+instead of by a fill. The icon tile, the gap and the title size are identical
+in both, which is the constraint that keeps this one component rather than two:
+a row has to read as the same row in either treatment. Within one list every
+row shares the text and money axes; across two lists those axes belong to the
+container, not to this prop. A variant that changed the tile or the gap would
+be a second component, not a density.
 
 The four off-grid values are gone with it — `9px` and `10px` and the two inner
 gaps snap to `--space-2` / `--space-3` / `--space-1`, and the `1px` gap between
