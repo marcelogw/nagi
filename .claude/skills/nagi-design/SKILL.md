@@ -40,11 +40,22 @@ create, edit, contribution, reached state); the <960px layout, where the nav
 rail becomes a tab bar and columns stack; the data-status states — local,
 synced, syncing, offline-queued, conflict; the brand assets.
 
+**The entry overlay is designed; its recurrence controls are not.** "Novo
+lançamento" is drawn complete in `components/overlays/overlays.card.html` —
+Modal above 960px, Sheet below, a three-segment type control (Entrada · Despesa
+· Guardou), Valor, Categoria, Data, Descrição, and a "Adicionar detalhes"
+disclosure for card, instalments and note. What it does *not* draw: a repeat
+control, the scope choice on editing a recurring entry ("this month" / "this and
+future"), single ↔ recurring conversion, and any way to make a single-month
+exception. The ↻ on a row is the indicator for a rule that already exists. Those
+four are undefined — the rule below applies to them.
+
 **Components specified.** Button and IconButton · Input, Select, DatePicker,
-CategorySelect, TagInput · Card, Badge, ProgressBar, MoneyText, ListRow, Avatar
-and AvatarGroup · the four charts (monthly bars, category donut, balance
-sparkline, ranked bars) · Modal, Sheet, ConfirmDialog, Toast with undo ·
-AppShell, NavRail, TabBar, AppHeader, NagiMark · EmptyState, Skeleton.
+CategorySelect, TagInput, SegmentedControl · Card, Badge, ProgressBar,
+MoneyText, ListRow, Avatar and AvatarGroup · the four charts (monthly bars,
+category donut, balance sparkline, ranked bars) · Modal, Sheet, ConfirmDialog,
+Toast with undo · AppShell, NavRail, TabBar, AppHeader, NagiMark · EmptyState,
+Skeleton.
 
 **Navigation is a tree, not a list.** A `NavItem` may carry `children`, which
 makes it a grouping and not a destination — no route, and `active` is always a
