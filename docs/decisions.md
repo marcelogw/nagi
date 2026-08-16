@@ -428,6 +428,98 @@ One consequence worth stating: the anchor artefact already used the word
 than either variant. That knob is now `compact`, matching the Portuguese label
 it already showed, so the vocabulary means one thing.
 
+### The tag input keeps its chips outside the field, and creates on an exact miss
+
+_2026-08-16_
+
+`TagInput` is the one place a tag is attached to an entry or brought into
+existence. Almost none of it is new: the suggestion menu is the `Select` menu
+unchanged, filtering a set as you type is the category dialog's icon picker,
+rejection is `Input`'s own `invalid` and `hint`, and a chip is `Badge` with a
+new `onRemove`. Three things were genuinely missing, and only those three are
+decided here.
+
+**The attached tags render below the field, not inside it.** A token field
+changes height as the user types, which no other field in this product does,
+and it would fork `Input` — a single `<input>` by contract. Below the field the
+chips wrap freely, the field stays one calm line, and each remove target is a
+real button instead of a glyph wedged into a text field, which is also the only
+version that works on touch. Backspace on an empty query still removes the last
+chip: that accelerator never depended on where the chips were drawn.
+
+**The create row appears on an exact-slug miss, not on "no results".**
+Filtering is a substring match; creating is an exact miss. Typing `viagem`
+while only `viagem-japao` exists shows that match *and* offers to create
+`viagem`. Tying the row to "nothing matched" would make every tag that is a
+prefix of another one uncreatable, which is a dead end the user cannot even see
+the shape of. It still cannot produce a duplicate — the row hides precisely
+when the slug is taken — and that was the whole point of the original rule.
+The row is always last: above a match it would be the highlighted default, and
+attaching an existing tag is the common act.
+
+**The live slug preview lives in the create row's trailing slot** — the place
+the `Select` menu already reserves for a trailing fact. It is on screen exactly
+while a new tag is being made, which is the only moment normalisation can
+surprise anyone, and when the text resolves to a tag that exists the matched
+row says the same thing by showing that tag. A permanent hint line under the
+field would restate the menu and shift the layout on every keystroke.
+
+Only Enter and a click commit. Space never does: `viagem japao` normalises to a
+single slug on purpose, so a committing space would make the two-word tag
+unreachable from the keyboard.
+
+`Badge.onRemove` is where the chip lives rather than a new component, on the
+same rule `ListRow` follows: the caller supplies the handler, the component
+owns the affordance. That is what keeps one remove control across every screen.
+Its hit area reaches the 44px touch floor through an overlay rather than by
+sizing the chip — six tags at 44px tall would shout on a form meant to stay
+calm. Removing is not deleting, so the control is neutral and confirms nothing;
+deleting the tag itself is a different act on a different screen, in danger
+tone and behind a confirmation.
+
+### Catalogue is a grouping, and it needed no new screen
+
+_2026-08-16_
+
+`Categories`, `Cards` and `Tags` sit behind one **Catalogue** grouping. It has
+no route, nothing navigates to it, and the active destination is always one of
+the three leaves.
+
+The forcing function was the tab bar: five items is the documented ceiling in
+both major mobile guidelines, and tags is the sixth destination. Grouping beats
+squeezing because the three really are one kind of thing — reference data the
+user maintains, and all three are expected to gain the analysis treatment tags
+get — so the grouping will not have to be reopened when they do.
+
+**What made it closeable is that neither half was new.** `NavRail` has drawn an
+overline section label since it was written; it simply had one section, so a
+group is a second one rather than a new component. `TabBar` has always carried
+the rule "4–5 items max, overflow the rest into one destination"; this uses it
+instead of reinventing it. The obvious alternative — a Catalogue hub screen
+listing three sub-destinations — would have been an invented screen and a row
+type the system does not have, and it would have had to stay blocked.
+
+**The rail shows the three inline; the tab bar puts them one tap away.** A
+vertical rail has no ceiling, so hiding the children behind a click there would
+buy a navigation step to solve a problem desktop does not have. The bar opens a
+`Sheet side="bottom"` listing the same nav items the rail draws — one
+component, two hosts, so the sheet invents no row either. Both navs therefore
+present one tree, and this is the only place they are allowed to differ.
+Collapsed at 64px a group label becomes a `--border` rule: the grouping
+survives, its name does not.
+
+The name matters. "Catalogue" says what is inside; a generic "Mais" says only
+that something did not fit, which is what turns an overflow bucket into a junk
+drawer.
+
+**One consequence, decided with it: tags' glyph is `Hash`, not `Tag`.**
+Categorias is `Tags` and tags was `Tag` — an assignment that only ever had to
+avoid a collision. Grouping put the two one item apart inside the same section,
+where the silhouettes are the same shape at `--icon-md`, and the collapsed rail
+keeps no label to separate them. `Hash` is the hashtag convention this
+feature's normalisation is already argued from, so it says the right thing
+rather than merely differing from its neighbour.
+
 ---
 
 ## Open
