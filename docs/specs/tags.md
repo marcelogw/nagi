@@ -177,18 +177,25 @@ kind of thing, and the grouping does not have to be reopened when they do.
 
 ## Where a tag is visible
 
-On the monthly row, a tag is indicated and not listed: a lucide `Tag` glyph in
-the `meta` line, `--foreground-subtle`. This follows the recurring `↻` marker
-exactly — the design system already reasons that a marker repeating across many
-rows can never be the screen's single accent. Never coral; the coral list is
-closed and does not include this.
+**Not on the monthly row.** A tag is read in the entry's info panel, where each
+one links to its analysis view. The row keeps its two title-line markers — the
+recurring `↻` and the installment `3/12` — and gains nothing.
 
-Use `Tag`, singular — `Tags` is the categories icon.
+An earlier draft of this spec put a lucide `Tag` glyph on the row, reasoning
+from the `↻` precedent. It was dropped on 2026-08-16. The precedent argues the
+opposite once read closely: `↻` and `3/12` are markers of what an entry *is* —
+its shape does not change, and the marker is the whole fact. A tag is a
+*membership*, and one glyph cannot say which tag or how many, so it buys a
+question rather than an answer. Three markers on a title line that already
+truncates is a real cost paid for that question.
 
-The indicator is deliberately minimal rather than a set of chips. `ListRow` is
-approved design and its `meta` line is already *date · category*; chips would
-rewrite the anchor screen's row. The full tag set is read in the entry's info
-panel, where each tag links to its analysis view.
+The consequence is accepted, not overlooked: **an entry's tags are invisible
+until the panel is opened.** Scanning a month for tagged entries is not
+possible; that job belongs to the tag's analysis view, which does it better.
+Reversible — the marker is one prop on `ListRow` if use shows the gap hurts.
+
+Where a tag *is* rendered — the panel, the analysis view, the input — use `Tag`,
+singular. `Tags` is the categories icon.
 
 **Recorded as a consequence, not an oversight:** with no search affordance in
 the shell, finding an old untagged entry means going through Catalogue. That was
@@ -213,21 +220,29 @@ adding the affordance later is one prop. Revisit if use shows it hurts.
 
 ## What the design has to define first
 
-None of these exists in the design system. Each is a contract extension rather
-than a new screen, but none is the implementer's call.
+Each is a contract extension rather than a new screen, but none is the
+implementer's call.
 
-1. **A trailing-edge action slot on `ListRow`.** The rule exists — actions
-   reveal on the trailing edge and never displace the money axis — but
-   `ListRowProps` has no slot for them.
-2. **The info panel.** Shows description, `createdAt`, the entry's date, its
+1. **The info panel.** Shows description, `createdAt`, the entry's date, its
    tags, and later its author. `Sheet` is specified and is the likely host; no
-   `Popover` exists in the system.
+   `Popover` exists in the system. **Load-bearing since 2026-08-16:** with no
+   row marker, this panel is the only place a tag exists — see "Where a tag is
+   visible".
+2. **What opens the info panel.** Undefined, and the row's trailing edge is
+   already spent on edit and delete. Tapping the row body is the obvious
+   candidate and is exactly the kind of obvious that gets assumed instead of
+   decided. Raised by dropping the row marker.
 3. **The tag input.** Filter-as-you-type over existing tags, create-on-miss, and
    the live slug preview. No component covers this.
-4. **The row indicator.** The `↻` treatment is the precedent; the exact glyph and
-   placement are the design's call.
-5. **The Catalogue destination.** A new nav grouping, and both `NavRail` and
+4. **The Catalogue destination.** A new nav grouping, and both `NavRail` and
    `TabBar` are approved and built.
+
+**Closed 2026-08-16.** The trailing-edge action slot on `ListRow` was never a
+design gap: the approved Visão Mensal anchor already defines the actions, and
+`foundations/layout-row-actions.html` the reveal. Only `ListRowProps` was
+behind, and by three things rather than one — the actions, the `↻` marker and
+the `3/12` badge. The contract now carries all three (`onEdit`/`onDelete`,
+`recurring`, `installment`). The row indicator was closed by dropping it.
 
 ## Related
 
