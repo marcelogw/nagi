@@ -353,6 +353,38 @@ This makes the info panel load-bearing, and raises the question of what opens
 it. That is now an open design blocker on `docs/specs/tags.md`, not an
 implementer's judgement call.
 
+### The info panel is a Modal, opened by a third trailing action
+
+_2026-08-16_
+
+An entry's info panel is a centered `Modal` on desktop and `Sheet side="bottom"`
+below 960px, opened by an `info` action that leads the row's trailing set:
+`info` → `square-pen` → `trash-2`.
+
+Neither half is new. `Sheet.prompt.md` already documents that pairing for the
+"Novo lançamento" flow, and the card-detail overlay is already a `Modal`; the
+Cartões card head already carries that exact action triple, which is where the
+system answered "how does a user open an entity's detail view". Both answers
+existed and had simply never been pointed at this screen. Introducing a
+`Popover` to host the panel, or a row-body tap to open it, would each give one
+product a second idiom for a job it had already settled.
+
+The row-body tap also fails on its own terms: the trailing buttons are in the
+DOM on desktop, so a row that is itself a button nests interactive elements —
+invalid, and it leaves a screen reader unable to announce any of the three.
+
+On touch the three actions ride the existing swipe at 56px each, revealed by
+the gesture. They are deliberately not always-visible at 44px, which is what
+the Cartões grid does under `@media (hover:none)`: three permanent targets are
+132px that displace the money axis, and not displacing it is the rule the row
+actions exist under. A card has no axis on that edge; a row does.
+
+**This exercises the upgrade path named on 2026-08-16 and declines it.** The
+third action arrived, and the contract stays three named props rather than
+becoming `RowAction[]`. The set is still closed and still fixed in order; an
+array's only new capability is letting a caller reorder or substitute, which is
+precisely what closing it prevented.
+
 ---
 
 ## Open
