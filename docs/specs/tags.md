@@ -60,16 +60,24 @@ Separators are **not** folded: `viagem-japao` and `viagem japao` both become
 - **Longer than 50 characters** — reject. Matches GitHub topics; generous
   enough that no real tag meets it and small enough that no chip breaks.
 
-The input shows the resulting slug live as the user types. Aggressive
+The input shows the resulting slug live, in the create row's trailing slot —
+on screen exactly while a new tag is being made, which is the only moment
+normalisation can surprise anyone. When the text resolves to a tag that already
+exists, the matched row says the same thing by showing that tag. Aggressive
 normalisation is honest when the user watches it happen and surprising when
 they do not.
 
 ## Lifecycle
 
 **Create.** Only where creating is the literal intent — the tag management
-screen. On an entry, typing filters the existing tags and "create new" appears
-only when no slug matches. A duplicate is therefore impossible on the path
-users are actually on, rather than an error they have to read.
+screen. On an entry, typing filters the existing tags and a "create" row
+appears whenever **the typed slug does not already exist** — which is not the
+same as "nothing matched". Filtering is a substring match; creating is an
+exact-slug miss. Typing `viagem` while only `viagem-japao` exists shows that
+match *and* offers `viagem`, because otherwise every tag that is a prefix of
+another one would be uncreatable. A duplicate is still impossible on the path
+users are actually on — the row hides precisely when the slug is taken — rather
+than an error they have to read.
 
 **Rename.** Not supported. Renaming into a name that already exists is a merge,
 merging is a data rewrite, and neither has a use case yet that beats the cost of
@@ -175,6 +183,19 @@ the right one rather than a workaround: categories and cards are expected to
 gain the same analysis treatment tags get, so all three end up being the same
 kind of thing, and the grouping does not have to be reopened when they do.
 
+**Catalogue is a grouping, not a destination.** It has no route, nothing
+navigates to it, and the active destination is always one of the three leaves.
+`NavRail` draws it as a second overline section — the label it has always put
+above "Navegação" — and shows all three inline, because a vertical rail has no
+ceiling and hiding them behind a click there would buy a navigation step to
+solve a problem only the tab bar has. `TabBar` renders it as one tab that opens
+a `Sheet side="bottom"` listing the same nav items, and reads active whenever
+one of them is current. Same tree in both; one affordance apart.
+
+This is the overflow rule `TabBar` already carried, used rather than
+reinvented. What is new is the name: "Catalogue" says what is inside where a
+generic "Mais" says only that something did not fit.
+
 ## Where a tag is visible
 
 **Not on the monthly row.** A tag is read in the entry's info panel, where each
@@ -202,8 +223,13 @@ until the panel is opened.** Scanning a month for tagged entries is not
 possible; that job belongs to the tag's analysis view, which does it better.
 Reversible — the marker is one prop on `ListRow` if use shows the gap hurts.
 
-Where a tag *is* rendered — the panel, the analysis view, the input — use `Tag`,
-singular. `Tags` is the categories icon.
+Where a tag *is* rendered — the panel, the analysis view, the input — use
+`Hash`. `Tags` is the categories icon, and `Tag` singular was the original
+answer here: it avoided the collision but not the resemblance. Grouping put the
+two destinations one item apart inside Catalogue, where the silhouettes are the
+same shape and the collapsed rail keeps no label to separate them. `Hash` is
+the convention the normalisation rules above are already argued from, so it
+says the right thing rather than merely differing.
 
 **Recorded as a consequence, not an oversight:** with no search affordance in
 the shell, finding an old untagged entry means going through Catalogue. That was
@@ -252,6 +278,33 @@ stays intact until the user asks; permanent, it is displaced all the time, and
 not displacing it is the whole rule. A card has no axis on that edge; a row
 does.
 
+## The tag input
+
+The one place a tag is attached to an entry or brought into existence. Field on
+top, suggestion menu under it, the tags already attached as removable chips
+below. Specified in `TagInput` in the design system; the rules it enforces are
+the ones above.
+
+Almost none of it was new. The menu is the `Select` menu unchanged, filtering a
+set as you type is the icon picker in the category dialog, rejection is
+`Input`'s own `invalid` and `hint`, and a chip is `Badge` with `onRemove`.
+Three things were missing, and they are what the artefact decides:
+
+- **The chips sit below the field, not inside it.** A token field changes height
+  while you type, which no other field in this product does, and it would fork
+  `Input` — a single `<input>` by contract. Backspace on an empty query still
+  removes the last chip; that accelerator never depended on where the chips were
+  drawn.
+- **The create row and its trigger** — the exact-slug miss described under
+  Lifecycle, always last in the menu, because a create row above a match would
+  be the highlighted default and attaching an existing tag is the common act.
+- **The live slug preview** — the create row's trailing slot, described under
+  Normalisation.
+
+Only Enter and a click commit. Space never does: `viagem japao` normalises to
+one slug on purpose, and a committing space would make the two-word tag
+unreachable from the keyboard.
+
 ## Deliberately out
 
 - **Colour on a tag** — plausible later, and `Tag` is an entity partly so it can
@@ -266,28 +319,29 @@ does.
 - **A command palette (⌘K)** — the best desktop pattern for this, and not in the
   design system. Candidate for later, not for now.
 
-## What the design has to define first
+## What the design had to define first
 
-Each is a contract extension rather than a new screen, but none is the
-implementer's call.
+**All five are closed.** Each was a contract extension rather than a new screen,
+and none was the implementer's call.
 
-1. **The tag input.** Filter-as-you-type over existing tags, create-on-miss, and
-   the live slug preview. No component covers this.
-2. **The Catalogue destination.** A new nav grouping, and both `NavRail` and
-   `TabBar` are approved and built.
+Three closed on 2026-08-16 by reading the artefacts rather than deciding
+anything. The trailing-edge action slot was never a gap — the approved Visão
+Mensal anchor already defined the actions and `foundations/layout-row-actions.html`
+the reveal; only `ListRowProps` was behind. The row indicator was closed by
+dropping it. The info panel and its trigger were closed together, and cost
+nothing new: both the `Modal`/`Sheet` pairing and the `info` affordance already
+existed in approved artefacts and had simply never been pointed at this screen.
 
-**Closed 2026-08-16.** Three of the original five.
+The last two closed the same day, and needed real drawing rather than a lookup:
 
-The trailing-edge action slot on `ListRow` was never a design gap: the approved
-Visão Mensal anchor already defines the actions, and
-`foundations/layout-row-actions.html` the reveal. Only `ListRowProps` was
-behind, and by three things rather than one — the actions, the `↻` marker and
-the `3/12` badge. The contract now carries all of them.
+1. **The tag input** — `TagInput`, above.
+2. **The Catalogue destination** — a grouping in `NavRail` and `TabBar`, under
+   Navigation. It needed no new screen and no new row, which is the reason it
+   could close at all: a hub screen listing three sub-destinations would have
+   been an invented screen, and the rail's overline plus the tab bar's
+   documented overflow rule already answered it between them.
 
-The row indicator was closed by dropping it. The info panel and its trigger
-were closed together — see "The entry info panel" above — and closing them cost
-nothing new: both the host pairing and the `info` affordance already existed in
-approved artefacts, they had simply never been pointed at this screen.
+Both are recorded in [`../decisions.md`](../decisions.md).
 
 ## Related
 
