@@ -41,10 +41,18 @@ rail becomes a tab bar and columns stack; the data-status states — local,
 synced, syncing, offline-queued, conflict; the brand assets.
 
 **Components specified.** Button and IconButton · Input, Select, DatePicker,
-CategorySelect · Card, Badge, ProgressBar, MoneyText, ListRow, Avatar and
-AvatarGroup · the four charts (monthly bars, category donut, balance sparkline,
-ranked bars) · Modal, Sheet, ConfirmDialog, Toast with undo · AppShell, NavRail,
-TabBar, AppHeader, NagiMark · EmptyState, Skeleton.
+CategorySelect, TagInput · Card, Badge, ProgressBar, MoneyText, ListRow, Avatar
+and AvatarGroup · the four charts (monthly bars, category donut, balance
+sparkline, ranked bars) · Modal, Sheet, ConfirmDialog, Toast with undo ·
+AppShell, NavRail, TabBar, AppHeader, NagiMark · EmptyState, Skeleton.
+
+**Navigation is a tree, not a list.** A `NavItem` may carry `children`, which
+makes it a grouping and not a destination — no route, and `active` is always a
+leaf. `NavRail` draws a group as a second overline section and shows its
+children inline; `TabBar` renders it as one tab opening a bottom `Sheet` with
+the same nav items. Catalogue (Categories · Cards · Tags) is the one group
+today. There is no hub screen and none is designed: a screen listing
+sub-destinations would be an invented screen.
 
 **Not designed — stop and ask.** Landing, login, onboarding, the profile and
 settings screen, and any reports or trends view beyond the dashboard. A
@@ -213,8 +221,11 @@ illustrative SVG anywhere in the interface.
   with a visible `--ring` on focus; text actions to a light `--primary-tint`.
 - **Row actions reveal on the trailing edge** and never push content or shift the
   money axis — the row is identical with and without them. Hover on desktop,
-  swipe on mobile, an overflow menu as the universal fallback. Order is
-  Edit → Duplicate → Delete. Touch targets are ≥40px, ≥44px on mobile.
+  swipe on mobile, an overflow menu as the universal fallback. The set is closed
+  and ordered: **Info → Edit → Delete**, the Cartões card head exactly, which is
+  where the system answered "how does a user open an entity's detail view".
+  There is no Duplicate. Touch targets are ≥40px, ≥44px on mobile, and the three
+  ride the swipe at 44px each.
 - **Delete always confirms** — a dialog or an undo. Never destructive on first
   tap.
 - Text sized by content, never fixed widths: translations run 15–30% longer than
