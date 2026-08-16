@@ -19,6 +19,7 @@ a new catalogue plus a registry entry and changes nothing in this file.
 | credit card | `creditCard`, `CreditCard` |
 | category | `category`, `Category` — the *kind* of an operation, single-valued, mandatory |
 | tag | `tag`, `Tag` — the *context* of an operation, multi-valued, optional, user-created |
+| catalogue | `catalogue` — the nav grouping over category, credit card and tag. A grouping, not a destination: no route, and the active destination is always one of its three leaves |
 | horizon | `horizon` — the last month the app derives and navigates to |
 | name | `name` — what an entry is. Required on every entry |
 | description | `description` — optional detail on an entry, read in its info panel and by search |
@@ -60,6 +61,7 @@ is not a translation table and does not grow when the app gains a language.
 | Parcelamento | installment plan |
 | Cartão | credit card |
 | Categoria | category |
+| Catálogo | catalogue |
 | Visão Mensal | monthly view |
 | Painel | dashboard |
 | Perfil | profile |
