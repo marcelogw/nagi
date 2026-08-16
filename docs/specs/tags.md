@@ -240,12 +240,17 @@ would give one product two idioms for one job. The row-body tap also cannot be
 made accessible on desktop: the trailing buttons are in the DOM, so a row that
 is itself a button nests interactive elements.
 
-On touch the three ride the existing swipe, at 56px each — 168px revealed by the
-gesture, with the money axis intact until then. They are deliberately *not*
-always-visible at 44px, which is what the Cartões grid does under
-`@media (hover:none)`: three permanent 44px targets are 132px that displace the
-money axis, and not displacing it is the whole rule. A card has no axis on that
-edge; a row does.
+On touch the three ride the existing swipe at **44px each** — the system's
+touch-target floor, the same one the `TabBar` uses, not the 56px the foundation
+used when there were two. Three generous targets eat the line the user needs in
+order to know which row they are acting on.
+
+That is 132px revealed by the gesture, and the same 132px is what the Cartões
+grid puts on screen permanently under `@media (hover:none)`. The identical
+number is what makes the difference exact: revealed on demand, the money axis
+stays intact until the user asks; permanent, it is displaced all the time, and
+not displacing it is the whole rule. A card has no axis on that edge; a row
+does.
 
 ## Deliberately out
 
