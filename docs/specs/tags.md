@@ -212,6 +212,41 @@ carries title, month selector and the screen's one primary action, and a search
 icon next to it reads as clutter on a screen about the month. It is reversible:
 adding the affordance later is one prop. Revisit if use shows it hurts.
 
+## The entry info panel
+
+The only place an entry's tags are visible, so it carries the feature rather
+than decorating it.
+
+**Content**, in order: the entry's name as the title; its description; its date;
+its category; `createdAt`; its tags, each one a link to that tag's analysis
+view. Authorship joins the list when multi-user lands — the panel is where it
+goes, and it is backfillable.
+
+Read-only. It shows an entry, it does not edit one — editing already has its own
+trailing action, and a panel that sometimes edits is a second entry form nobody
+specified.
+
+**Host:** a centered `Modal` on desktop, `Sheet side="bottom"` below 960px. That
+pairing is not a new decision — `Sheet.prompt.md` already documents it for the
+"Novo lançamento" flow, and the card-detail overlay is already a `Modal`. No
+`Popover` is involved; none exists in the system, and inventing one to host this
+would be a third overlay idiom for the same job.
+
+**Opened by** a trailing `info` action on the row, first in the set:
+`info` → `square-pen` → `trash-2`. This is the Cartões card head exactly
+(`ui-kit/cartoes.card.html`) — the system had already answered "how does a user
+open an entity's detail view", and answering it a second way with a row-body tap
+would give one product two idioms for one job. The row-body tap also cannot be
+made accessible on desktop: the trailing buttons are in the DOM, so a row that
+is itself a button nests interactive elements.
+
+On touch the three ride the existing swipe, at 56px each — 168px revealed by the
+gesture, with the money axis intact until then. They are deliberately *not*
+always-visible at 44px, which is what the Cartões grid does under
+`@media (hover:none)`: three permanent 44px targets are 132px that displace the
+money axis, and not displacing it is the whole rule. A card has no axis on that
+edge; a row does.
+
 ## Deliberately out
 
 - **Colour on a tag** — plausible later, and `Tag` is an entity partly so it can
@@ -231,26 +266,23 @@ adding the affordance later is one prop. Revisit if use shows it hurts.
 Each is a contract extension rather than a new screen, but none is the
 implementer's call.
 
-1. **The info panel.** Shows description, `createdAt`, the entry's date, its
-   tags, and later its author. `Sheet` is specified and is the likely host; no
-   `Popover` exists in the system. **Load-bearing since 2026-08-16:** with no
-   row marker, this panel is the only place a tag exists — see "Where a tag is
-   visible".
-2. **What opens the info panel.** Undefined, and the row's trailing edge is
-   already spent on edit and delete. Tapping the row body is the obvious
-   candidate and is exactly the kind of obvious that gets assumed instead of
-   decided. Raised by dropping the row marker.
-3. **The tag input.** Filter-as-you-type over existing tags, create-on-miss, and
+1. **The tag input.** Filter-as-you-type over existing tags, create-on-miss, and
    the live slug preview. No component covers this.
-4. **The Catalogue destination.** A new nav grouping, and both `NavRail` and
+2. **The Catalogue destination.** A new nav grouping, and both `NavRail` and
    `TabBar` are approved and built.
 
-**Closed 2026-08-16.** The trailing-edge action slot on `ListRow` was never a
-design gap: the approved Visão Mensal anchor already defines the actions, and
+**Closed 2026-08-16.** Three of the original five.
+
+The trailing-edge action slot on `ListRow` was never a design gap: the approved
+Visão Mensal anchor already defines the actions, and
 `foundations/layout-row-actions.html` the reveal. Only `ListRowProps` was
 behind, and by three things rather than one — the actions, the `↻` marker and
-the `3/12` badge. The contract now carries all three (`onEdit`/`onDelete`,
-`recurring`, `installment`). The row indicator was closed by dropping it.
+the `3/12` badge. The contract now carries all of them.
+
+The row indicator was closed by dropping it. The info panel and its trigger
+were closed together — see "The entry info panel" above — and closing them cost
+nothing new: both the host pairing and the `info` affordance already existed in
+approved artefacts, they had simply never been pointed at this screen.
 
 ## Related
 
