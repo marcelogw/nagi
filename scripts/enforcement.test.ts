@@ -5,7 +5,7 @@ import { dirname, join, resolve } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { LEGACY_COMPONENT_STYLESHEETS, RULES, check } from './check-patterns.mjs'
 import { check as checkMessages } from './check-messages.mjs'
-import { compileTheme, deriveDeclared, probeTheme, ruleFor } from './theme-probe.mjs'
+import { compileTheme, deriveDeclared, deriveReset, probeTheme, ruleFor } from './theme-probe.mjs'
 
 /**
  * Proof that the enforcement fires.
@@ -727,6 +727,44 @@ describe('the theme still generates what it declares (BUG-001)', () => {
       const css = await compileFixture('dropped', healthy.replace(/\s*--color-brand.*/, ''))
 
       expect(ruleFor(css, 'bg-brand')).toBeUndefined()
+    })
+  })
+
+  // The negative list is derived from the reset itself for the same reason the
+  // positive one is derived from the theme: a hand-kept copy of the namespaces
+  // goes stale silently, and a probe covering less than it reports is the one
+  // failure mode this file exists to prevent.
+  describe('and the namespaces it reports as cleared come from the reset', () => {
+    it('reads the namespaces the reset actually clears', () => {
+      expect(deriveReset(`@theme {\n  --radius-*: initial;\n  --ease-*: initial;\n}\n`)).toEqual([
+        ['--radius-', 'rounded-'],
+        ['--ease-', 'ease-'],
+      ])
+    })
+
+    // Shortest-first would let `--font-*` claim every weight and report
+    // `font-semibold` as cleared while it still generates.
+    it('puts the longer namespace first', () => {
+      expect(
+        deriveReset(`@theme {\n  --font-*: initial;\n  --font-weight-*: initial;\n}\n`).map(
+          ([namespace]) => namespace,
+        ),
+      ).toEqual(['--font-weight-', '--font-'])
+    })
+
+    // Clearing a namespace the probe has no prefix for would drop it from the
+    // negative list in silence — every utility on that axis stops existing and
+    // nothing asserts it. Same rule as UNPROBED on the positive side: "not
+    // listed" has to mean "covered elsewhere", never "not thought about".
+    it('refuses a namespace it has no utility prefix for', () => {
+      expect(() => deriveReset(`@theme {\n  --blur-*: initial;\n}\n`)).toThrow(/--blur-/)
+    })
+
+    // A reset is not a token. Reading both with one pattern would put
+    // `--radius-*` into the set of names that survive, and every cleared radius
+    // would then read as re-declared.
+    it('does not read a reset as a surviving token', () => {
+      expect(deriveDeclared(`@theme {\n  --radius-*: initial;\n}\n`)).toEqual([])
     })
   })
 })

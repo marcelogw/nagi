@@ -232,6 +232,53 @@ export function deriveDeclared(css) {
 }
 
 /**
+ * A namespace being cleared: `--radius-*: initial` inside a `@theme` block.
+ *
+ * Separate from `DECLARATION` because it has to match the one thing that
+ * pattern deliberately cannot — the `*`. A reset is not a token, and reading
+ * the two with one pattern would put `--radius-*` into the set of names that
+ * survive the reset.
+ */
+const RESET_DECLARATION = /(?:^|[;{])\s*(--[a-z][a-z0-9-]*-)\*\s*:\s*initial\s*(?=[;}])/gm
+
+/**
+ * Which namespaces the reset closes, read off the reset itself.
+ *
+ * Hand-listing them here is the two-file synchronisation this whole file exists
+ * to refuse: clear one more namespace in globals.css, forget this list, and the
+ * probe stays green while asserting nothing about the utilities that just
+ * stopped existing — covering less than it appears to, which is the shape of
+ * BUG-001 and BUG-008 both.
+ *
+ * The utility prefix comes from `NAMESPACES`, the one hand-maintained table, so
+ * a namespace cannot mean one thing to the positive side and another to the
+ * negative one. A namespace cleared but absent from that table throws: this is
+ * the negative side of the same rule the positive side already enforces — "not
+ * listed" has to mean "covered elsewhere", never "not thought about".
+ *
+ * Longest first, for the same reason `NAMESPACES` is: reset both `--font-*` and
+ * `--font-weight-*` and the shorter one would claim every weight.
+ *
+ * @returns {[string, string][]} namespace → utility prefix
+ */
+export function deriveReset(css) {
+  const theme = themeBodies(withoutComments(css)).join('\n')
+
+  return [...theme.matchAll(RESET_DECLARATION)]
+    .map(([, namespace]) => {
+      const entry = NAMESPACES.find(([known]) => known === namespace)
+      if (!entry) {
+        throw new Error(
+          `${GLOBALS} clears ${namespace}* but no utility prefix is known for it. ` +
+            `Add ${namespace} to NAMESPACES so the probe can assert the utilities are gone.`,
+        )
+      }
+      return entry
+    })
+    .sort(([a], [b]) => b.length - a.length)
+}
+
+/**
  * The utilities the reset took away: Tailwind's own `--color-*` and `--text-*`
  * defaults, minus the handful we re-declare on purpose.
  *
@@ -253,43 +300,23 @@ export function deriveNeutralised(css, tailwindTheme) {
   // line-anchored pattern of its own. Tailwind's theme.css puts one declaration
   // per line today, so the two agree today — and keeping two answers to one
   // question is how the careful one stops being used.
-  //
-  // Six more joined --color-/--text- in #135: every namespace the reset above
-  // now clears, same prefix each already carries in NAMESPACES — reused rather
-  // than repeated, so a namespace cannot drift between what it means for the
-  // positive side and what it means for the negative one.
-  const RESET = [
-    ['--color-', 'bg-'],
-    ['--text-', 'text-'],
-    ['--font-weight-', 'font-'],
-    ['--tracking-', 'tracking-'],
-    ['--leading-', 'leading-'],
-    ['--radius-', 'rounded-'],
-    ['--shadow-', 'shadow-'],
-    ['--ease-', 'ease-'],
-  ]
+  const reset = deriveReset(css)
 
   const cleared = new Set()
   for (const [, name] of withoutComments(tailwindTheme).matchAll(DECLARATION)) {
     const { base, property } = splitPair(name)
     if (property || survives.has(base)) continue
 
-    // `--text-shadow-*` is excluded because it is a *different namespace*, not
-    // a step of the type scale: `--text-*: initial` does not reach it, and
-    // `text-shadow-md` still generates a shadow nothing in this design system
-    // names. Card #135 measured 61 such off-system utilities the day it ran;
-    // six of the namespaces it found — --font-weight-*, --tracking-*,
-    // --leading-*, --radius-*, --shadow-* and --ease-* — are closed above and
-    // covered by RESET now. What is left open (--inset-shadow-*,
-    // --drop-shadow-*, --text-shadow-*, --animate-*, --blur-*, --perspective-*,
-    // --aspect-*, --container-*) is a deliberate decision recorded in
-    // globals.css's reset comment, not a gap this probe missed — it reports
-    // what the reset it can see actually cleared, and calling text-shadow a
-    // regression here would be blaming the probe's own reading for a decision
-    // made somewhere else.
+    // The one prefix `startsWith` gets wrong. `--text-shadow-md` begins with
+    // `--text-`, which the reset does clear, but it belongs to a namespace of
+    // its own that the reset does not reach — `text-shadow-md` still generates
+    // a shadow nothing in this design system names. Calling it cleared here
+    // would report a utility as gone while it is still on the page, which is
+    // the one failure a probe cannot have. Which namespaces stay open, and
+    // why, is decided in globals.css's reset comment, not here.
     if (base.startsWith('--text-shadow-')) continue
 
-    const entry = RESET.find(([namespace]) => base.startsWith(namespace))
+    const entry = reset.find(([namespace]) => base.startsWith(namespace))
     if (entry) cleared.add(entry[1] + base.slice(entry[0].length))
   }
 
