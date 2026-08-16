@@ -18,8 +18,15 @@ a new catalogue plus a registry entry and changes nothing in this file.
 | installment plan | `installmentPlan`, `InstallmentPlan`; one month's share is an `installment` |
 | credit card | `creditCard`, `CreditCard` |
 | category | `category`, `Category` — the *kind* of an operation, single-valued, mandatory |
+| category type | `type` on `Category` — which of `income`, `expense` or `savings` a category belongs to. Mandatory, and the axis every category list groups on |
+| system category | `other-income`, `other-expense`, `other-savings` — one per category type, undeletable, and the reassignment target when a category of that type is deleted |
 | tag | `tag`, `Tag` — the *context* of an operation, multi-valued, optional, user-created |
 | catalogue | `catalogue` — the nav grouping over category, credit card and tag. A grouping, not a destination: no route, and the active destination is always one of its three leaves |
+| recurrence | `recurrence`, `Recurrence` — the rule, stored once |
+| occurrence | one month's row derived from a recurrence. Derived on read, never written ahead |
+| exception | `RecurrenceException` — one month diverging from the rule, or skipped. Pointwise: it says nothing about the next month |
+| close | `closeAt` — set `endMonth`, ending a rule from a month on |
+| split | `splitAt` — close the rule at M−1 and open a new one at M. How "this and future" is stored; history is never rewritten |
 | horizon | `horizon` — the last month the app derives and navigates to |
 | name | `name` — what an entry is. Required on every entry |
 | description | `description` — optional detail on an entry, read in its info panel and by search |
@@ -56,6 +63,7 @@ is not a translation table and does not grow when the app gains a language.
 | Entrou | income |
 | Saiu | expense |
 | Guardou | savings entry |
+| Entrada · Despesa · Guardou | the entry form's three segments — the same three concepts the card calls Entrou · Saiu · Guardou |
 | Sobrou | net balance |
 | Meta | goal |
 | Parcelamento | installment plan |
