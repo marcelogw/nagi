@@ -288,7 +288,8 @@ the ones above.
 Almost none of it was new. The menu is the `Select` menu unchanged, filtering a
 set as you type is the icon picker in the category dialog, rejection is
 `Input`'s own `invalid` and `hint`, and a chip is `Badge` with `onRemove`.
-Three things were missing, and they are what the artefact decides:
+Three things are what the artefact decides — two that were missing, and one
+that replaces the create trigger written above, which was wrong:
 
 - **The chips sit below the field, not inside it.** A token field changes height
   while you type, which no other field in this product does, and it would fork

@@ -406,7 +406,7 @@ denser than the showcase on purpose — it stacks a whole grouped month, where
 the showcase stacks three rows inside a card — so the divergence was a real
 distinction that had never been given a name. Migrating either one onto the
 other loses something true: the anchor is the proof of the whole system and
-would lose its density, and the showcase would have to import four off-grid
+would lose its density, and the showcase would have to import five off-grid
 pixel values into the component contract.
 
 **The two differ in rhythm and inset, never in proportion.** `dense` drops the
@@ -420,10 +420,10 @@ row shares the text and money axes; across two lists those axes belong to the
 container, not to this prop. A variant that changed the tile or the gap would
 be a second component, not a density.
 
-The four off-grid values are gone with it — `9px` and `10px` and the two inner
-gaps snap to `--space-2` / `--space-3` / `--space-1`, and the `1px` gap between
-the title and meta lines is deleted rather than tokenised, because two lines
-with their own line-heights do not need one. The largest change any row sees is
+The five off-grid values are gone with it — `9px`, `10px`, `5px` and `6px`
+snap to `--space-2` / `--space-3` / `--space-1`, and the `1px` gap between the
+title and meta lines is deleted rather than tokenised, because two lines with
+their own line-heights do not need one. The largest change any row sees is
 two pixels.
 
 One consequence worth stating: the anchor artefact already used the word
@@ -439,8 +439,9 @@ _2026-08-16_
 existence. Almost none of it is new: the suggestion menu is the `Select` menu
 unchanged, filtering a set as you type is the category dialog's icon picker,
 rejection is `Input`'s own `invalid` and `hint`, and a chip is `Badge` with a
-new `onRemove`. Three things were genuinely missing, and only those three are
-decided here.
+new `onRemove`. Three things are decided here, and only those three. Two were
+genuinely missing; the third replaces a rule that was already written and was
+wrong, which is said where it is replaced rather than left to be noticed.
 
 **The attached tags render below the field, not inside it.** A token field
 changes height as the user types, which no other field in this product does,
@@ -455,8 +456,10 @@ Filtering is a substring match; creating is an exact miss. Typing `viagem`
 while only `viagem-japao` exists shows that match *and* offers to create
 `viagem`. Tying the row to "nothing matched" would make every tag that is a
 prefix of another one uncreatable, which is a dead end the user cannot even see
-the shape of. It still cannot produce a duplicate — the row hides precisely
-when the slug is taken — and that was the whole point of the original rule.
+the shape of. This **reverses** the rule the spec carried — "create new appears
+only when no slug matches" — rather than filling a gap. What that rule was
+protecting survives: the row still cannot produce a duplicate, because it hides
+precisely when the slug is taken. What it got wrong was the trigger.
 The row is always last: above a match it would be the highlighted default, and
 attaching an existing tag is the common act.
 
