@@ -603,6 +603,12 @@ present, resolves to an existing card. `Installment.cardId` already has exactly
 that check (invariant 6), and an optional field is where a dangling id survives
 an import unnoticed.
 
+And a reference needs a cascade on delete. Deleting a card today reassigns
+instalments through `planning-store` and nothing else, because instalments were
+the only thing pointing at a card. Expenses and recurrence templates now do too,
+so the ledger gets its own `reassignCard` — the same shape category deletion
+already has, and the same defect if it is skipped.
+
 ### The horizon is ledger state, not a setting
 
 _2026-08-16 · refines "The future is bounded by a stored horizon"_
