@@ -301,6 +301,54 @@ and cards become instances when they gain the same treatment. One screen gets
 built now, with no generic abstraction over facets — the generalisation belongs
 to the second instance, where what actually varies is visible.
 
+### A row's trailing actions are handlers, never a slot
+
+_2026-08-16_
+
+`ListRow` takes `onEdit` and `onDelete`. It does not take an `actions` slot, an
+`actions` array, or children on the trailing edge.
+
+The approved Visão Mensal anchor fixes the whole presentation — the order
+edit → delete, the danger tone on delete, the confirmation, the reveal on
+hover, the swipe on touch, the `…` fallback where neither exists, and an
+`aria-label` built from the row title. A slot hands all of that to the caller,
+and the caller is a different screen every time. Delete was already coral on
+four cards once and had to be corrected repo-wide; a slot is how that comes
+back one screen at a time.
+
+Closing the set at two is deliberate. A third action is a design question — an
+array of `RowAction` is the upgrade path when one actually exists, and it keeps
+the row as the owner of the behaviour.
+
+Recorded with it: `ListRowProps` was behind the anchor by three things, not
+one. `recurring` (↻) and `installment` (`3/12`) were in the approved artefact
+and missing from the contract. Both are neutral by the coral rule — they repeat
+across many rows, so neither can be the screen's single accent — and both now
+sit on the title line, which truncates around them. The ↻ is 12px in the
+anchor, below the icon scale, so it gained a token (`--icon-2xs`) rather than
+staying an arbitrary value.
+
+### A tag is not marked on the monthly row
+
+_2026-08-16_
+
+Tags are read in the entry's info panel. The row shows no tag glyph.
+
+The specification originally put one there, reasoning from the `↻` precedent.
+The precedent argues the other way once read closely: `↻` and `3/12` mark what
+an entry *is*, and the marker is the whole fact. A tag is a membership — one
+glyph cannot say which tag or how many, so it raises a question instead of
+answering one, on a title line that already truncates around two markers.
+
+The cost is accepted and named: an entry's tags are invisible until the panel
+is opened, and a month cannot be scanned for tagged entries. That scan is the
+analysis view's job, which does it better than a glyph would. Reversible — the
+marker is one prop if use shows the gap hurts.
+
+This makes the info panel load-bearing, and raises the question of what opens
+it. That is now an open design blocker on `docs/specs/tags.md`, not an
+implementer's judgement call.
+
 ---
 
 ## Open
