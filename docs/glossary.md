@@ -17,7 +17,11 @@ a new catalogue plus a registry entry and changes nothing in this file.
 | goal | `goal`, `Goal` |
 | installment plan | `installmentPlan`, `InstallmentPlan`; one month's share is an `installment` |
 | credit card | `creditCard`, `CreditCard` |
-| category | `category`, `Category` |
+| category | `category`, `Category` — the *kind* of an operation, single-valued, mandatory |
+| tag | `tag`, `Tag` — the *context* of an operation, multi-valued, optional, user-created |
+| horizon | `horizon` — the last month the app derives and navigates to |
+| name | `name` — what an entry is. Required on every entry |
+| description | `description` — optional detail on an entry, read in its info panel and by search |
 | monthly view | route `/months/$month`, destination id `months` |
 | dashboard | route `/dashboard`, destination id `dashboard` |
 | profile | destination id `profile`, route `/settings` |

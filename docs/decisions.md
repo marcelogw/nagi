@@ -184,6 +184,123 @@ better named than it was. Neither may be cited to reopen this.
 **Bundle size did not enter the decision** in either direction: the CSS ships
 at 4.7 KB gzipped against a 50 KB budget.
 
+### Tags are a second taxonomy, orthogonal to categories
+
+_2026-08-16_
+
+A category answers *what kind of operation this was* — groceries, fuel, rent.
+It is single-valued and mandatory. A tag answers *what context it belonged to*
+— a trip, a renovation, a side project. It is multi-valued and optional, and it
+is created freely by the user rather than picked from a list the app ships.
+
+The two never merge. A trip has groceries and fuel in it; collapsing context
+into the type hierarchy is how a category list grows to sixty entries and stops
+classifying anything. Keeping them separate is what makes "everything I spent
+on this trip, broken down by kind" a question the app can answer at all.
+
+A tag is an entity, not a bare string on the entry: a string cannot carry the
+colour the design may add later, and cannot be renamed without rewriting every
+record that mentions it. Its id is its own normalised slug rather than a
+surrogate `Uuid` — the slug is unique, deterministic and immutable, which is
+the definition of a key, and it keeps the JSON export readable, which matters
+in an app whose backup is a first-class feature.
+
+Tags apply to income, expenses, installment plans and recurrence templates.
+Not to savings entries — a goal already models "money set aside for something".
+
+The rules are specified in [`specs/tags.md`](./specs/tags.md).
+
+### Every entry has a name and an optional description
+
+_2026-08-16_
+
+The free-text label of a thing had four different names: `name` on
+`CreditCard`, `Installment` and `Goal`; `description` on `Income`, `Expense`
+and `RecurrenceTemplate`; `customLabel` on `Category`; and `source` plus `note`
+on `SavingsEntry`. [`glossary.md`](./glossary.md) opens by requiring one name
+per concept, and this was four.
+
+Every entry now carries a required `name` — what the thing is, "new running
+shoes" — and an optional `description` for anything worth remembering later,
+"for the Japan trip, bought at the mall". `SavingsEntry.source` becomes `name`
+and `note` becomes `description`; the origin of the money is a name like any
+other, and a third free-text field is a question the user has to answer on
+every single entry.
+
+Decided now because it is free now: apart from categories and cards, no entity
+has any stored data yet. After the ledger ships this is a migration plus a form
+change with users on the other side of it.
+
+`description` is not shown on the monthly row — `ListRow` is `title` plus a
+`meta` line that is already *date · category*, and it is approved design. It
+surfaces in the entry's info panel and in search results, and it is searchable.
+A field that is never read back would not be worth its cost at entry time.
+
+### An entry's date carries a day, and income has one
+
+_2026-08-16 · closes "Whether an expense date carries a day" (raised 2026-07-30)_
+
+`Expense.date` keeps day precision. `Income` gains the same field, required.
+
+Income having only a month was the real defect: any screen that lists income
+and expenses together in time order — search, a tag's history — has nothing to
+sort half its rows by, and the asymmetry buys nothing.
+
+No time of day. Time means time zones, in a local-first app that will sync
+across devices, and nobody reconciles household finance by the hour. The hour
+the user actually wants is "when did I enter this", which is `createdAt`.
+
+Every entry carries `createdAt` and `updatedAt`. These are the one kind of
+field that cannot be backfilled honestly: added later, every existing record
+gets an invented timestamp and the info panel lies about it forever. Authorship
+is deliberately *not* added — it is backfillable (in single-user storage every
+record is the one user's), so it waits for the feature that needs it rather
+than sitting null in the model.
+
+### The future is bounded by a stored horizon, not materialised
+
+_2026-08-16_
+
+A recurrence is one rule with occurrences derived per month, never rows written
+ahead (`P-04`), and it can be open-ended (`P-07`). Both are settled. What was
+missing is where derivation stops: without a bound, "the total for this tag" is
+an unbounded sum, because a rule expands into any month it is asked for.
+
+A single stored `Month` — the horizon — is how far the app looks. Months beyond
+it are not navigable and are never derived. The user moves it forward
+deliberately, it advances on its own at the turn of the year, and creating an
+installment plan that ends past it pushes it out to cover the plan.
+
+An installment plan is the exception, and because it is finite rather than
+because it is long: its schedule is fully determined at creation
+(`startMonth + totalInstallments`, capped at 48). It is summed in full even
+beyond the horizon, which is what makes "what did this trip cost" correct when
+the trip was paid in twelve instalments. An open recurrence has no such end and
+is never expanded past the horizon.
+
+Realised and forecast are shown as separate figures, never added into one
+number.
+
+### Analytics functions take a set of entries, never a store and a period
+
+_2026-08-16_
+
+Every aggregation in `domain/analytics.ts` receives an already-filtered list of
+entries. Filtering is the caller's job: the dashboard filters by window, a tag
+view filters by tag, a category or card view will filter by its own facet.
+
+The dashboard is windowed by period and a tag spans arbitrary, non-contiguous
+months. If these functions are written to the dashboard's shape — store plus
+period — no other view can reuse them and the arithmetic gets written twice,
+which is the exact duplication EPIC-010 exists to prevent.
+
+This also settles the shape of the analysis screen. It is not "the tag screen":
+it is the analysis view of a facet — header totals, distribution by category,
+change over time, the list of entries. Tags are its first instance; categories
+and cards become instances when they gain the same treatment. One screen gets
+built now, with no generic abstraction over facets — the generalisation belongs
+to the second instance, where what actually varies is visible.
+
 ---
 
 ## Open
@@ -204,18 +321,6 @@ already decided and would have to be overridden. Leaning to SVG and CSS: it
 drops a heavy dependency and keeps the a11y rules that come with the design.
 
 Aggregation is a pure function either way, so nothing is blocked meanwhile.
-
-### Whether an expense date carries a day
-
-_Raised 2026-07-30 · decide before expenses are built_
-
-An expense stores a full `YYYY-MM-DD`, but the day may be meaningless: a
-recurring expense belongs to a month, not a date in it.
-
-Either the day is kept and the user picks it for one-off expenses — the field
-exists and a dated expense is more useful later — or the model drops to month
-precision and says so. What is not acceptable is a date field silently filled
-with the first of the month while the UI implies the user chose it.
 
 ### Whether an installment plan can be edited
 
