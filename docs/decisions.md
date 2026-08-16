@@ -373,11 +373,16 @@ The row-body tap also fails on its own terms: the trailing buttons are in the
 DOM on desktop, so a row that is itself a button nests interactive elements —
 invalid, and it leaves a screen reader unable to announce any of the three.
 
-On touch the three actions ride the existing swipe at 56px each, revealed by
-the gesture. They are deliberately not always-visible at 44px, which is what
-the Cartões grid does under `@media (hover:none)`: three permanent targets are
-132px that displace the money axis, and not displacing it is the rule the row
-actions exist under. A card has no axis on that edge; a row does.
+On touch the three actions ride the existing swipe at 44px each — the system's
+touch-target floor, not the 56px the foundation used for two. Three generous
+targets eat the line the user needs in order to know which row they are acting
+on, and 44px is a number this system already documents rather than a new one.
+
+The resulting 132px is exactly what the Cartões grid shows permanently under
+`@media (hover:none)`, which makes the difference precise: revealed on demand,
+the money axis holds until the user asks; permanent, it is displaced always,
+and not displacing it is the rule row actions exist under. A card has no axis
+on that edge; a row does.
 
 **This exercises the upgrade path named on 2026-08-16 and declines it.** The
 third action arrived, and the contract stays three named props rather than
