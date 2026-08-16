@@ -528,6 +528,146 @@ rather than merely differing from its neighbour.
 
 ---
 
+### A category belongs to one of income, expense or savings
+
+_2026-08-16_
+
+`Category.type: 'income' | 'expense' | 'savings'`. Every category answers to
+exactly one of the three columns the monthly view draws.
+
+The anchor (`ui-kit/visao-mensal.card.html`) groups each of its three columns by
+a category of that bucket, and `CategorySelect` groups on the same axis. Without
+the field a category list is one flat pool, and the income form offers
+"Moradia".
+
+No `subtype`. The design's `subtipo` on expenses splits fixed from variable,
+which is already `Expense.kind`; its third value, "cartão", is derived — an
+expense with a `cardId`, or an installment occurrence. Storing it would give the
+same fact two homes.
+
+The consequence is a seeding change. Every current default in
+`src/domain/categories.ts` (`housing`…`courses`) is an expense, so a typed list
+opens empty for income and for savings. The defaults grow from 11 to 18 — four
+income and three savings categories, ids in English per the glossary.
+
+### Every entry carries a category, savings included
+
+_2026-08-16_
+
+`Income.categoryId` and `SavingsEntry.categoryId` become required, joining
+`Expense.categoryId`.
+
+Income without a category cannot be grouped, and the anchor groups it. The
+savings field was challenged as speculative — it is not: the Guardou column
+groups into `Reserva` and `Investimentos`, which are `tipo: 'guardar'`
+categories in the design's dataset, not goals. `Investimentos` appears in no
+goal list.
+
+`SavingsEntry.goalId` stays optional and answers a different question. The
+category is what money was set aside *as*; the goal is what it was set aside
+*for*, and most saving has no goal attached.
+
+### There is one system category per bucket
+
+_2026-08-16 · supersedes invariant 4's "exactly one"_
+
+`other-income`, `other-expense` and `other-savings` replace the single `other`.
+Invariant 4 becomes exactly one `isSystem` category *per type*.
+
+Deleting a category reassigns its entries to the system category, and with one
+global `other` that target is expense-typed: deleting an income category files
+every income under an expense category. Invariant 3 cannot catch it, because
+the id resolves. Three targets let the reassignment pick by the deleted
+category's own bucket.
+
+Two things follow, and neither is optional. `reassignCategory` in `ledger-store`
+never touches `incomes` today. And the v1→v2 migration has to map the existing
+`other` onto `other-expense` and seed the other two, or every install that
+already has data fails invariant 4 on load.
+
+### A card expense needs no installment plan
+
+_2026-08-16_
+
+`Expense.cardId?: CardId`.
+
+The anchor draws "Fatura — outros · Nubank": an expense on a card that is not
+part of an installment plan. Without the field that row is unrepresentable, and
+the only way to draw it is to invent a one-month plan — which would then show up
+in every installment total.
+
+### The horizon is ledger state, not a setting
+
+_2026-08-16 · refines "The future is bounded by a stored horizon"_
+
+The stored horizon lives in `ledger-store` and travels in the snapshot.
+
+`settings-store` persists to localStorage and is absent from `buildSnapshot`,
+which reads ledger, catalog and planning. The horizon bounds recurrence
+derivation, so a horizon outside the backup means a restore silently changes
+what every open rule expands into — the same data yielding a different set of
+rows. It is domain state that happens to be user-adjustable, not a preference.
+
+It gains an invariant, and the `beforeLoad` on `/months/$month` keeps refusing
+to navigate past it.
+
+### Entry forms stay on `useState`; no zod, no react-hook-form
+
+_2026-08-16 · corrects a stale line in EPIC-005_
+
+EPIC-005 asks for a zod schema colocated with the form plus
+`@hookform/resolvers`. Neither dependency is in the repo, and neither is added.
+
+Two form dialogs already shipped on `useState` and typed domain errors, and they
+are the shape a third form matches. Three dependencies for a six-field form also
+spend a budget that is measured: `check:bundle` caps JS at 200 KB gzipped, and
+`DatePicker`, `Sheet` and `ListRow` are all still unbuilt.
+
+Validation belongs in `src/domain/` either way. A schema next to a form puts the
+rule where only that form can enforce it, and the second caller — the importer,
+a future sync — gets none of it. Zod's real home is the persistence boundary,
+where untrusted JSON enters, and that is its own card.
+
+### Phase 3 saves a confirmed savings entry from the third segment
+
+_2026-08-16_
+
+The entry form's type control has three segments — Entrada, Despesa, Guardou —
+and Phase 3 renders all three. Guardou saves a `SavingsEntry` with
+`confirmed: true` and no `goalId`.
+
+Rendering two of three segments of an approved control would be an invented
+variant, so the segment stays. Saving the entry is then the smaller commitment:
+`goalId` is already optional, and `confirmed: false` — the forecast — belongs
+with goals, where the UI that tells the two apart is designed. A default is
+being chosen here rather than derived, which is why it is written down.
+
+### Phase 3 ships recurrence as domain only
+
+_2026-08-16_
+
+`domain/recurrence.ts` lands complete and tested. The recurrence UI does not,
+because it is not designed.
+
+The "Novo lançamento" form is drawn in full, and it has no repeat control, no
+scope choice on edit ("this month" / "this and future"), no single ↔ recurring
+conversion and no exception UI. The ↻ on a row is an indicator, and that exists.
+Building the four missing controls means inventing four components inside the
+one form the design specifies completely.
+
+The cost is stated rather than absorbed quietly: six of EPIC-005's thirteen
+tasks are recurrence, and its exit criterion — an unskipped e2e for replication
+— needs a creation UI. **EPIC-005 does not close this round.** The domain lands,
+single-entry CRUD lands, and the four controls wait on a design card.
+
+One boundary this settles, because the domain has to enforce it without the UI:
+`exceptions` is pointwise — it applies to one month and does not touch the next.
+`splitAt` is the long-term mutation — close the rule at M−1, open a new one at
+M. No state is representable both ways, as long as an `exceptions` key outside
+`[startMonth, endMonth]` is rejected.
+
+---
+
 ## Open
 
 Each of these has to be settled before the feature it belongs to is built —
